@@ -20,6 +20,9 @@ const envSchema = z.object({
   // ── Database (Supabase Postgres — connection pooler URI) ────────────────────
   DATABASE_URL: z.url({ message: 'DATABASE_URL doit être une URL Postgres valide' }),
 
+  // ── Database (connexion directe — migrations Drizzle uniquement) ─────────────
+  DIRECT_DATABASE_URL: z.string().min(1, { message: 'DIRECT_DATABASE_URL manquant — requis pour pnpm db:push et db:migrate' }),
+
   // ── Supabase ─────────────────────────────────────────────────────────────────
   NEXT_PUBLIC_SUPABASE_URL: z.url({ message: 'NEXT_PUBLIC_SUPABASE_URL invalide' }),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
