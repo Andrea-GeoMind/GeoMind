@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+// Validation des variables d'environnement au boot — crash explicitement si manquantes
+import '@/lib/env'
 
 const inter = Inter({ subsets: ['latin'] })
 
