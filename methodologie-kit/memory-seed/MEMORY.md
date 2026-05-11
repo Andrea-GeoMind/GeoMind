@@ -1,0 +1,11 @@
+- [TDD obligatoire](feedback_tdd.md) — Test échouant en premier, toujours — Red-Green-Refactor, pas d'exception
+- [Logs avant fixes spéculatifs](feedback_logs_before_speculation.md) — Prod down → lire les logs AVANT de pousser, ne jamais débugger à l'aveugle
+- [Déployer systématiquement](feedback_deploy.md) — Toujours push après chaque modif, ne jamais laisser du code non déployé
+- [Tester en prod avant de valider](feedback_test_before_deploy.md) — Vérifier tous les endpoints sur l'URL prod après chaque push, pas juste en local
+- [Autonomie](feedback_autonomy.md) — Avancer sans demander validation, questions uniquement pour vrais arbitrages
+- [Merger sans demander](feedback_autonomy_merge.md) — Merger + supprimer branche dès approbation explicite, sans confirmation supplémentaire
+- [Nettoyage branches mergées](feedback_branch_cleanup.md) — Supprimer local + distant dès le merge dans main, aucun reliquat toléré
+- [Nommage des branches Git](feedback_branch_naming.md) — Nom significatif obligatoire (T-XXX-sujet ou feat/sujet), jamais d'identifiant aléatoire
+- [Mémoriser les URLs immédiatement](feedback_memorize_urls.md) — Dès qu'une URL de service apparaît, la mémoriser — ne jamais dire "je n'ai pas l'URL en mémoire"
+- [Skill /close-ticket](feedback_close_ticket.md) — Invoquer sans attendre : merge+push+deploy+doc+nettoyage+vérification complétude
+- [Doc finale = audit code](feedback_final_doc.md) — La doc finale du projet se produit par lecture exhaustive du code, tickets/PROGRESS.md comme index seulement

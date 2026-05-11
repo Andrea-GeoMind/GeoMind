@@ -1,0 +1,30 @@
+{
+  "_comment": "Exemple de configuration .claude/settings.json — copier vers .claude/settings.json (versionné, partagé équipe) et adapter.",
+  "_doc": "Les permissions vont plutôt dans .claude/settings.local.json (gitignored, par dev).",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/check_git_push.py"
+          }
+        ]
+      }
+    ],
+    "_comment_PreCommit": "Hook pre-commit optionnel — utile pour bloquer un commit si les linters/tests échouent.",
+    "PreCommit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Pre-commit hook — adapter à la stack (lint + tests rapides)'"
+          }
+        ]
+      }
+    ]
+  }
+}
