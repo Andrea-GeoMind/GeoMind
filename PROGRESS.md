@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 1 en cours. Ticket 1 (setup initial) terminé. Prochaine étape : Ticket 2 (validation des variables d'environnement via Zod) puis Ticket 3 (Supabase + Drizzle + schéma initial + RLS).
+Sprint 1 en cours. TKT-001 et TKT-002 terminés. Prochaine étape : TKT-003 (Supabase + Drizzle + schéma initial + RLS) — nécessite de créer le projet Supabase en amont.
 
 ---
 
@@ -23,7 +23,7 @@ Sprint 1 en cours. Ticket 1 (setup initial) terminé. Prochaine étape : Ticket 
 ### Tickets
 
 - [x] **TKT-001** — Setup initial (Next.js 15, TypeScript strict, Tailwind, shadcn/ui, ESLint, Prettier, pnpm)
-- [ ] **TKT-002** — Validation des variables d'environnement (Zod + lib/env.ts + .env.example)
+- [x] **TKT-002** — Validation des variables d'environnement (Zod + lib/env.ts + .env.example)
 - [ ] **TKT-003** — Setup Supabase + Drizzle + schéma initial + RLS
 - [ ] **TKT-004** — Supabase Auth + clients SSR + Resend transactionnel
 
@@ -34,3 +34,4 @@ Sprint 1 en cours. Ticket 1 (setup initial) terminé. Prochaine étape : Ticket 
 | Ticket | Statut | Date | Notes |
 |--------|--------|------|-------|
 | TKT-001 | ✅ | 2026-05-11 | typecheck 0 err, lint 0 err, 3 tests verts, dev → 200 — commit 49aa210 sur main |
+| TKT-002 | ✅ | 2026-05-11 | lib/env.ts Zod v4 (17 vars), .env.example, 8 tests — 11 tests total — commit d42fdfd |
