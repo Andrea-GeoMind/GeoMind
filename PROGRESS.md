@@ -33,4 +33,4 @@ Sprint 1 en cours. Ticket 1 (setup initial) terminé. Prochaine étape : Ticket 
 
 | Ticket | Statut | Date | Notes |
 |--------|--------|------|-------|
-| TKT-001 | ✅ | 2026-05-11 | pnpm typecheck 0 erreur, `pnpm dev` → 200 sur localhost:3000 |
+| TKT-001 | ✅ | 2026-05-11 | typecheck 0 err, lint 0 err, 3 tests verts, dev → 200 — commit 49aa210 sur main |
