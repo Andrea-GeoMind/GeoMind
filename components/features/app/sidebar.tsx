@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Globe, Settings, LogOut } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { Route } from 'next'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 
 type NavItem = {
-  href: string
+  href: Route
   label: string
   icon: LucideIcon
   match?: string
