@@ -49,3 +49,4 @@ drizzle/meta/
 
 # sentry
 .sentryclirc
+.claude/worktrees/
