@@ -13,7 +13,7 @@ export async function signUp(
     email,
     password,
     options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/onboarding`,
     },
   })
 
