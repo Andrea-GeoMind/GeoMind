@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 1 en cours. TKT-001 et TKT-002 terminés. Prochaine étape : TKT-003 (Supabase + Drizzle + schéma initial + RLS) — nécessite de créer le projet Supabase en amont.
+Sprint 1 en cours. TKT-001, TKT-002 et TKT-003 terminés. Prochaine étape : TKT-004 (Supabase Auth + clients SSR + Resend).
 
 ---
 
@@ -24,7 +24,7 @@ Sprint 1 en cours. TKT-001 et TKT-002 terminés. Prochaine étape : TKT-003 (Sup
 
 - [x] **TKT-001** — Setup initial (Next.js 15, TypeScript strict, Tailwind, shadcn/ui, ESLint, Prettier, pnpm)
 - [x] **TKT-002** — Validation des variables d'environnement (Zod + lib/env.ts + .env.example)
-- [ ] **TKT-003** — Setup Supabase + Drizzle + schéma initial + RLS
+- [x] **TKT-003** — Setup Supabase + Drizzle + schéma initial + RLS (2026-05-12)
 - [ ] **TKT-004** — Supabase Auth + clients SSR + Resend transactionnel
 
 ---
