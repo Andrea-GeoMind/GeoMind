@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 1 en cours. TKT-001, TKT-002 et TKT-003 terminés. Prochaine étape : TKT-004 (Supabase Auth + clients SSR + Resend).
+Sprint 1 en cours. TKT-001 à TKT-004 terminés. Prochaine étape : TKT-005.
 
 ---
 
@@ -25,7 +25,7 @@ Sprint 1 en cours. TKT-001, TKT-002 et TKT-003 terminés. Prochaine étape : TKT
 - [x] **TKT-001** — Setup initial (Next.js 15, TypeScript strict, Tailwind, shadcn/ui, ESLint, Prettier, pnpm)
 - [x] **TKT-002** — Validation des variables d'environnement (Zod + lib/env.ts + .env.example)
 - [x] **TKT-003** — Setup Supabase + Drizzle + schéma initial + RLS (2026-05-12)
-- [ ] **TKT-004** — Supabase Auth + clients SSR + Resend transactionnel
+- [x] **TKT-004** — Supabase Auth + clients SSR + Resend transactionnel (2026-05-12)
 
 ---
 
@@ -35,3 +35,4 @@ Sprint 1 en cours. TKT-001, TKT-002 et TKT-003 terminés. Prochaine étape : TKT
 |--------|--------|------|-------|
 | TKT-001 | ✅ | 2026-05-11 | typecheck 0 err, lint 0 err, 3 tests verts, dev → 200 — commit 49aa210 sur main |
 | TKT-002 | ✅ | 2026-05-11 | lib/env.ts Zod v4 (17 vars), .env.example, 8 tests — 11 tests total — commit d42fdfd |
+| TKT-004 | ✅ | 2026-05-12 | @supabase/ssr + Resend, 5 Server Actions, PKCE callback, 4 pages auth, 10 tests — 48 tests total — commit 5a0667b sur main |
