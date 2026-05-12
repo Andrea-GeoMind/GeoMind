@@ -29,6 +29,24 @@ export async function getSiteMetadataBySiteId(siteId: string) {
   return row ?? null
 }
 
+export async function updateSiteDescription(siteId: string, description: string) {
+  const [row] = await db
+    .update(siteMetadata)
+    .set({ description, updatedAt: new Date() })
+    .where(eq(siteMetadata.siteId, siteId))
+    .returning()
+  return row ?? null
+}
+
+export async function updateSiteKeywords(siteId: string, keywords: string[]) {
+  const [row] = await db
+    .update(siteMetadata)
+    .set({ keywords, updatedAt: new Date() })
+    .where(eq(siteMetadata.siteId, siteId))
+    .returning()
+  return row ?? null
+}
+
 export async function deleteSiteMetadata(siteId: string) {
   await db.delete(siteMetadata).where(eq(siteMetadata.siteId, siteId))
 }
