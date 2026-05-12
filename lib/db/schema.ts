@@ -10,7 +10,7 @@ import {
   integer,
   unique,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -89,6 +89,53 @@ export const firecrawlPages = pgTable(
   (t) => [unique('firecrawl_pages_site_url_unique').on(t.siteId, t.url)]
 )
 
+// ─── site_metadata ────────────────────────────────────────────────────────────
+// Résultat de la phase découverte : description, mots-clés extraits du crawl.
+// 1:1 avec sites — upsert à chaque nouvelle découverte.
+
+export const siteMetadata = pgTable('site_metadata', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id')
+    .notNull()
+    .unique()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  description: text('description'),
+  keywords: text('keywords').array().notNull().default(sql`'{}'::text[]`),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── competitors ──────────────────────────────────────────────────────────────
+// Concurrents détectés lors de la découverte. Remplacés entièrement à chaque analyse.
+
+export const competitors = pgTable(
+  'competitors',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    name: text('name'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('competitors_site_url_unique').on(t.siteId, t.url)]
+)
+
+// ─── prompts ──────────────────────────────────────────────────────────────────
+// Prompts neutres générés lors de la découverte, utilisés pour interroger les IAs.
+// is_neutral=false si le prompt contient le domaine ou la marque (règle §6 CLAUDE.md).
+
+export const prompts = pgTable('prompts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  text: text('text').notNull(),
+  isNeutral: boolean('is_neutral').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -112,11 +159,38 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
     references: [profiles.id],
   }),
   firecrawlPages: many(firecrawlPages),
+  metadata: one(siteMetadata, {
+    fields: [sites.id],
+    references: [siteMetadata.siteId],
+  }),
+  competitors: many(competitors),
+  prompts: many(prompts),
 }))
 
 export const firecrawlPagesRelations = relations(firecrawlPages, ({ one }) => ({
   site: one(sites, {
     fields: [firecrawlPages.siteId],
+    references: [sites.id],
+  }),
+}))
+
+export const siteMetadataRelations = relations(siteMetadata, ({ one }) => ({
+  site: one(sites, {
+    fields: [siteMetadata.siteId],
+    references: [sites.id],
+  }),
+}))
+
+export const competitorsRelations = relations(competitors, ({ one }) => ({
+  site: one(sites, {
+    fields: [competitors.siteId],
+    references: [sites.id],
+  }),
+}))
+
+export const promptsRelations = relations(prompts, ({ one }) => ({
+  site: one(sites, {
+    fields: [prompts.siteId],
     references: [sites.id],
   }),
 }))
