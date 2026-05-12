@@ -7,7 +7,7 @@ import { Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { onboardingSiteSchema, type OnboardingSiteInput } from '@/lib/validations/site'
+import { onboardingSiteSchema } from '@/lib/validations/site'
 import { createSiteOnboardingAction } from '@/app/(app)/onboarding/actions'
 
 const LANGUAGES = [
