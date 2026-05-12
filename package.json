@@ -19,10 +19,13 @@
     "inngest:dev": "inngest-cli dev"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toast": "^1.2.14",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
@@ -32,6 +35,8 @@
     "postgres": "^3.4.9",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-hook-form": "^7.75.0",
+    "resend": "^6.12.3",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.4.3"
