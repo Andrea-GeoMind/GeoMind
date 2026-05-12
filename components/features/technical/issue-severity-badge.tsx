@@ -1,8 +1,3 @@
-/**
- * IssueSeverityBadge — badge de sévérité pour les issues GEO (Technique + Contenu).
- * Sévérités : critical > high > medium > low
- */
-
 import { cn } from '@/lib/utils'
 
 export type IssueSeverity = 'critical' | 'high' | 'medium' | 'low'
@@ -19,14 +14,12 @@ const SEVERITY_CONFIG: Record<
   critical: {
     label: 'Critique',
     dot: 'bg-[--score-bad-500]',
-    badge:
-      'bg-[--score-bad-50] text-[--score-bad-700] ring-[--score-bad-200]',
+    badge: 'bg-[--score-bad-50] text-[--score-bad-700] ring-[--score-bad-100]',
   },
   high: {
     label: 'Élevée',
     dot: 'bg-[--score-mid-500]',
-    badge:
-      'bg-[--score-mid-50] text-[--score-mid-700] ring-[--score-mid-200]',
+    badge: 'bg-[--score-mid-50] text-[--score-mid-700] ring-[--score-mid-100]',
   },
   medium: {
     label: 'Moyenne',

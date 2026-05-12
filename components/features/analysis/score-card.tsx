@@ -1,10 +1,5 @@
-/**
- * ScoreCard — carte affichant un score de pilier GEO (Autorité, Technique, Contenu).
- * Utilise ScoreGauge en version "sm" + étiquette de pilier + tendance optionnelle.
- */
-
 import { cn } from '@/lib/utils'
-import { ScoreGauge } from '@/components/ui/score-gauge'
+import { ScoreGauge } from '@/components/charts/score-gauge'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 type Pillar = 'authority' | 'technical' | 'content' | 'global'
@@ -43,9 +38,9 @@ export function ScoreCard({
 
   const trendColor =
     trend === 'up'
-      ? 'text-score-good'
+      ? 'text-[--score-good-600]'
       : trend === 'down'
-        ? 'text-score-bad'
+        ? 'text-[--score-bad-600]'
         : 'text-muted-foreground'
 
   return (

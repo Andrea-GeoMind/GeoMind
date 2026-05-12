@@ -1,8 +1,3 @@
-/**
- * ScoreGauge — arc SVG affichant la note GEO globale (0-100).
- * Couleur dynamique : rouge <30 / orange 30-59 / vert ≥60
- */
-
 import { cn } from '@/lib/utils'
 
 interface ScoreGaugeProps {
@@ -61,7 +56,6 @@ export function ScoreGauge({
   const arcLength = (3 / 4) * circumference
   const dashOffset = arcLength - (clampedScore / 100) * arcLength
 
-  // Rotation pour centrer l'arc (−135° pour démarrer en bas-gauche)
   const rotation = -135
 
   return (
@@ -73,7 +67,6 @@ export function ScoreGauge({
         aria-label={`Score GEO : ${clampedScore} sur 100`}
         role="img"
       >
-        {/* Track (fond gris) */}
         <circle
           cx={cx}
           cy={cy}
@@ -85,7 +78,6 @@ export function ScoreGauge({
           strokeDasharray={`${arcLength} ${circumference}`}
           transform={`rotate(${rotation}, ${cx}, ${cy})`}
         />
-        {/* Progress (coloré) */}
         <circle
           cx={cx}
           cy={cy}
@@ -99,7 +91,6 @@ export function ScoreGauge({
           transform={`rotate(${rotation}, ${cx}, ${cy})`}
           style={{ transition: 'stroke-dashoffset 0.6s ease-out' }}
         />
-        {/* Score chiffre */}
         <text
           x={cx}
           y={cy + cfg.fontSize * 0.35}
@@ -108,11 +99,9 @@ export function ScoreGauge({
           fontWeight={800}
           fontFamily="var(--font-sans), system-ui, sans-serif"
           fill={color.text}
-          className="numeric"
         >
           {clampedScore}
         </text>
-        {/* Sous-label "/100" */}
         <text
           x={cx}
           y={cy + cfg.fontSize * 0.35 + cfg.subFontSize + 2}
