@@ -44,7 +44,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 
 ### Tickets
 
-- [x] **TKT-008.5** — Design system GEOMIND : tokens CSS globals.css, Figtree+JetBrains Mono, logos SVG, 4 composants signatures (ScoreGauge, ScoreCard, PromptBadge, IssueSeverityBadge) (2026-05-12)
+- [x] **TKT-008.5** — Design system GEOMIND : tokens CSS globals.css, Figtree+JetBrains Mono, logos SVG, favicon.svg, 4 composants signatures aux bons chemins (ScoreGauge, ScoreCard, NeutralPromptBadge, IssueSeverityBadge) + page démo /design (2026-05-12)
 - [x] **TKT-010** — Connecteurs LLM 4 IAs + parse + cost (2026-05-12)
 
 ---
@@ -60,5 +60,5 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 | TKT-006 | ✅ | 2026-05-12 | CRUD sites Drizzle, quotas par plan, 2 Server Actions (quota+ownership check), SiteCard+SiteForm Client Components, lib/validations/site.ts — 60 tests (12 nouveaux) — commit f3ed2ab |
 | TKT-007 | ✅ | 2026-05-12 | @mendable/firecrawl-js 4.22.2, table firecrawl_pages (unique site+url, jsonb metadata), crawlSite() + withRetry (backoff exp., stop 401/403), schemas Zod séparés (testables sans env) — 70 tests (10 nouveaux) — commit 59a20fb |
 | TKT-008 | ✅ | 2026-05-12 | inngest@4.3.0, client.ts + functions/crawl-site.ts (event site/crawl.requested, step.run), app/api/inngest/route.ts, INNGEST_DEV=1 en dev, serverExternalPackages firecrawl/undici, script inngest:dev via npx — 46 tests stables — commit 5cc6411 |
-| TKT-008.5 | ✅ | 2026-05-12 | Design system : tokens CSS (#FAF6EF crème, #2348B4 cobalt, #E07856 terracotta, score colors), Figtree+JetBrains Mono, logo.svg + logo-mark.svg, ScoreGauge (arc SVG 270°), ScoreCard (pilier+delta+trend), PromptBadge (neutre/orienté), IssueSeverityBadge (critical/high/medium/low) — typecheck 0 err — pnpm approve-builds --all résolu |
+| TKT-008.5 | ✅ | 2026-05-12 | Design system complet : tokens CSS (#FAF6EF crème, #2348B4 cobalt, #E07856 terracotta, score colors), Figtree+JetBrains Mono, logo.svg + logo-mark.svg, favicon.svg, composants aux bons chemins : ScoreGauge (charts/), ScoreCard (features/analysis/), NeutralPromptBadge (features/discovery/), IssueSeverityBadge (features/technical/), page démo /design — 92 tests verts — typecheck 0 err |
 | TKT-010 | ✅ | 2026-05-12 | IAEngine interface + 4 connecteurs (ChatGPT/Claude/Gemini OpenRouter, Perplexity direct), parse.ts (annotations+citations+markdown fallback), cost.ts (computeCost pure + logEstimatedBatchCost), vi.mock env dans tests — 92 tests (46 nouveaux) — commit 22d6dce |
