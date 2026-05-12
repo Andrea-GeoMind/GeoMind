@@ -8,6 +8,7 @@ const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   outputFileTracingRoot: path.join(__dirname, '../'),
+  serverExternalPackages: ['@mendable/firecrawl-js', 'undici'],
 }
 
 export default nextConfig
