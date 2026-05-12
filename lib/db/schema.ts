@@ -6,6 +6,9 @@ import {
   varchar,
   timestamp,
   boolean,
+  jsonb,
+  integer,
+  unique,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -66,6 +69,26 @@ export const sites = pgTable('sites', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── firecrawl_pages ──────────────────────────────────────────────────────────
+// Pages crawlées par Firecrawl pour un site donné.
+// Upsert sur (site_id, url) — re-crawler écrase l'existant.
+
+export const firecrawlPages = pgTable(
+  'firecrawl_pages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    markdown: text('markdown'),
+    metadata: jsonb('metadata'),
+    statusCode: integer('status_code'),
+    crawledAt: timestamp('crawled_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('firecrawl_pages_site_url_unique').on(t.siteId, t.url)]
+)
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -83,9 +106,17 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   }),
 }))
 
-export const sitesRelations = relations(sites, ({ one }) => ({
+export const sitesRelations = relations(sites, ({ one, many }) => ({
   profile: one(profiles, {
     fields: [sites.userId],
     references: [profiles.id],
+  }),
+  firecrawlPages: many(firecrawlPages),
+}))
+
+export const firecrawlPagesRelations = relations(firecrawlPages, ({ one }) => ({
+  site: one(sites, {
+    fields: [firecrawlPages.siteId],
+    references: [sites.id],
   }),
 }))
