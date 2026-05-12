@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 démarré. TKT-001 à TKT-006 terminés. Prochaine étape : TKT-007.
+Sprint 2 en cours. TKT-001 à TKT-007 terminés. Prochaine étape : TKT-008.
 
 ---
 
@@ -35,6 +35,7 @@ Sprint 2 démarré. TKT-001 à TKT-006 terminés. Prochaine étape : TKT-007.
 ### Tickets
 
 - [x] **TKT-006** — CRUD sites + quotas plan + Server Actions (2026-05-12)
+- [x] **TKT-007** — Wrapper Firecrawl + table firecrawl_pages (2026-05-12)
 
 ---
 
@@ -47,3 +48,4 @@ Sprint 2 démarré. TKT-001 à TKT-006 terminés. Prochaine étape : TKT-007.
 | TKT-004 | ✅ | 2026-05-12 | @supabase/ssr + Resend, 5 Server Actions, PKCE callback, 4 pages auth, 10 tests — 48 tests total — commit 5a0667b sur main |
 | TKT-005 | ✅ | 2026-05-12 | Header/Footer marketing, layout (marketing)/(auth)/(app), Sidebar client (usePathname), garde auth Supabase — 24 tests stables |
 | TKT-006 | ✅ | 2026-05-12 | CRUD sites Drizzle, quotas par plan, 2 Server Actions (quota+ownership check), SiteCard+SiteForm Client Components, lib/validations/site.ts — 60 tests (12 nouveaux) — commit f3ed2ab |
+| TKT-007 | ✅ | 2026-05-12 | @mendable/firecrawl-js 4.22.2, table firecrawl_pages (unique site+url, jsonb metadata), crawlSite() + withRetry (backoff exp., stop 401/403), schemas Zod séparés (testables sans env) — 70 tests (10 nouveaux) — commit 59a20fb |
