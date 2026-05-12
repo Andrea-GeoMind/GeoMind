@@ -17,7 +17,9 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 import { createSiteAction } from '@/app/(app)/sites/actions'
-import { siteSchema } from '@/lib/db/queries/sites'
+// Import depuis lib/validations (pure Zod, sans postgres) pour éviter de faire
+// entrer db/client.ts dans le bundle client.
+import { siteSchema } from '@/lib/validations/site'
 
 type SiteFormData = z.infer<typeof siteSchema>
 

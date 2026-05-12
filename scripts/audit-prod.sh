@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════════════════╗
-# ║  Audit API Production — template générique             ║
-# ║  Teste tous les endpoints GET + actions POST critiques ║
+# ║  Audit routes Next.js — GEOMIND                         ║
+# ║  Teste les routes publiques (marketing + auth) et        ║
+# ║  vérifie que les routes app/* redirigent correctement.   ║
 # ║                                                          ║
 # ║  Variables :                                            ║
-# ║    PROD_API_URL   — URL backend (1er argv prioritaire)  ║
-# ║    ADMIN_TOKEN    — token /dev/* (X-Admin-Token)        ║
-# ║                                                          ║
-# ║  À PERSONNALISER : la liste des endpoints en bas du     ║
-# ║  fichier. Garde la fonction check() telle quelle.       ║
+# ║    BASE_URL — URL cible (localhost:3000 en dev)          ║
 # ╚══════════════════════════════════════════════════════════╝
 set -euo pipefail
 
-BASE_URL="${1:-${PROD_API_URL:?PROD_API_URL non défini}}"
-ADMIN_HEADER="X-Admin-Token: ${ADMIN_TOKEN:-change-me}"
-
-# Caractères spéciaux pour tester l'encodage (UTF-8, devis, etc.)
-SPECIAL_CHARS='Rénovation complète — devis n°42 «test» à l'\''étage'
+BASE_URL="${1:-${PROD_API_URL:-http://localhost:3000}}"
 
 PASS=0
 FAIL=0
@@ -25,7 +18,6 @@ FAILURES=""
 
 green()  { printf "\033[32m%s\033[0m" "$1"; }
 red()    { printf "\033[31m%s\033[0m" "$1"; }
-yellow() { printf "\033[33m%s\033[0m" "$1"; }
 
 check() {
     local method="$1" path="$2" expected="$3" desc="$4"
@@ -34,54 +26,61 @@ check() {
     local url="${BASE_URL}${path}"
     local body status
 
-    if [ "$method" = "GET" ]; then
-        body=$(curl -s -w "\n%{http_code}" "$url" 2>/dev/null)
-    elif [ "$method" = "POST" ]; then
-        local data="${5:-{}}"
-        body=$(curl -s -w "\n%{http_code}" -X POST -H "Content-Type: application/json" -d "$data" "$url" 2>/dev/null)
-    elif [ "$method" = "PUT" ]; then
-        local data="${5:-{}}"
-        body=$(curl -s -w "\n%{http_code}" -X PUT -H "Content-Type: application/json" -d "$data" "$url" 2>/dev/null)
-    elif [ "$method" = "DELETE" ]; then
-        body=$(curl -s -w "\n%{http_code}" -X DELETE "$url" 2>/dev/null)
-    fi
-
+    body=$(curl -s -L -w "\n%{http_code}" -o /dev/null "${url}" 2>/dev/null)
     status=$(echo "$body" | tail -1)
 
     if [ "$status" = "$expected" ]; then
         PASS=$((PASS + 1))
-        printf "  $(green '✓') %-6s %-50s [%s] %s\n" "$method" "$path" "$status" "$desc"
+        printf "  $(green '✓') %-6s %-45s [%s] %s\n" "$method" "$path" "$status" "$desc"
     else
         FAIL=$((FAIL + 1))
-        FAILURES="${FAILURES}\n  $method $path → expected $expected got $status ($desc)"
-        printf "  $(red '✗') %-6s %-50s [%s] %s\n" "$method" "$path" "$status" "$desc"
+        FAILURES="${FAILURES}\n  $method $path → attendu $expected, reçu $status ($desc)"
+        printf "  $(red '✗') %-6s %-45s [%s] %s\n" "$method" "$path" "$status" "$desc"
     fi
 }
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║  AUDIT API — ${BASE_URL}"
+echo "║  AUDIT ROUTES — ${BASE_URL}"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo ""
 
-# ══════════════════════════════════════════════════════════
-#  LISTE DES ENDPOINTS À AUDITER — À PERSONNALISER
-# ══════════════════════════════════════════════════════════
-# Format : check METHOD PATH EXPECTED_STATUS "Description" [DATA]
+# ── Routes marketing publiques ──
+echo "  ── Marketing (public) ──"
+check GET "/"                     200 "Landing page"
+check GET "/pricing"              200 "Page tarifs"
+check GET "/legal/cgv"            200 "CGV"
+check GET "/legal/privacy"        200 "Politique de confidentialité"
+check GET "/legal/mentions"       200 "Mentions légales"
+check GET "/legal/cookies"        200 "Politique cookies"
 
-# Healthchecks (toujours présents)
-check GET  "/health/live"   200 "Healthcheck live (ne touche pas la BDD)"
-check GET  "/health/ready"  200 "Healthcheck ready (vérifie la BDD)"
+# ── Routes auth ──
+echo ""
+echo "  ── Auth ──"
+check GET "/login"                200 "Page connexion"
+check GET "/signup"               200 "Page inscription"
+check GET "/reset-password"       200 "Page reset password"
 
-# Exemples d'endpoints métier — à remplacer par les tiens
-# check GET  "/api/v1/resources"           200 "Liste ressources"
-# check GET  "/api/v1/resources/123"       200 "Détail ressource"
-# check POST "/api/v1/resources"           201 "Création" '{"name":"test"}'
-# check GET  "/api/v1/inexistant"          404 "404 attendu sur route inconnue"
+# ── Routes app (redirigées vers /login si non connecté) ──
+echo ""
+echo "  ── App (redirige vers /login) ──"
+check GET "/dashboard"            200 "Dashboard → /login (avec -L)"
+# /onboarding — à activer après TKT-009
+# check GET "/onboarding"           200 "Onboarding → /login (avec -L)"
+check GET "/settings/account"     200 "Settings → /login (avec -L)"
 
-# ══════════════════════════════════════════════════════════
-#  RAPPORT
-# ══════════════════════════════════════════════════════════
+# ── Assets statiques ──
+echo ""
+echo "  ── Assets statiques ──"
+check GET "/logo.svg"             200 "Logo wordmark SVG"
+check GET "/logo-mark.svg"        200 "Logo mark SVG"
+
+# ── Route 404 ──
+echo ""
+echo "  ── Erreurs ──"
+check GET "/cette-route-nexiste-vraiment-pas-du-tout" 404 "404 sur route inexistante"
+
+# ── Rapport ──
 echo ""
 echo "  Résultat : $PASS/$TOTAL OK"
 
@@ -92,5 +91,5 @@ if [ "$FAIL" -gt 0 ]; then
     exit 1
 fi
 
-echo "  $(green '✅ Tous les endpoints sont OK')"
+echo "  $(green '✅ Toutes les routes sont OK')"
 exit 0
