@@ -153,6 +153,44 @@
 
 ---
 
+### Ticket 8.5 — Design system rétroactif (Claude Design)
+**Objectif** : figer la direction artistique GEOMIND avant d'attaquer toute UI brandée (T9+). Rétroactivement re-skiner les ~7 composants livrés en T1-T7 avec les nouveaux tokens.
+
+**Outil** : [claude.ai/design](https://claude.ai/design) — **pas Claude Code**
+
+**Étapes** :
+1. Sur claude.ai/design → **Set up design system** → coller le brief GEOMIND (palette, ton, inspirations Doctolib/Indy/Qonto, couleurs sémantiques 0-29/30-59/60+, composants signatures)
+2. Valider `colors_and_type.css` généré → récupérer les valeurs HEX + font choisie
+3. Valider `logo` + `logo-mark` générés → exporter en SVG
+4. Sur claude.ai/design → **Prototype High fidelity** (dans l'ordre) :
+   - GEOMIND — Vue d'ensemble (jauge + 3 sous-notes + delta)
+   - GEOMIND — Onglet Autorité (tableau croisé + modal détail)
+   - GEOMIND — Onboarding étape 3 (édition découverte)
+   - GEOMIND — Coach Sheet (drawer reco Markdown)
+
+**Fichiers à modifier côté code** (après validation des maquettes) :
+- `app/globals.css` : remplacer les CSS vars shadcn par défaut avec les tokens GEOMIND (format HSL sans `hsl()`, ex: `220 89% 56%`)
+- `app/layout.tsx` : importer la font via `next/font/google` selon le choix du design system
+- `public/logo.svg`, `public/logo-mark.svg` : exports SVG du logo généré
+- `public/favicon.ico`, `public/favicon.svg`
+- `components/charts/ScoreGauge.tsx` : jauge circulaire 0-100 (couleurs sémantiques auto)
+- `components/features/analysis/ScoreCard.tsx` : carte note + delta coloré
+- `components/features/discovery/NeutralPromptBadge.tsx` : badge rouge "Non neutre" + tooltip
+- `components/features/technical/IssueSeverityBadge.tsx` : badge Minor/Moderate/Major
+- Re-skin rapide des 7 composants existants (sidebar, header, footer, SiteCard, forms auth) — devrait être quasi-automatique via les CSS vars
+
+**Critères** :
+- `app/globals.css` contient les tokens GEOMIND (plus les valeurs shadcn par défaut)
+- Logo SVG présent dans `public/`
+- Font chargée via `next/font/google` (pas de @import CSS)
+- Les 4 composants signatures codés et visibles dans une page de démo locale
+- Visuellement cohérent avec les maquettes Claude Design validées
+- `pnpm typecheck && pnpm lint` : 0 erreur
+
+**Note** : ce ticket est parallélisable avec T10 (connecteurs LLM, 0 UI). T9 doit attendre que T8.5 soit terminé.
+
+---
+
 ### Ticket 9 — Wizard onboarding (étapes 1 et 2)
 **Objectif** : flow guidé pour le premier site.
 
@@ -518,6 +556,40 @@
 - Une exception en prod est reportée à Sentry avec contexte (user, route, etc.)
 - Les events principaux sont trackés dans PostHog
 - Checklist QA passée à 100% (en local sur Vercel preview)
+
+---
+
+### Ticket 31.5 — Polish pass UI (Claude Design)
+**Objectif** : passe de finition visuelle sur l'ensemble des écrans avant le deploy production. Compléter les états manquants, finaliser la landing, vérifier la cohérence mobile.
+
+**Outil** : [claude.ai/design](https://claude.ai/design) — Prototype High fidelity en réutilisant le design system créé en T8.5
+
+**Étapes** :
+1. **Landing page finale** (T1 avait juste un placeholder) : hero "Soyez cité par ChatGPT. Pas par hasard." + 3 colonnes Sache/Comprends/Améliore + plans tarifaires + FAQ 6-8 questions + footer légal
+2. **Empty states** : 0 site (dashboard), 0 analyse, analyse en erreur, 0 issue (onglets tech/contenu)
+3. **Loading states** : skeletons cohérents sur tous les onglets pendant `status=running`
+4. **Error states** : analyse échouée + bouton "Recommencer", erreurs form avec messages clairs
+5. **Copy review** : relecture de tous les textes UI (boutons, tooltips, messages d'erreur, copy coach IA) — ton accessible pour TPE/PME non-experts
+6. **Micro-interactions** : animation de remplissage de la ScoreGauge, hover sur cellules tableau Autorité, transition Sheet latéral, animation lancement analyse
+7. **Responsive / mobile** : audit particulier sur le tableau croisé Autorité (sticky header + scroll horizontal), onboarding wizard, dashboard cards
+8. **Audit visuel screen-par-screen** : vérifier alignements, rythme vertical, cohérence des espacements sur les 15+ écrans livrés
+
+**Fichiers à modifier** :
+- `app/(marketing)/page.tsx` : landing page complète (hero + sections + pricing + FAQ)
+- `components/features/*/EmptyState.tsx` : composants empty state par section
+- `components/features/analysis/AnalysisError.tsx` : état erreur analyse
+- Mise à jour des skeletons dans T26 si incomplets
+- `app/globals.css` : ajustements tokens si nécessaire après vision globale
+
+**Critères** :
+- Landing page complète et brandée (plus le placeholder T1)
+- Tous les écrans ont un état empty, loading et error cohérents
+- Aucun texte "Lorem ipsum" ou placeholder restant en production
+- Tableau Autorité scrollable et lisible sur mobile (375px)
+- Wizard onboarding complet sur mobile (375px)
+- Copy validée : zéro jargon SEO/tech inexpliqué côté utilisateur final
+- `pnpm typecheck && pnpm lint` : 0 erreur
+- Lighthouse mobile > 85
 
 ---
 

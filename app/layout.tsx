@@ -1,10 +1,20 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Figtree, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 // Validation des variables d'environnement au boot — crash explicitement si manquantes
 import '@/lib/env'
 
-const inter = Inter({ subsets: ['latin'] })
+const figtree = Figtree({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'GEOMIND — Auditez votre visibilité IA',
@@ -18,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
-      <body className={inter.className}>{children}</body>
+    <html lang="fr" className={`${figtree.variable} ${jetbrainsMono.variable}`}>
+      <body className="font-sans">{children}</body>
     </html>
   )
 }
