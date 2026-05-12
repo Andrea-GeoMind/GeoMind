@@ -13,7 +13,7 @@ export async function signUp(
     email,
     password,
     options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/callback`,
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     },
   })
 
@@ -45,7 +45,7 @@ export async function resetPassword(
 ): Promise<{ error: string } | void> {
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/callback?next=/reset-password%3Fmode%3Dupdate`,
+    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password%3Fmode%3Dupdate`,
   })
 
   if (error) return { error: error.message }
