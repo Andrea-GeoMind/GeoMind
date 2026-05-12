@@ -10,4 +10,10 @@ export const siteSchema = z.object({
     }),
 })
 
+export const onboardingSiteSchema = siteSchema.extend({
+  language: z.string().length(2, 'Code langue sur 2 caractères (ex: fr)').default('fr'),
+  country: z.string().length(2, 'Code pays sur 2 caractères (ex: FR)').default('FR'),
+})
+
 export type SiteInput = z.infer<typeof siteSchema>
+export type OnboardingSiteInput = z.infer<typeof onboardingSiteSchema>
