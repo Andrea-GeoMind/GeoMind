@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 1 en cours. TKT-001 à TKT-005 terminés. Prochaine étape : TKT-006.
+Sprint 2 démarré. TKT-001 à TKT-006 terminés. Prochaine étape : TKT-007.
 
 ---
 
@@ -30,6 +30,14 @@ Sprint 1 en cours. TKT-001 à TKT-005 terminés. Prochaine étape : TKT-006.
 
 ---
 
+## Sprint 2 — Sites et crawl (Semaine 2)
+
+### Tickets
+
+- [x] **TKT-006** — CRUD sites + quotas plan + Server Actions (2026-05-12)
+
+---
+
 ## Journal d'exécution
 
 | Ticket | Statut | Date | Notes |
@@ -38,3 +46,4 @@ Sprint 1 en cours. TKT-001 à TKT-005 terminés. Prochaine étape : TKT-006.
 | TKT-002 | ✅ | 2026-05-11 | lib/env.ts Zod v4 (17 vars), .env.example, 8 tests — 11 tests total — commit d42fdfd |
 | TKT-004 | ✅ | 2026-05-12 | @supabase/ssr + Resend, 5 Server Actions, PKCE callback, 4 pages auth, 10 tests — 48 tests total — commit 5a0667b sur main |
 | TKT-005 | ✅ | 2026-05-12 | Header/Footer marketing, layout (marketing)/(auth)/(app), Sidebar client (usePathname), garde auth Supabase — 24 tests stables |
+| TKT-006 | ✅ | 2026-05-12 | CRUD sites Drizzle, quotas par plan, 2 Server Actions (quota+ownership check), SiteCard+SiteForm Client Components, lib/validations/site.ts — 60 tests (12 nouveaux) — commit f3ed2ab |
