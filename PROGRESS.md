@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 en cours. TKT-001 à TKT-008 terminés. Prochaine étape : TKT-009.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-010 terminé. Prochaine étape : TKT-011.
 
 ---
 
@@ -40,6 +40,14 @@ Sprint 2 en cours. TKT-001 à TKT-008 terminés. Prochaine étape : TKT-009.
 
 ---
 
+## Sprint 3 — Analyse de découverte (Semaine 3)
+
+### Tickets
+
+- [x] **TKT-010** — Connecteurs LLM 4 IAs + parse + cost (2026-05-12)
+
+---
+
 ## Journal d'exécution
 
 | Ticket | Statut | Date | Notes |
@@ -51,3 +59,4 @@ Sprint 2 en cours. TKT-001 à TKT-008 terminés. Prochaine étape : TKT-009.
 | TKT-006 | ✅ | 2026-05-12 | CRUD sites Drizzle, quotas par plan, 2 Server Actions (quota+ownership check), SiteCard+SiteForm Client Components, lib/validations/site.ts — 60 tests (12 nouveaux) — commit f3ed2ab |
 | TKT-007 | ✅ | 2026-05-12 | @mendable/firecrawl-js 4.22.2, table firecrawl_pages (unique site+url, jsonb metadata), crawlSite() + withRetry (backoff exp., stop 401/403), schemas Zod séparés (testables sans env) — 70 tests (10 nouveaux) — commit 59a20fb |
 | TKT-008 | ✅ | 2026-05-12 | inngest@4.3.0, client.ts + functions/crawl-site.ts (event site/crawl.requested, step.run), app/api/inngest/route.ts, INNGEST_DEV=1 en dev, serverExternalPackages firecrawl/undici, script inngest:dev via npx — 46 tests stables — commit 5cc6411 |
+| TKT-010 | ✅ | 2026-05-12 | IAEngine interface + 4 connecteurs (ChatGPT/Claude/Gemini OpenRouter, Perplexity direct), parse.ts (annotations+citations+markdown fallback), cost.ts (computeCost pure + logEstimatedBatchCost), vi.mock env dans tests — 92 tests (46 nouveaux) — commit 22d6dce |
