@@ -28,6 +28,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
     .string()
     .min(1, { message: 'NEXT_PUBLIC_SUPABASE_ANON_KEY manquant' }),
+  /** URL publique de l'app — utilisée pour les redirections Supabase Auth */
+  NEXT_PUBLIC_SITE_URL: z.url({ message: 'NEXT_PUBLIC_SITE_URL doit être une URL valide' }),
   /** Réservé Inngest + scripts admin uniquement — jamais côté client */
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
