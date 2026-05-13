@@ -4,7 +4,7 @@ import { siteMetadata } from '@/lib/db/schema'
 
 export type SiteMetadataUpsert = {
   siteId: string
-  description: string
+  description: string | null
   keywords: string[]
 }
 

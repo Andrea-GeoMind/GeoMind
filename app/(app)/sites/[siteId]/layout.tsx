@@ -1,3 +1,4 @@
+import type { Route } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
@@ -43,7 +44,7 @@ export default async function SiteLayout({ children, params }: Props) {
         {TABS.map((tab) => (
           <Link
             key={tab.segment}
-            href={`/sites/${siteId}/${tab.segment}`}
+            href={`/sites/${siteId}/${tab.segment}` as Route}
             className="whitespace-nowrap px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             {tab.label}

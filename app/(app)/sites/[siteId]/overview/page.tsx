@@ -1,3 +1,4 @@
+import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -172,7 +173,7 @@ export default async function OverviewPage({ params }: Props) {
                   trend={deltas !== null ? deltaTrend(deltas.technicalDelta) : undefined}
                 />
               </Link>
-              <Link href={`/sites/${siteId}/content`} className="contents">
+              <Link href={`/sites/${siteId}/content` as Route} className="contents">
                 <ScoreCard
                   pillar="content"
                   score={currentAnalysis.contentScore ?? 0}

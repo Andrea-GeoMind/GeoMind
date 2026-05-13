@@ -1,0 +1,72 @@
+'use client'
+
+import { useState } from 'react'
+import { ContentIssueCard, type ContentIssueRow } from './content-issue-card'
+import { ContentRecommendationSheet } from './content-recommendation-sheet'
+
+const CATEGORY_LABELS: Record<ContentIssueRow['category'], string> = {
+  readability: 'Lisibilité',
+  metadata: 'Métadonnées',
+  structure: 'Structure',
+  coverage: 'Couverture',
+}
+
+const CATEGORY_ORDER: ContentIssueRow['category'][] = [
+  'readability',
+  'metadata',
+  'structure',
+  'coverage',
+]
+
+interface ContentIssuesListProps {
+  issues: ContentIssueRow[]
+  isPro: boolean
+}
+
+export function ContentIssuesList({ issues, isPro }: ContentIssuesListProps) {
+  const [selected, setSelected] = useState<ContentIssueRow | null>(null)
+
+  const grouped = CATEGORY_ORDER.reduce<Record<string, ContentIssueRow[]>>((acc, cat) => {
+    const items = issues.filter((i) => i.category === cat)
+    if (items.length > 0) acc[cat] = items.sort((a, b) => b.penalty - a.penalty)
+    return acc
+  }, {})
+
+  if (issues.length === 0) {
+    return (
+      <p className="py-8 text-center text-sm text-muted-foreground">
+        Aucun point faible détecté — votre contenu est bien optimisé.
+      </p>
+    )
+  }
+
+  return (
+    <>
+      <div className="space-y-8">
+        {(Object.entries(grouped) as [ContentIssueRow['category'], ContentIssueRow[]][]).map(
+          ([cat, items]) => (
+            <section key={cat}>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {CATEGORY_LABELS[cat]}
+                <span className="ml-2 font-normal normal-case tracking-normal text-muted-foreground/70">
+                  ({items.length})
+                </span>
+              </h3>
+              <div className="space-y-2">
+                {items.map((issue) => (
+                  <ContentIssueCard key={issue.id} issue={issue} onClick={setSelected} />
+                ))}
+              </div>
+            </section>
+          ),
+        )}
+      </div>
+
+      <ContentRecommendationSheet
+        issue={selected}
+        isPro={isPro}
+        onClose={() => setSelected(null)}
+      />
+    </>
+  )
+}
