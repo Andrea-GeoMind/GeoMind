@@ -76,17 +76,23 @@ export async function runAuthorityAnalysis(
 
   const clientDomain = extractDomain(site.url)
 
+  // Modèles réels par engine (doit rester synchronisé avec les connecteurs)
+  const ENGINE_MODELS: Record<string, string> = {
+    chatgpt: 'openai/gpt-4o-mini-search-preview',
+    claude: 'anthropic/claude-haiku-4-5:beta',
+    gemini: 'google/gemini-2.5-flash',
+    perplexity: 'sonar',
+  }
+
   // Estimation coût avant batch (règle §10 CLAUDE.md)
   logEstimatedBatchCost(
-    engines.map(() => ({
-      model: 'openai/gpt-4o-mini',
-      estimatedInputTokens: 200,
-      estimatedOutputTokens: 400,
-    })) .concat(neutralPrompts.slice(1).map(() => ({
-      model: 'sonar',
-      estimatedInputTokens: 200,
-      estimatedOutputTokens: 400,
-    })))
+    neutralPrompts.flatMap(() =>
+      engines.map((e) => ({
+        model: ENGINE_MODELS[e.name] ?? 'openai/gpt-4o-mini',
+        estimatedInputTokens: 200,
+        estimatedOutputTokens: 400,
+      }))
+    )
   )
 
   // Construction des tâches : 1 tâche = 1 prompt × 1 IA
