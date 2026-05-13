@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé.
 
 ---
 
@@ -55,6 +55,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-016** — Scoring : 4 fonctions pures (computeAuthorityScore, computeTechnicalScore, computeContentScore, computeGlobalScore), computeScores refactorisé, updateAnalysisTechnicalScore + updateAnalysisContentScore DB, scores persistés après chaque sous-analyse dans run-full-analysis, 150 tests verts (27 nouveaux) — PR #8 merged (2026-05-13)
 - [x] **TKT-017** — Page Vue d'ensemble : ScoreGauge lg (score global), 3 ScoreCards cliquables (autorité/technique/contenu) avec delta vs analyse précédente, OverviewPolling (router.refresh toutes les 5s pendant pending|running), skeletons pendant analyse en cours, computeDeltas pure function, layout site avec tab nav, 154 tests verts — PR #9 merged (2026-05-13)
 - [x] **TKT-018** — Onglet Autorité : helpers purs buildEngineStats/buildCrossTable, bar chart CSS par moteur IA, tableau croisé prompts × IAs scrollable (✅/❌/⚠️), dialog réponse complète avec domaine client surligné en vert, bouton relancer avec check quota, page Server Component avec machine d'états complète, 160 tests verts — PR #10 merged (2026-05-13)
+- [x] **TKT-019** — 16 règles GEO technique : technicalIssueCategoryEnum + table technical_issues, 16 règles pures (accessibility/structure/schema_org/performance/network), runner runTechnicalAnalysis({ siteId, analysisId }) avec Promise.all + insertTechnicalIssues, Inngest caller mis à jour, js_required_for_content hors scope, 246 tests verts — PR #11 merged (2026-05-13)
 
 ---
 
@@ -79,3 +80,4 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 | TKT-016 | ✅ | 2026-05-13 | 4 fonctions pures scoring (authority/technical/content/global), computeScores refactorisé, 2 DB helpers, scores persistés incrémentalement dans run-full-analysis, 150 tests verts (27 nouveaux) — PR #8 merged |
 | TKT-017 | ✅ | 2026-05-13 | Page Vue d'ensemble, ScoreGauge lg, 3 ScoreCards cliquables avec delta, OverviewPolling (5s), skeletons, computeDeltas pure, layout site tab nav, 154 tests verts — PR #9 merged |
 | TKT-018 | ✅ | 2026-05-13 | Onglet Autorité, bar chart CSS, tableau croisé prompts × IAs, dialog réponse + surlignage domaine, bouton relancer quota, page Server Component machine d'états, 160 tests verts — PR #10 merged |
+| TKT-019 | ✅ | 2026-05-13 | 16 règles GEO technique, table technical_issues, runner real, 246 tests verts — PR #11 merged |
