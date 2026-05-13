@@ -54,7 +54,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
       // 4. Technical + Content in parallel — each score persisted as soon as available
       const [technicalResult, contentResult] = await Promise.all([
-        step.run('run-technical', () => runTechnicalAnalysis(siteId)),
+        step.run('run-technical', () => runTechnicalAnalysis({ siteId, analysisId })),
         step.run('run-content', () => runContentAnalysis(siteId)),
       ])
       await step.run('save-technical-score', () =>
@@ -65,9 +65,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
       )
 
       // 5. Recommendations (stub for now)
-      await step.run('run-recommendations', () =>
-        generateRecommendations(siteId, analysisId)
-      )
+      await step.run('run-recommendations', () => generateRecommendations(siteId, analysisId))
 
       // 6. Publishers (stub for now)
       await step.run('run-publishers', () => detectPublishers(siteId, analysisId))
@@ -86,9 +84,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
       return scores
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      await step.run('mark-error', () =>
-        updateAnalysisStatus(analysisId, 'error', message)
-      )
+      await step.run('mark-error', () => updateAnalysisStatus(analysisId, 'error', message))
       throw err
     }
   }
