@@ -55,7 +55,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
       // 4. Technical + Content in parallel — each score persisted as soon as available
       const [technicalResult, contentResult] = await Promise.all([
         step.run('run-technical', () => runTechnicalAnalysis({ siteId, analysisId })),
-        step.run('run-content', () => runContentAnalysis(siteId)),
+        step.run('run-content', () => runContentAnalysis({ siteId, analysisId })),
       ])
       await step.run('save-technical-score', () =>
         updateAnalysisTechnicalScore(analysisId, technicalResult.score)
