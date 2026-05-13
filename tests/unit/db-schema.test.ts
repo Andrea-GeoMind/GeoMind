@@ -32,3 +32,9 @@ describe('Schema: sites', () => {
     expect(cols).toContain('country')
   })
 })
+
+it('exports technicalIssues table and technicalIssueCategoryEnum', async () => {
+  const schema = await import('@/lib/db/schema')
+  expect(schema.technicalIssues).toBeDefined()
+  expect(schema.technicalIssueCategoryEnum).toBeDefined()
+})
