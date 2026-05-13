@@ -34,6 +34,13 @@ export const analysisStatusEnum = pgEnum('analysis_status', [
 
 export const iaEngineEnum = pgEnum('ia_engine', ['chatgpt', 'claude', 'gemini', 'perplexity'])
 
+export const technicalIssueCategoryEnum = pgEnum('technical_issue_category', [
+  'accessibility',
+  'structure',
+  'schema_org',
+  'performance',
+])
+
 // ─── profiles ─────────────────────────────────────────────────────────────────
 // Mirror de auth.users — créé automatiquement par trigger SQL.
 
@@ -205,6 +212,23 @@ export const authoritySources = pgTable('authority_sources', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── technical_issues ─────────────────────────────────────────────────────────
+// Issues GEO détectées par l'analyse technique. 1 record = 1 règle violée.
+
+export const technicalIssues = pgTable('technical_issues', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  analysisId: uuid('analysis_id')
+    .notNull()
+    .references(() => analyses.id, { onDelete: 'cascade' }),
+  ruleKey: text('rule_key').notNull(),
+  category: technicalIssueCategoryEnum('category').notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  sampleUrls: jsonb('sample_urls').notNull().$type<string[]>().default([]),
+  penalty: integer('penalty').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -276,6 +300,7 @@ export const analysesRelations = relations(analyses, ({ one, many }) => ({
     references: [profiles.id],
   }),
   authorityResults: many(authorityResults),
+  technicalIssues: many(technicalIssues),
 }))
 
 export const authorityResultsRelations = relations(authorityResults, ({ one, many }) => ({
@@ -294,5 +319,12 @@ export const authoritySourcesRelations = relations(authoritySources, ({ one }) =
   authorityResult: one(authorityResults, {
     fields: [authoritySources.authorityResultId],
     references: [authorityResults.id],
+  }),
+}))
+
+export const technicalIssuesRelations = relations(technicalIssues, ({ one }) => ({
+  analysis: one(analyses, {
+    fields: [technicalIssues.analysisId],
+    references: [analyses.id],
   }),
 }))
