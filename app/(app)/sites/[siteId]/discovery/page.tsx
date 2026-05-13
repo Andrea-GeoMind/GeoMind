@@ -10,6 +10,7 @@ import { DescriptionEditor } from '@/components/features/discovery/DescriptionEd
 import { KeywordsEditor } from '@/components/features/discovery/KeywordsEditor'
 import { CompetitorsEditor } from '@/components/features/discovery/CompetitorsEditor'
 import { PromptsEditor } from '@/components/features/discovery/PromptsEditor'
+import { RunAnalysisButton } from '@/components/features/analysis/RunAnalysisButton'
 
 export const metadata: Metadata = {
   title: 'Découverte — GEOMIND',
@@ -93,6 +94,17 @@ export default async function DiscoveryPage({ params }: Props) {
                 isNeutral: p.isNeutral,
               }))}
             />
+          </section>
+
+          <section className="rounded-xl border border-[--brand-blue-200] bg-[--brand-blue-50] p-6 shadow-sm">
+            <h2 className="mb-1 text-base font-semibold text-[--brand-blue-800]">
+              Prêt à lancer l&apos;analyse ?
+            </h2>
+            <p className="mb-4 text-sm text-[--brand-blue-700]">
+              GEOMIND va interroger les 4 moteurs IA (ChatGPT, Claude, Gemini, Perplexity) avec vos
+              prompts neutres et analyser où votre site est cité.
+            </p>
+            <RunAnalysisButton siteId={siteId} />
           </section>
         </div>
       )}
