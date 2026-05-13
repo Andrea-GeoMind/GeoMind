@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé.
 
 ---
 
@@ -50,6 +50,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-011** — Analyse de découverte Inngest : tables site_metadata/competitors/prompts, callStructured (Zod+retry), prompts versionnés, détection neutralité, runDiscoveryFunction (2026-05-12)
 - [x] **TKT-012** — UI édition découverte : page /sites/[siteId]/discovery, 4 éditeurs client (description autosave, keywords chips, competitors add/delete, prompts add/delete + badge neutralité temps réel), Server Actions Zod + ownership, banner pédagogique (2026-05-12)
 - [x] **TKT-013** — Bouton lancer analyse : tables analyses/authority_results/authority_sources, canRunFullAnalysis quota, runAnalysisAction (ownership+quota+createAnalysis+inngest.send), RunAnalysisButton (toast succès + redirect /overview), Inngest function run-authority-analysis (boucle prompts neutres × 4 IAs, pool ≤8 concurrents, détection isClientDomain), 123 tests verts — PR #5 merged (2026-05-13)
+- [x] **TKT-014** — Orchestrateur Inngest run-full-analysis : crawl → discovery (skip si site_metadata existe) → authority → technical + content (parallèle) → recommendations → scoring → publishers, updateAnalysisScores atomique, quota non décrémenté en cas d'erreur, computeScores pure function, stubs technical/content/publishers/recommendations, 129 tests verts — PR #6 merged (2026-05-13)
 
 ---
 
