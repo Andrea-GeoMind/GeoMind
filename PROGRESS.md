@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé.
 
 ---
 
@@ -49,6 +49,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-009** — Wizard onboarding 3 étapes : StepProgress, WelcomeStep, AddSiteStep, page orchestratrice `?step=1|2|3`, Server Action crée site + émet events Inngest (2026-05-12)
 - [x] **TKT-011** — Analyse de découverte Inngest : tables site_metadata/competitors/prompts, callStructured (Zod+retry), prompts versionnés, détection neutralité, runDiscoveryFunction (2026-05-12)
 - [x] **TKT-012** — UI édition découverte : page /sites/[siteId]/discovery, 4 éditeurs client (description autosave, keywords chips, competitors add/delete, prompts add/delete + badge neutralité temps réel), Server Actions Zod + ownership, banner pédagogique (2026-05-12)
+- [x] **TKT-013** — Bouton lancer analyse : tables analyses/authority_results/authority_sources, canRunFullAnalysis quota, runAnalysisAction (ownership+quota+createAnalysis+inngest.send), RunAnalysisButton (toast succès + redirect /overview), Inngest function run-authority-analysis (boucle prompts neutres × 4 IAs, pool ≤8 concurrents, détection isClientDomain), 123 tests verts — PR #5 merged (2026-05-13)
 
 ---
 
@@ -68,3 +69,4 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 | TKT-009 | ✅ | 2026-05-12 | onboardingSiteSchema (language+country), emailRedirectTo → /onboarding, StepProgress + WelcomeStep + AddSiteStep + page orchestratrice (?step=1|2|3), Server Action createSiteOnboardingAction (crée site + inngest.send 2 events), AnalysisStartedStep — 97 tests verts — PR #2 merged |
 | TKT-011 | ✅ | 2026-05-12 | tables site_metadata/competitors/prompts, callStructured (OpenRouter Haiku, Zod, retry x3), prompts LLM versionnés (lib/ai/prompts/), neutrality.ts (isPromptNeutral), runDiscovery orchestration, runDiscoveryFunction Inngest, crawl-site émet site.discovery.requested — 117 tests verts — PR #3 merged |
 | TKT-012 | ✅ | 2026-05-12 | page Server Component /sites/[siteId]/discovery (auth+ownership), DescriptionEditor (textarea debounce 500ms), KeywordsEditor (chips+input), CompetitorsEditor (add/delete optimistic), PromptsEditor (add/delete + badge neutralité temps réel + warning pre-submit), 6 Server Actions (Zod, IDOR protection), updateSiteDescription/Keywords ciblés, insertCompetitor/Prompt, deleteXById(siteId) — 117 tests verts — PR #4 merged |
+| TKT-013 | ✅ | 2026-05-13 | tables analyses/authority_results/authority_sources + enums, canRunFullAnalysis quota mensuelle, runAnalysisAction (ownership+quota+inngest.send), RunAnalysisButton (launched state + toast + redirect /overview après 2s), lib/analysis/authority.ts (pool ≤8, isClientDomain), Inngest run-authority-analysis — 123 tests verts (6 nouveaux) — PR #5 merged |
