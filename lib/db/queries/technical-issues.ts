@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { technicalIssues } from '@/lib/db/schema'
 
@@ -16,4 +17,12 @@ export interface TechnicalIssueInsert {
 export async function insertTechnicalIssues(issues: TechnicalIssueInsert[]) {
   if (issues.length === 0) return []
   return db.insert(technicalIssues).values(issues).returning()
+}
+
+export async function getTechnicalIssuesByAnalysisId(analysisId: string) {
+  return db
+    .select()
+    .from(technicalIssues)
+    .where(eq(technicalIssues.analysisId, analysisId))
+    .orderBy(technicalIssues.penalty)
 }
