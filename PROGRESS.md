@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé.
 
 ---
 
@@ -52,6 +52,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-013** — Bouton lancer analyse : tables analyses/authority_results/authority_sources, canRunFullAnalysis quota, runAnalysisAction (ownership+quota+createAnalysis+inngest.send), RunAnalysisButton (toast succès + redirect /overview), Inngest function run-authority-analysis (boucle prompts neutres × 4 IAs, pool ≤8 concurrents, détection isClientDomain), 123 tests verts — PR #5 merged (2026-05-13)
 - [x] **TKT-014** — Orchestrateur Inngest run-full-analysis : crawl → discovery (skip si site_metadata existe) → authority → technical + content (parallèle) → recommendations → scoring → publishers, updateAnalysisScores atomique, quota non décrémenté en cas d'erreur, computeScores pure function, stubs technical/content/publishers/recommendations, 129 tests verts — PR #6 merged (2026-05-13)
 - [x] **TKT-015** — Analyse autorité : boucle N prompts neutres × 4 IAs (pool ≤8 concurrents), stockage authority_results + authority_sources, détection isClientDomain, log erreurs IA (continue sans lever), fix estimation coût batch (N×4 appels, modèles exacts par engine), 129 tests verts — PR #7 merged (2026-05-13)
+- [x] **TKT-016** — Scoring : 4 fonctions pures (computeAuthorityScore, computeTechnicalScore, computeContentScore, computeGlobalScore), computeScores refactorisé, updateAnalysisTechnicalScore + updateAnalysisContentScore DB, scores persistés après chaque sous-analyse dans run-full-analysis, 150 tests verts (27 nouveaux) — PR #8 merged (2026-05-13)
 
 ---
 
@@ -73,3 +74,4 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 | TKT-012 | ✅ | 2026-05-12 | page Server Component /sites/[siteId]/discovery (auth+ownership), DescriptionEditor (textarea debounce 500ms), KeywordsEditor (chips+input), CompetitorsEditor (add/delete optimistic), PromptsEditor (add/delete + badge neutralité temps réel + warning pre-submit), 6 Server Actions (Zod, IDOR protection), updateSiteDescription/Keywords ciblés, insertCompetitor/Prompt, deleteXById(siteId) — 117 tests verts — PR #4 merged |
 | TKT-013 | ✅ | 2026-05-13 | tables analyses/authority_results/authority_sources + enums, canRunFullAnalysis quota mensuelle, runAnalysisAction (ownership+quota+inngest.send), RunAnalysisButton (launched state + toast + redirect /overview après 2s), lib/analysis/authority.ts (pool ≤8, isClientDomain), Inngest run-authority-analysis — 123 tests verts (6 nouveaux) — PR #5 merged |
 | TKT-015 | ✅ | 2026-05-13 | fix estimation coût batch N×4 appels + modèles exacts (chatgpt/claude/gemini/perplexity), tous critères TKT-015 déjà couverts par TKT-013 — 129 tests verts — PR #7 merged |
+| TKT-016 | ✅ | 2026-05-13 | 4 fonctions pures scoring (authority/technical/content/global), computeScores refactorisé, 2 DB helpers, scores persistés incrémentalement dans run-full-analysis, 150 tests verts (27 nouveaux) — PR #8 merged |
