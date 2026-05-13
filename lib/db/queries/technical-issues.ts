@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { technicalIssues } from '@/lib/db/schema'
 
@@ -24,5 +24,5 @@ export async function getTechnicalIssuesByAnalysisId(analysisId: string) {
     .select()
     .from(technicalIssues)
     .where(eq(technicalIssues.analysisId, analysisId))
-    .orderBy(technicalIssues.penalty)
+    .orderBy(desc(technicalIssues.penalty))
 }
