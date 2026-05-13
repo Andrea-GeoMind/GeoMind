@@ -20,7 +20,7 @@ function highlightDomain(text: string, domain: string): React.ReactNode[] {
   const regex = new RegExp(`(${escaped})`, 'gi')
   const parts = text.split(regex)
   return parts.map((part, i) =>
-    regex.test(part)
+    i % 2 !== 0
       ? (
           <mark
             key={i}
