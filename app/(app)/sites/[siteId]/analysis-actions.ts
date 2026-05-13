@@ -29,10 +29,17 @@ export async function runAnalysisAction(
 
   const analysis = await createAnalysis({ siteId, userId: user.id })
 
-  await inngest.send({
-    name: 'site.analysis.requested',
-    data: { analysisId: analysis.id, siteId, userId: user.id },
-  })
+  try {
+    await inngest.send({
+      name: 'site.analysis.requested',
+      data: { analysisId: analysis.id, siteId, userId: user.id },
+    })
+  } catch (err) {
+    console.error('[Inngest] Failed to send analysis event:', err)
+    return {
+      error: "Une erreur est survenue lors du lancement de l'analyse. Veuillez réessayer.",
+    }
+  }
 
   return { analysisId: analysis.id }
 }
