@@ -8,6 +8,7 @@ import {
   boolean,
   jsonb,
   integer,
+  numeric,
   unique,
 } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
@@ -23,6 +24,15 @@ export const subscriptionStatusEnum = pgEnum('subscription_status', [
   'trialing',
   'incomplete',
 ])
+
+export const analysisStatusEnum = pgEnum('analysis_status', [
+  'pending',
+  'running',
+  'success',
+  'error',
+])
+
+export const iaEngineEnum = pgEnum('ia_engine', ['chatgpt', 'claude', 'gemini', 'perplexity'])
 
 // ─── profiles ─────────────────────────────────────────────────────────────────
 // Mirror de auth.users — créé automatiquement par trigger SQL.
@@ -136,6 +146,65 @@ export const prompts = pgTable('prompts', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── analyses ─────────────────────────────────────────────────────────────────
+// Un audit GEO complet d'un site. Créé au lancement, mis à jour à chaque étape.
+// Quota : limité par plan (lib/plans.ts PLAN_LIMITS.analyses / mois).
+
+export const analyses = pgTable('analyses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  status: analysisStatusEnum('status').notNull().default('pending'),
+  errorMessage: text('error_message'),
+  globalScore: integer('global_score'),
+  authorityScore: integer('authority_score'),
+  technicalScore: integer('technical_score'),
+  contentScore: integer('content_score'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── authority_results ────────────────────────────────────────────────────────
+// Une réponse d'un moteur IA pour un prompt donné, dans le cadre d'une analyse.
+// 1 record = 1 prompt × 1 IA.
+
+export const authorityResults = pgTable('authority_results', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  analysisId: uuid('analysis_id')
+    .notNull()
+    .references(() => analyses.id, { onDelete: 'cascade' }),
+  promptId: uuid('prompt_id')
+    .notNull()
+    .references(() => prompts.id, { onDelete: 'cascade' }),
+  engine: iaEngineEnum('engine').notNull(),
+  answer: text('answer').notNull(),
+  promptIsNeutral: boolean('prompt_is_neutral').notNull().default(true),
+  partialResponse: boolean('partial_response').notNull().default(false),
+  tokensInput: integer('tokens_input').notNull().default(0),
+  tokensOutput: integer('tokens_output').notNull().default(0),
+  costUsd: numeric('cost_usd', { precision: 12, scale: 8 }).notNull().default('0'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── authority_sources ────────────────────────────────────────────────────────
+// Citations extraites d'une réponse IA. Permet de détecter si le domaine client est cité.
+
+export const authoritySources = pgTable('authority_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  authorityResultId: uuid('authority_result_id')
+    .notNull()
+    .references(() => authorityResults.id, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  title: text('title'),
+  domain: text('domain').notNull(),
+  isClientDomain: boolean('is_client_domain').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -165,6 +234,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   }),
   competitors: many(competitors),
   prompts: many(prompts),
+  analyses: many(analyses),
 }))
 
 export const firecrawlPagesRelations = relations(firecrawlPages, ({ one }) => ({
@@ -188,9 +258,41 @@ export const competitorsRelations = relations(competitors, ({ one }) => ({
   }),
 }))
 
-export const promptsRelations = relations(prompts, ({ one }) => ({
+export const promptsRelations = relations(prompts, ({ one, many }) => ({
   site: one(sites, {
     fields: [prompts.siteId],
     references: [sites.id],
+  }),
+  authorityResults: many(authorityResults),
+}))
+
+export const analysesRelations = relations(analyses, ({ one, many }) => ({
+  site: one(sites, {
+    fields: [analyses.siteId],
+    references: [sites.id],
+  }),
+  profile: one(profiles, {
+    fields: [analyses.userId],
+    references: [profiles.id],
+  }),
+  authorityResults: many(authorityResults),
+}))
+
+export const authorityResultsRelations = relations(authorityResults, ({ one, many }) => ({
+  analysis: one(analyses, {
+    fields: [authorityResults.analysisId],
+    references: [analyses.id],
+  }),
+  prompt: one(prompts, {
+    fields: [authorityResults.promptId],
+    references: [prompts.id],
+  }),
+  sources: many(authoritySources),
+}))
+
+export const authoritySourcesRelations = relations(authoritySources, ({ one }) => ({
+  authorityResult: one(authorityResults, {
+    fields: [authoritySources.authorityResultId],
+    references: [authorityResults.id],
   }),
 }))
