@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ne } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { analyses } from '@/lib/db/schema'
 
@@ -48,7 +48,29 @@ export async function updateAnalysisAuthorityScore(id: string, authorityScore: n
   return row
 }
 
-// Nombre d'analyses lancées ce mois-ci pour un user (pour vérif quota).
+export interface AnalysisScores {
+  globalScore: number
+  authorityScore: number
+  technicalScore: number
+  contentScore: number
+}
+
+// Persists all 4 scores and atomically marks the analysis as success.
+export async function updateAnalysisScores(id: string, scores: AnalysisScores) {
+  const [row] = await db
+    .update(analyses)
+    .set({
+      ...scores,
+      status: 'success',
+      errorMessage: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(analyses.id, id))
+    .returning()
+  return row
+}
+
+// Excludes `error` rows: a failed analysis must not count against the monthly quota.
 export async function countAnalysesThisMonth(userId: string): Promise<number> {
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
@@ -57,7 +79,13 @@ export async function countAnalysesThisMonth(userId: string): Promise<number> {
   const [result] = await db
     .select({ value: count() })
     .from(analyses)
-    .where(and(eq(analyses.userId, userId), gte(analyses.createdAt, startOfMonth)))
+    .where(
+      and(
+        eq(analyses.userId, userId),
+        gte(analyses.createdAt, startOfMonth),
+        ne(analyses.status, 'error')
+      )
+    )
 
   return result?.value ?? 0
 }
