@@ -1,0 +1,27 @@
+import type { RuleInput, ContentIssue } from '../types'
+
+const THRESHOLD_RATIO = 0.5
+// Matches markdown unordered (- item) or ordered (1. item) lists
+const LIST_PATTERN = /^[\-\*][ \t].+|^\d+\.[ \t].+/m
+
+export async function checkNoStructuredLists({ pages }: RuleInput): Promise<ContentIssue | null> {
+  if (pages.length === 0) return null
+
+  const contentPages = pages.filter(
+    (p) => (p.statusCode === 200 || p.statusCode == null) && p.markdown
+  )
+  if (contentPages.length === 0) return null
+
+  const noListPages = contentPages.filter((p) => !LIST_PATTERN.test(p.markdown ?? ''))
+  const ratio = noListPages.length / contentPages.length
+  if (ratio <= THRESHOLD_RATIO) return null
+
+  return {
+    ruleKey: 'no_structured_lists',
+    category: 'readability',
+    title: 'Peu de listes structurées',
+    description: `${Math.round(ratio * 100)}% de vos pages ne contiennent pas de listes à puces ou numérotées. Ce format facilite l'extraction de données par les IAs pour leurs réponses.`,
+    sampleUrls: noListPages.slice(0, 5).map((p) => p.url),
+    penalty: 6,
+  }
+}
