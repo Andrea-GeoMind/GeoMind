@@ -6,8 +6,14 @@ import { runTechnicalAnalysis } from '@/lib/analysis/technical'
 import { runContentAnalysis } from '@/lib/analysis/content'
 import { generateRecommendations } from '@/lib/analysis/recommendations'
 import { detectPublishers } from '@/lib/analysis/publishers'
-import { computeScores } from '@/lib/analysis/scoring'
-import { updateAnalysisStatus, updateAnalysisScores } from '@/lib/db/queries/analyses'
+import { computeAuthorityScore, computeScores } from '@/lib/analysis/scoring'
+import {
+  updateAnalysisStatus,
+  updateAnalysisScores,
+  updateAnalysisAuthorityScore,
+  updateAnalysisTechnicalScore,
+  updateAnalysisContentScore,
+} from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 
 const DEFAULT_MAX_PAGES = 20
@@ -34,23 +40,39 @@ export const runFullAnalysisFunction = inngest.createFunction(
         await step.run('run-discovery', () => runDiscovery(siteId))
       }
 
-      // 3. Authority analysis
+      // 3. Authority analysis — persisted immediately so the UI can show partial progress
       const authorityResult = await step.run('run-authority', () =>
         runAuthorityAnalysis(analysisId)
       )
+      const authorityScore = computeAuthorityScore(
+        authorityResult.successfulCalls,
+        authorityResult.clientCitationsFound
+      )
+      await step.run('save-authority-score', () =>
+        updateAnalysisAuthorityScore(analysisId, authorityScore)
+      )
 
-      // 4. Technical + Content in parallel
+      // 4. Technical + Content in parallel — each score persisted as soon as available
       const [technicalResult, contentResult] = await Promise.all([
         step.run('run-technical', () => runTechnicalAnalysis(siteId)),
         step.run('run-content', () => runContentAnalysis(siteId)),
       ])
+      await step.run('save-technical-score', () =>
+        updateAnalysisTechnicalScore(analysisId, technicalResult.score)
+      )
+      await step.run('save-content-score', () =>
+        updateAnalysisContentScore(analysisId, contentResult.score)
+      )
 
       // 5. Recommendations (stub for now)
       await step.run('run-recommendations', () =>
         generateRecommendations(siteId, analysisId)
       )
 
-      // 6. Scoring (pure function — no DB access)
+      // 6. Publishers (stub for now)
+      await step.run('run-publishers', () => detectPublishers(siteId, analysisId))
+
+      // 7. Compute global score + persist all 4 scores atomically, mark success
       const scores = computeScores(
         {
           successfulCalls: authorityResult.successfulCalls,
@@ -59,11 +81,6 @@ export const runFullAnalysisFunction = inngest.createFunction(
         technicalResult.score,
         contentResult.score
       )
-
-      // 7. Publishers (stub for now)
-      await step.run('run-publishers', () => detectPublishers(siteId, analysisId))
-
-      // 8. Persist scores + mark success atomically
       await step.run('mark-success', () => updateAnalysisScores(analysisId, scores))
 
       return scores

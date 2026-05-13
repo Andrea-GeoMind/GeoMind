@@ -48,6 +48,24 @@ export async function updateAnalysisAuthorityScore(id: string, authorityScore: n
   return row
 }
 
+export async function updateAnalysisTechnicalScore(id: string, technicalScore: number) {
+  const [row] = await db
+    .update(analyses)
+    .set({ technicalScore, updatedAt: new Date() })
+    .where(eq(analyses.id, id))
+    .returning()
+  return row
+}
+
+export async function updateAnalysisContentScore(id: string, contentScore: number) {
+  const [row] = await db
+    .update(analyses)
+    .set({ contentScore, updatedAt: new Date() })
+    .where(eq(analyses.id, id))
+    .returning()
+  return row
+}
+
 export interface AnalysisScores {
   globalScore: number
   authorityScore: number
