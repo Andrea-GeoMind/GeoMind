@@ -88,6 +88,29 @@ export async function updateAnalysisScores(id: string, scores: AnalysisScores) {
   return row
 }
 
+// Returns the most recent analysis for a site regardless of status.
+// Used to detect whether an analysis is in progress.
+export async function getLatestAnalysis(siteId: string) {
+  const [row] = await db
+    .select()
+    .from(analyses)
+    .where(eq(analyses.siteId, siteId))
+    .orderBy(desc(analyses.createdAt))
+    .limit(1)
+  return row ?? null
+}
+
+// Returns the N most recent analyses with status='success' for a site.
+// Pass limit=2 to get current + previous for delta computation.
+export async function getLatestSuccessfulAnalyses(siteId: string, limit: number) {
+  return db
+    .select()
+    .from(analyses)
+    .where(and(eq(analyses.siteId, siteId), eq(analyses.status, 'success')))
+    .orderBy(desc(analyses.createdAt))
+    .limit(limit)
+}
+
 // Excludes `error` rows: a failed analysis must not count against the monthly quota.
 export async function countAnalysesThisMonth(userId: string): Promise<number> {
   const startOfMonth = new Date()
