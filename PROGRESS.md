@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé. TKT-023 terminé. TKT-024 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé. TKT-023 terminé. TKT-024 terminé. TKT-031 terminé. TKT-031.5 terminé.
 
 ---
 
@@ -74,6 +74,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-028** — quotas système complets + page Usage : lib/quotas.ts complété (canRunTabAnalysis, getRemainingAnalysesThisMonth, getSitesUsage, getUsageStats), page settings/usage avec barres de progression et alertes visuelles, 19 tests unitaires (311 verts) — PR #20 merged (2026-05-14)
 - [x] **TKT-029** — PWA setup : @serwist/next + serwist, manifest.json (icônes 192/512/maskable/apple-touch), app/sw.ts (précache + runtime cache), next.config.mjs wrappé withSerwist, viewport themeColor, components/install-prompt.tsx (banner après 30s), 311 tests verts — PR #21 merged (2026-05-14)
 - [x] **TKT-030** — pages légales + bannière cookies : CGV, Mentions légales (SIRET placeholder), Confidentialité RGPD, Cookies ; posthog-js + PostHogProvider (init conditionnel au consentement), CookieBanner (essentiels / analytics), CookieConsentButtons sur page cookies ; fix TS stripe.ts + plans.ts — commit f5213bb (2026-05-14)
+- [x] **TKT-031.5** — polish pass UI avant production : landing page (H1 question-format, stats 2400+/4 IA/4,8/5, section « Comment ça marche » 3 étapes, CTA 60s sans CB), dashboard empty state avec CTA direct, NoAnalysisState composant partagé (4 onglets), RetryAnalysisButton sur authority, ScoreGauge animation entrée arc-fill, CitationsTable icônes Lucide, SiteTabs active state — prototype Claude Design HF (5 sections) — 311 tests verts — PR #23 merged (2026-05-14)
 - [x] **TKT-031** — observabilité production + QA : @sentry/nextjs configuré (client/server/edge + instrumentation.ts + withSentryConfig + user context authentifié), lib/posthog.ts server-side (trackEvent helper + 8 events : signup, site_created, discovery_started, analysis_started, plan_upgrade_started, plan_upgraded), NEXT_PUBLIC_SENTRY_DSN ajouté à env.ts + .env.example, checklist QA 55 items dans tests/qa-checklist.md, 312 tests verts — PR #22 merged (2026-05-14)
 
 ---
