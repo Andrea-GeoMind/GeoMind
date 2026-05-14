@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ScoreGaugeProps {
@@ -52,11 +55,22 @@ export function ScoreGauge({
   const cx = cfg.svgSize / 2
   const cy = cfg.svgSize / 2
   const circumference = 2 * Math.PI * cfg.r
-  // Arc de 270° : commence à 135° (bas-gauche), finit à 405° (bas-droite)
   const arcLength = (3 / 4) * circumference
   const dashOffset = arcLength - (clampedScore / 100) * arcLength
 
   const rotation = -135
+
+  const arcRef = useRef<SVGCircleElement>(null)
+
+  useEffect(() => {
+    const arc = arcRef.current
+    if (!arc) return
+    arc.style.transition = 'none'
+    arc.style.strokeDashoffset = String(arcLength)
+    arc.getBoundingClientRect()
+    arc.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1)'
+    arc.style.strokeDashoffset = String(dashOffset)
+  }, [arcLength, dashOffset])
 
   return (
     <div className={cn('inline-flex flex-col items-center gap-1', className)}>
@@ -79,6 +93,7 @@ export function ScoreGauge({
           transform={`rotate(${rotation}, ${cx}, ${cy})`}
         />
         <circle
+          ref={arcRef}
           cx={cx}
           cy={cy}
           r={cfg.r}
@@ -87,9 +102,8 @@ export function ScoreGauge({
           strokeWidth={cfg.strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${arcLength} ${circumference}`}
-          strokeDashoffset={dashOffset}
+          strokeDashoffset={arcLength}
           transform={`rotate(${rotation}, ${cx}, ${cy})`}
-          style={{ transition: 'stroke-dashoffset 0.6s ease-out' }}
         />
         <text
           x={cx}
