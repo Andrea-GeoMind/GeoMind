@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowUpRight, Clock, Zap } from 'lucide-react'
+import { ArrowUpRight, Clock, Loader2, Sparkles, Zap } from 'lucide-react'
 import {
   Sheet,
   SheetContent,
@@ -16,6 +17,7 @@ import {
   type ContentRecommendation,
 } from '@/lib/analysis/content/recommendations'
 import type { ContentIssueRow } from './content-issue-card'
+import { generateCompleteRecommendation } from '@/app/(app)/sites/[siteId]/recommendation-actions'
 
 const EFFORT_LABELS: Record<ContentRecommendation['effort'], string> = {
   low: 'Rapide',
@@ -32,15 +34,49 @@ const EFFORT_ICONS: Record<ContentRecommendation['effort'], React.ReactNode> = {
 interface ContentRecommendationSheetProps {
   issue: ContentIssueRow | null
   isPro: boolean
+  isBusiness: boolean
   onClose: () => void
 }
 
-export function ContentRecommendationSheet({ issue, isPro, onClose }: ContentRecommendationSheetProps) {
+export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }: ContentRecommendationSheetProps) {
   const rec = issue ? CONTENT_RECOMMENDATIONS[issue.ruleKey] : undefined
   const severity = issue ? penaltyToSeverity(issue.penalty) : undefined
+  const [showComplete, setShowComplete] = useState(false)
+  const [completeContent, setCompleteContent] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  async function handleToggleComplete() {
+    if (!issue) return
+    if (showComplete) {
+      setShowComplete(false)
+      return
+    }
+    if (completeContent) {
+      setShowComplete(true)
+      return
+    }
+    setIsLoading(true)
+    setLoadError(null)
+    const result = await generateCompleteRecommendation(issue.id, 'content')
+    setIsLoading(false)
+    if ('error' in result) {
+      setLoadError(result.error)
+      return
+    }
+    setCompleteContent(result.content)
+    setShowComplete(true)
+  }
+
+  function handleClose() {
+    setShowComplete(false)
+    setCompleteContent(null)
+    setLoadError(null)
+    onClose()
+  }
 
   return (
-    <Sheet open={issue !== null} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={issue !== null} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-md">
         {issue && severity && (
           <>
@@ -58,8 +94,42 @@ export function ContentRecommendationSheet({ issue, isPro, onClose }: ContentRec
               <SheetDescription className="text-sm">{issue.description}</SheetDescription>
             </SheetHeader>
 
+            {/* Toggle version complète */}
+            {isPro && (
+              <div className="mb-5">
+                <span title={isBusiness ? undefined : 'Disponible avec le plan Business'}>
+                  <button
+                    type="button"
+                    onClick={handleToggleComplete}
+                    disabled={!isBusiness || isLoading}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <Loader2 size={12} className="shrink-0 animate-spin" />
+                    ) : (
+                      <Sparkles size={12} className="shrink-0" />
+                    )}
+                    {showComplete ? 'Version simplifiée' : 'Version complète'}
+                    {!isBusiness && (
+                      <span className="ml-1 rounded bg-muted px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Business
+                      </span>
+                    )}
+                  </button>
+                </span>
+                {loadError && (
+                  <p className="mt-2 text-xs text-destructive">{loadError}</p>
+                )}
+              </div>
+            )}
+
+            {/* Recommendation body */}
             <div className="relative flex-1">
-              {rec ? (
+              {showComplete && completeContent ? (
+                <div className="prose prose-sm max-w-none text-foreground">
+                  <MarkdownContent content={completeContent} />
+                </div>
+              ) : rec ? (
                 <div className={isPro ? undefined : 'max-h-32 overflow-hidden'}>
                   <section className="mb-5">
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -126,4 +196,66 @@ export function ContentRecommendationSheet({ issue, isPro, onClose }: ContentRec
       </SheetContent>
     </Sheet>
   )
+}
+
+function MarkdownContent({ content }: { content: string }) {
+  const lines = content.split('\n')
+  const elements: React.ReactNode[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    if (line.startsWith('## ')) {
+      elements.push(
+        <h3 key={i} className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground first:mt-0">
+          {line.slice(3)}
+        </h3>
+      )
+    } else if (line.startsWith('# ')) {
+      elements.push(
+        <h2 key={i} className="mb-2 mt-5 text-sm font-semibold first:mt-0">
+          {line.slice(2)}
+        </h2>
+      )
+    } else if (line.startsWith('```')) {
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i])
+        i++
+      }
+      elements.push(
+        <pre key={i} className="my-3 overflow-x-auto rounded-md bg-muted p-3 text-xs">
+          <code>{codeLines.join('\n')}</code>
+        </pre>
+      )
+    } else if (line.startsWith('- ')) {
+      const items: string[] = []
+      while (i < lines.length && lines[i].startsWith('- ')) {
+        items.push(lines[i].slice(2))
+        i++
+      }
+      elements.push(
+        <ul key={i} className="my-2 space-y-1 pl-4">
+          {items.map((item, j) => (
+            <li key={j} className="list-disc text-sm leading-relaxed text-foreground">
+              {item}
+            </li>
+          ))}
+        </ul>
+      )
+      continue
+    } else if (line.trim() !== '') {
+      elements.push(
+        <p key={i} className="mb-3 text-sm leading-relaxed text-foreground">
+          {line}
+        </p>
+      )
+    }
+
+    i++
+  }
+
+  return <>{elements}</>
 }

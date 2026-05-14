@@ -21,9 +21,10 @@ const CATEGORY_ORDER: TechnicalIssueRow['category'][] = [
 interface IssuesListProps {
   issues: TechnicalIssueRow[]
   isPro: boolean
+  isBusiness: boolean
 }
 
-export function IssuesList({ issues, isPro }: IssuesListProps) {
+export function IssuesList({ issues, isPro, isBusiness }: IssuesListProps) {
   const [selected, setSelected] = useState<TechnicalIssueRow | null>(null)
 
   const grouped = CATEGORY_ORDER.reduce<Record<string, TechnicalIssueRow[]>>((acc, cat) => {
@@ -65,6 +66,7 @@ export function IssuesList({ issues, isPro }: IssuesListProps) {
       <RecommendationSheet
         issue={selected}
         isPro={isPro}
+        isBusiness={isBusiness}
         onClose={() => setSelected(null)}
       />
     </>
