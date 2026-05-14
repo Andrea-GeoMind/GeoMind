@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 import { ContentIssueCard, type ContentIssueRow } from './content-issue-card'
 import { ContentRecommendationSheet } from './content-recommendation-sheet'
 
@@ -35,9 +36,15 @@ export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesLi
 
   if (issues.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        Aucun point faible détecté — votre contenu est bien optimisé.
-      </p>
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-[--score-good-100] bg-[--score-good-50] px-6 py-10 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[--score-good-100]">
+          <CheckCircle2 className="h-6 w-6 text-[--score-good-600]" />
+        </div>
+        <p className="font-semibold text-[--score-good-700]">Aucun point faible détecté</p>
+        <p className="text-sm text-[--score-good-700]/70">
+          Votre site respecte toutes les règles GEO de contenu analysées.
+        </p>
+      </div>
     )
   }
 

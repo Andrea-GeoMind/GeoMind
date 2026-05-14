@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { Globe, Trash2, ExternalLink } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -64,6 +65,12 @@ export function SiteCard({ site }: Props) {
               </a>
             </div>
           </div>
+          <Link
+            href={`/sites/${site.id}/overview`}
+            className="shrink-0 text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Voir l&apos;analyse
+          </Link>
           <Button
             variant="ghost"
             size="icon"
