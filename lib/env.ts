@@ -72,11 +72,16 @@ const envSchema = z.object({
 
   // ── Observabilité ────────────────────────────────────────────────────────────
   SENTRY_DSN: z.url({ message: 'SENTRY_DSN doit être une URL valide' }),
+  /** DSN côté client — même valeur que SENTRY_DSN, exposée publiquement (safe) */
+  NEXT_PUBLIC_SENTRY_DSN: z.url({ message: 'NEXT_PUBLIC_SENTRY_DSN doit être une URL valide' }),
   NEXT_PUBLIC_POSTHOG_KEY: z
     .string()
     .startsWith('phc_', { message: 'NEXT_PUBLIC_POSTHOG_KEY doit commencer par phc_' }),
   NEXT_PUBLIC_POSTHOG_HOST: z.url({ message: 'NEXT_PUBLIC_POSTHOG_HOST doit être une URL valide' }),
 })
+
+// Note: SENTRY_ORG and SENTRY_PROJECT are build-time only (Sentry webpack plugin).
+// They are optional — set in CI/Vercel env only, not validated here.
 
 // ─── Parse & crash si invalide ────────────────────────────────────────────────
 
