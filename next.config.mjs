@@ -1,15 +1,10 @@
-import path from 'path'
-import { fileURLToPath } from 'url'
 import withSerwist from '@serwist/next'
 import { withSentryConfig } from '@sentry/nextjs'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
-  outputFileTracingRoot: path.join(__dirname, '../'),
   serverExternalPackages: ['@mendable/firecrawl-js', 'undici', 'postgres'],
 }
 
