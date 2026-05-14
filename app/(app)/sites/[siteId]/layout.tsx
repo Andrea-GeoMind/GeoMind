@@ -14,6 +14,7 @@ const TABS = [
   { label: 'Autorité',       segment: 'authority' },
   { label: 'Technique',      segment: 'technical' },
   { label: 'Contenu',        segment: 'content' },
+  { label: 'Publishers',     segment: 'publishers' },
   { label: 'Découverte',     segment: 'discovery' },
 ]
 
