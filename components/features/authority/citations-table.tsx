@@ -26,10 +26,10 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
   return (
     <>
       <div className="overflow-x-auto rounded-xl border border-border shadow-sm">
-        <table className="w-full min-w-[560px] border-collapse text-sm">
+        <table className="w-full min-w-[540px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <th className="sticky left-0 z-10 bg-muted/50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Prompt
               </th>
               {IA_ENGINES.map((engine) => (
@@ -47,11 +47,11 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
               <tr
                 key={row.promptId}
                 className={cn(
-                  'border-b border-border last:border-0',
+                  'group border-b border-border transition-colors last:border-0 hover:bg-muted/40',
                   rowIdx % 2 === 0 ? 'bg-background' : 'bg-muted/20'
                 )}
               >
-                <td className="max-w-xs px-4 py-3 text-xs text-foreground">
+                <td className="sticky left-0 z-10 max-w-xs bg-inherit px-4 py-3 text-xs text-foreground">
                   <span className="line-clamp-2">{row.promptText}</span>
                 </td>
                 {IA_ENGINES.map((engine) => {
@@ -63,7 +63,7 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
                           type="button"
                           onClick={() => setSelected({ cell, promptText: row.promptText })}
                           className={cn(
-                            'inline-flex items-center justify-center rounded-md px-2 py-1 text-base transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                            'inline-flex items-center justify-center rounded-md px-2 py-1 text-base transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                           )}
                           title="Voir la réponse complète"
                           aria-label={`Voir réponse ${ENGINE_LABELS[engine]} pour : ${row.promptText}`}
@@ -87,6 +87,10 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
           </tbody>
         </table>
       </div>
+
+      <p className="mt-2 text-right text-[11px] text-muted-foreground sm:hidden">
+        ← Faites glisser pour voir toutes les colonnes
+      </p>
 
       <ResponseDetailDialog
         open={selected !== null}
