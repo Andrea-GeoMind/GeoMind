@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRICE_IDS, type StripePlan } from '@/lib/stripe'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { env } from '@/lib/env'
+import { trackEvent } from '@/lib/posthog'
 
 const APP_URL = env.NEXT_PUBLIC_SITE_URL
 
@@ -37,6 +38,7 @@ export async function createCheckoutSession(plan: StripePlan): Promise<void> {
 
   if (!session.url) throw new Error('Stripe session URL manquante')
 
+  trackEvent(user.id, 'plan_upgrade_started', { plan })
   redirectExternal(session.url)
 }
 
