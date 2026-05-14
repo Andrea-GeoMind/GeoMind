@@ -31,3 +31,18 @@ export const RecommendationOutputSchema = z.object({
 })
 
 export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>
+
+// Schéma de sortie LLM pour la génération des publishers (TKT-025)
+const PublisherItemSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().min(1),
+  category: z.enum(['media', 'community', 'public_base']),
+  pitch_angle: z.string().min(10),
+})
+
+export const PublishersOutputSchema = z.object({
+  publishers: z.array(PublisherItemSchema).length(15),
+})
+
+export type PublishersOutput = z.infer<typeof PublishersOutputSchema>
+export type PublisherItem = z.infer<typeof PublisherItemSchema>
