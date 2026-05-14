@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { inngest } from '@/lib/inngest/client'
+import { trackEvent } from '@/lib/posthog'
 
 export async function launchDiscoveryAction(
   siteId: string
@@ -16,6 +17,8 @@ export async function launchDiscoveryAction(
 
   const site = await getSiteById(siteId)
   if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
+
+  trackEvent(user.id, 'discovery_started', { siteId })
 
   try {
     await inngest.send({

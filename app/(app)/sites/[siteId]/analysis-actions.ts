@@ -6,6 +6,7 @@ import { getSiteById } from '@/lib/db/queries/sites'
 import { createAnalysis } from '@/lib/db/queries/analyses'
 import { canRunFullAnalysis } from '@/lib/quotas'
 import { inngest } from '@/lib/inngest/client'
+import { trackEvent } from '@/lib/posthog'
 
 export async function runAnalysisAction(
   siteId: string
@@ -28,6 +29,8 @@ export async function runAnalysisAction(
   }
 
   const analysis = await createAnalysis({ siteId, userId: user.id })
+
+  trackEvent(user.id, 'analysis_started', { siteId, analysisId: analysis.id })
 
   try {
     await inngest.send({
