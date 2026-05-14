@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé. TKT-023 terminé. TKT-024 terminé. TKT-031 terminé. TKT-031.5 terminé.
+Tous sprints terminés. TKT-001 à TKT-031.5 terminés. TKT-032 (deploy prod) terminé côté code — étapes opérationnelles (DNS, Vercel dashboard, Stripe Live) en attente manuel.
 
 ---
 
@@ -76,6 +76,58 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-030** — pages légales + bannière cookies : CGV, Mentions légales (SIRET placeholder), Confidentialité RGPD, Cookies ; posthog-js + PostHogProvider (init conditionnel au consentement), CookieBanner (essentiels / analytics), CookieConsentButtons sur page cookies ; fix TS stripe.ts + plans.ts — commit f5213bb (2026-05-14)
 - [x] **TKT-031.5** — polish pass UI avant production : landing page (H1 question-format, stats 2400+/4 IA/4,8/5, section « Comment ça marche » 3 étapes, CTA 60s sans CB), dashboard empty state + padding mobile p-4 sm:p-8, NoAnalysisState composant partagé (4 onglets), RetryAnalysisButton sur authority, ScoreGauge animation entrée arc-fill, CitationsTable sticky colonne 1 + hover lignes + scale icônes + hint scroll mobile, RunAnalysisButton Loader2 spinner + pulse overlay + bannière succès, SiteTabs active state, onboarding card responsive p-6 sm:p-8, pricing page complète 3 plans, zero-issue empty state (CheckCircle2) — prototype Claude Design HF (5 sections) — PR #23 + PR #24 + fix direct merged (2026-05-14)
 - [x] **TKT-031** — observabilité production + QA : @sentry/nextjs configuré (client/server/edge + instrumentation.ts + withSentryConfig + user context authentifié), lib/posthog.ts server-side (trackEvent helper + 8 events : signup, site_created, discovery_started, analysis_started, plan_upgrade_started, plan_upgraded), NEXT_PUBLIC_SENTRY_DSN ajouté à env.ts + .env.example, checklist QA 55 items dans tests/qa-checklist.md, 312 tests verts — PR #22 merged (2026-05-14)
+- [x] **TKT-032** — deploy production (code) : vercel.json (région cdg1, pnpm frozen-lockfile), playwright.config.ts (chromium + mobile, PLAYWRIGHT_BASE_URL pour prod), tests/e2e/smoke.spec.ts (landing/pricing/login/signup/légales/auth-redirect), vitest.config.ts exclu tests/e2e, 312 tests verts — étapes opérationnelles ci-dessous
+
+---
+
+## TKT-032 — Checklist deploy opérationnel
+
+### 1. Vercel (dashboard.vercel.com)
+- [ ] Importer le repo GitHub `Andrea-GeoMind/geomind` → framework Next.js détecté automatiquement
+- [ ] Saisir toutes les variables d'env de `.env.example` dans Settings → Environment Variables (scope : Production)
+  - `NODE_ENV=production`
+  - `NEXT_PUBLIC_SITE_URL=https://geomind.fr`
+  - Toutes les autres clés API en mode Live/Production
+- [ ] Premier déploiement → vérifier que le build passe (pnpm build doit être vert)
+
+### 2. DNS — geomind.fr
+- [ ] Chez le registrar : ajouter enregistrement `A` → `76.76.21.21` (Vercel IP)
+- [ ] Ou enregistrement `CNAME` `www` → `cname.vercel-dns.com`
+- [ ] Dans Vercel → Settings → Domains : ajouter `geomind.fr` + `www.geomind.fr` (redirect www → apex)
+- [ ] Attendre propagation DNS (5–30 min) + SSL automatique Let's Encrypt activé par Vercel
+
+### 3. Resend — SPF/DKIM (resend.com/domains)
+- [ ] Ajouter domaine `geomind.fr` dans Resend
+- [ ] Ajouter enregistrement DNS TXT SPF : `v=spf1 include:spf.resend.com ~all`
+- [ ] Ajouter enregistrements DNS DKIM (4 TXT CNAME fournis par Resend)
+- [ ] Vérifier le statut "Verified" dans Resend dashboard
+- [ ] Tester envoi email depuis Resend → vérifier réception + header DKIM valide
+
+### 4. Supabase — URL de redirection auth
+- [ ] Dashboard Supabase → Authentication → URL Configuration
+- [ ] `Site URL` → `https://geomind.fr`
+- [ ] `Redirect URLs` → ajouter `https://geomind.fr/auth/callback`
+
+### 5. Stripe (⚠️ bloqué — en attente SIRET auto-entrepreneur)
+- [ ] Créer compte Stripe avec SIRET
+- [ ] Activer mode Live
+- [ ] Créer produit "GeoMind Pro" → prix récurrent 49€/mois → copier `STRIPE_PRO_PRICE_ID`
+- [ ] Créer produit "GeoMind Business" → prix récurrent 149€/mois → copier `STRIPE_BUSINESS_PRICE_ID`
+- [ ] Créer webhook endpoint `https://geomind.fr/api/stripe/webhooks` → événements : `customer.subscription.*` + `invoice.payment_*`
+- [ ] Mettre à jour les 4 variables Stripe dans Vercel (sk_live_, whsec_, price_*×2)
+
+### 6. Inngest (app.inngest.com)
+- [ ] Créer environnement Production dans Inngest
+- [ ] Copier `INNGEST_EVENT_KEY` et `INNGEST_SIGNING_KEY` (production) dans Vercel
+- [ ] Syncer les functions : aller sur `https://geomind.fr/api/inngest` depuis le dashboard Inngest
+
+### 7. Tests E2E post-deploy
+```bash
+PLAYWRIGHT_BASE_URL=https://geomind.fr pnpm test:e2e
+```
+- [ ] Tous les tests smoke passent (landing, pricing, auth pages, légales, redirects)
+- [ ] Vérifier Sentry → premier event reçu
+- [ ] Vérifier PostHog → premier event reçu
 
 ---
 
