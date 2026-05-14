@@ -3,6 +3,7 @@ import { Figtree, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 // Validation des variables d'environnement au boot — crash explicitement si manquantes
 import '@/lib/env'
+import { Toaster } from '@/components/ui/toaster'
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -34,7 +35,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${figtree.variable} ${jetbrainsMono.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {children}
+        <Toaster />
+      </body>
     </html>
   )
 }
