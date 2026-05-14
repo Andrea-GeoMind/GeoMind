@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { IA_ENGINES, ENGINE_LABELS } from '@/lib/analysis/authority-table'
 import { ResponseDetailDialog } from '@/components/features/authority/response-detail-dialog'
@@ -67,7 +68,13 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
                           title="Voir la réponse complète"
                           aria-label={`Voir réponse ${ENGINE_LABELS[engine]} pour : ${row.promptText}`}
                         >
-                          {cell.partial ? '⚠️' : cell.cited ? '✅' : '❌'}
+                          {cell.partial ? (
+                            <AlertTriangle className="h-5 w-5 text-[--score-mid-500]" />
+                          ) : cell.cited ? (
+                            <CheckCircle2 className="h-5 w-5 text-[--score-good-500]" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-[--score-bad-500]" />
+                          )}
                         </button>
                       ) : (
                         <span className="text-muted-foreground">—</span>
