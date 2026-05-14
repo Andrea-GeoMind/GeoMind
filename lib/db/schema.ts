@@ -281,6 +281,30 @@ export const recommendations = pgTable(
   }),
 )
 
+// ─── publishers ───────────────────────────────────────────────────────────────
+// Publishers générés par LLM pour un site/analyse. 15 par analyse (5 médias, 5 communautés, 5 bases publiques).
+
+export const publisherCategoryEnum = pgEnum('publisher_category', [
+  'media',
+  'community',
+  'public_base',
+])
+
+export const publishers = pgTable('publishers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  analysisId: uuid('analysis_id')
+    .notNull()
+    .references(() => analyses.id, { onDelete: 'cascade' }),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  url: text('url').notNull(),
+  category: publisherCategoryEnum('category').notNull(),
+  pitchAngle: text('pitch_angle').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -311,6 +335,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   competitors: many(competitors),
   prompts: many(prompts),
   analyses: many(analyses),
+  publishers: many(publishers),
 }))
 
 export const firecrawlPagesRelations = relations(firecrawlPages, ({ one }) => ({
@@ -355,6 +380,18 @@ export const analysesRelations = relations(analyses, ({ one, many }) => ({
   technicalIssues: many(technicalIssues),
   contentIssues: many(contentIssues),
   recommendations: many(recommendations),
+  publishers: many(publishers),
+}))
+
+export const publishersRelations = relations(publishers, ({ one }) => ({
+  analysis: one(analyses, {
+    fields: [publishers.analysisId],
+    references: [analyses.id],
+  }),
+  site: one(sites, {
+    fields: [publishers.siteId],
+    references: [sites.id],
+  }),
 }))
 
 export const authorityResultsRelations = relations(authorityResults, ({ one, many }) => ({
