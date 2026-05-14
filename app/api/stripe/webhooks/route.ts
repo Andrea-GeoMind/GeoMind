@@ -8,6 +8,7 @@ import {
   cancelSubscription,
   getSubscriptionByStripeCustomerId,
 } from '@/lib/db/queries/subscriptions'
+import { trackEvent } from '@/lib/posthog'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,5 +129,12 @@ async function syncSubscription(
     plan,
     status,
     currentPeriodEnd,
+  })
+
+  // Track plan upgrade event
+  trackEvent(userId, 'plan_upgraded', {
+    stripeCustomerId: customerId,
+    plan,
+    status,
   })
 }
