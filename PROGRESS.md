@@ -68,6 +68,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-022** — onglet Contenu : issues groupées par catégorie (Lisibilité/Métadonnées/Structure/Couverture), ContentIssueCard cliquable avec badge sévérité, ContentRecommendationSheet latéral (how/impact/effort pour 10 règles), overlay upgrade plan Free, getContentIssuesByAnalysisId query, CONTENT_RECOMMENDATIONS statiques — livré dans HOTFIX PR #14
 - [x] **TKT-023** — table `recommendations` polymorphe (enum issue_type + unique issue_id/variant), migration 0003, prompt Markdown 3 sections par issue, RecommendationOutputSchema Zod, generateRecommendations (pool ≤5 Haiku, log coût, onConflictDoNothing), 292 tests verts — PR #15 merged (2026-05-14)
 - [x] **TKT-024** — toggle "Version complète" Business : Server Action generateCompleteRecommendation (vérifie plan + ownership + cache DB), génère via Sonnet si absente, bouton toggle dans RecommendationSheet + ContentRecommendationSheet (désactivé badge Business pour Free/Pro), 292 tests verts — PR #16 merged (2026-05-14)
+- [x] **TKT-025** — feature publishers : table `publishers` + enum `publisher_category`, detectPublishers() Haiku structured output (15 publishers : 5 médias FR / 5 communautés / 5 bases publiques, chacun avec pitch_angle), PublishersList (Free : 3 visibles reste flouté), onglet Publishers dans layout, migration DB appliquée, 292 tests verts — PR #17 merged (2026-05-14)
 
 ---
 
