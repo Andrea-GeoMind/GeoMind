@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé. TKT-023 terminé.
 
 ---
 
@@ -66,6 +66,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 ### Tickets
 
 - [x] **TKT-022** — onglet Contenu : issues groupées par catégorie (Lisibilité/Métadonnées/Structure/Couverture), ContentIssueCard cliquable avec badge sévérité, ContentRecommendationSheet latéral (how/impact/effort pour 10 règles), overlay upgrade plan Free, getContentIssuesByAnalysisId query, CONTENT_RECOMMENDATIONS statiques — livré dans HOTFIX PR #14
+- [x] **TKT-023** — table `recommendations` polymorphe (enum issue_type + unique issue_id/variant), migration 0003, prompt Markdown 3 sections par issue, RecommendationOutputSchema Zod, generateRecommendations (pool ≤5 Haiku, log coût, onConflictDoNothing), 292 tests verts — PR #15 merged (2026-05-14)
 
 ---
 
