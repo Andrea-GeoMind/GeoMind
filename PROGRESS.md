@@ -74,6 +74,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-028** — quotas système complets + page Usage : lib/quotas.ts complété (canRunTabAnalysis, getRemainingAnalysesThisMonth, getSitesUsage, getUsageStats), page settings/usage avec barres de progression et alertes visuelles, 19 tests unitaires (311 verts) — PR #20 merged (2026-05-14)
 - [x] **TKT-029** — PWA setup : @serwist/next + serwist, manifest.json (icônes 192/512/maskable/apple-touch), app/sw.ts (précache + runtime cache), next.config.mjs wrappé withSerwist, viewport themeColor, components/install-prompt.tsx (banner après 30s), 311 tests verts — PR #21 merged (2026-05-14)
 - [x] **TKT-030** — pages légales + bannière cookies : CGV, Mentions légales (SIRET placeholder), Confidentialité RGPD, Cookies ; posthog-js + PostHogProvider (init conditionnel au consentement), CookieBanner (essentiels / analytics), CookieConsentButtons sur page cookies ; fix TS stripe.ts + plans.ts — commit f5213bb (2026-05-14)
+- [x] **TKT-031** — observabilité production + QA : @sentry/nextjs configuré (client/server/edge + instrumentation.ts + withSentryConfig + user context authentifié), lib/posthog.ts server-side (trackEvent helper + 8 events : signup, site_created, discovery_started, analysis_started, plan_upgrade_started, plan_upgraded), NEXT_PUBLIC_SENTRY_DSN ajouté à env.ts + .env.example, checklist QA 55 items dans tests/qa-checklist.md, 312 tests verts — PR #22 merged (2026-05-14)
 
 ---
 
