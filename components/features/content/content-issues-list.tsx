@@ -21,9 +21,10 @@ const CATEGORY_ORDER: ContentIssueRow['category'][] = [
 interface ContentIssuesListProps {
   issues: ContentIssueRow[]
   isPro: boolean
+  isBusiness: boolean
 }
 
-export function ContentIssuesList({ issues, isPro }: ContentIssuesListProps) {
+export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesListProps) {
   const [selected, setSelected] = useState<ContentIssueRow | null>(null)
 
   const grouped = CATEGORY_ORDER.reduce<Record<string, ContentIssueRow[]>>((acc, cat) => {
@@ -65,6 +66,7 @@ export function ContentIssuesList({ issues, isPro }: ContentIssuesListProps) {
       <ContentRecommendationSheet
         issue={selected}
         isPro={isPro}
+        isBusiness={isBusiness}
         onClose={() => setSelected(null)}
       />
     </>

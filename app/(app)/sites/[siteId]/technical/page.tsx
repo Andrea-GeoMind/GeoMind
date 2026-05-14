@@ -44,6 +44,7 @@ export default async function TechnicalPage({ params }: Props) {
   ])
 
   const isPro = sub?.plan === 'pro' || sub?.plan === 'business'
+  const isBusiness = sub?.plan === 'business'
 
   if (!latest) {
     return (
@@ -122,7 +123,7 @@ export default async function TechnicalPage({ params }: Props) {
             <Skeleton className="h-16 rounded-lg" />
           </div>
         ) : latest.status === 'success' ? (
-          <IssuesList issues={issues} isPro={isPro} />
+          <IssuesList issues={issues} isPro={isPro} isBusiness={isBusiness} />
         ) : null}
       </section>
     </div>
