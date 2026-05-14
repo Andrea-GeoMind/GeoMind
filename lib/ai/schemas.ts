@@ -24,3 +24,10 @@ export const NeutralPromptsOutputSchema = z.object({
 })
 
 export type NeutralPromptsOutput = z.infer<typeof NeutralPromptsOutputSchema>
+
+// Schéma de sortie LLM pour une fiche recommandation par issue (TKT-023)
+export const RecommendationOutputSchema = z.object({
+  content: z.string().min(20),
+})
+
+export type RecommendationOutput = z.infer<typeof RecommendationOutputSchema>
