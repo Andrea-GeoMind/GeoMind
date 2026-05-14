@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Tous sprints terminés. TKT-001 à TKT-032 terminés. geomind.fr est en production sur Vercel (cdg1), domaine validé, E2E smoke 10/10 ✅. Reste : Stripe Live (bloqué SIRET), clés Sentry/PostHog/Perplexity réelles, Inngest prod sync.
+Tous sprints terminés. TKT-001 à TKT-032 terminés. geomind.fr est en production sur Vercel (cdg1), domaine validé, E2E smoke 10/10 ✅. Sentry DSN réel, PostHog EU réel, Inngest synced geomind.fr ✅. Reste : Stripe Live (bloqué SIRET), Perplexity (déféré).
 
 ---
 
@@ -106,20 +106,22 @@ Tous sprints terminés. TKT-001 à TKT-032 terminés. geomind.fr est en producti
 - [ ] Créer webhook endpoint `https://geomind.fr/api/stripe/webhooks` → événements : `customer.subscription.*` + `invoice.payment_*`
 - [ ] Mettre à jour les 4 variables Stripe dans Vercel (sk_live_, whsec_, price_*×2)
 
-### 6. Inngest (⚠️ à faire après Stripe)
-- [ ] Créer environnement Production dans Inngest
-- [ ] Copier `INNGEST_EVENT_KEY` et `INNGEST_SIGNING_KEY` (production) dans Vercel
-- [ ] Syncer les functions : aller sur `https://geomind.fr/api/inngest` depuis le dashboard Inngest
+### 6. Inngest ✅
+- [x] Environnement Production Inngest actif
+- [x] `INNGEST_EVENT_KEY` et `INNGEST_SIGNING_KEY` présents dans Vercel
+- [x] Resync app → `https://geomind.fr/api/inngest` — Success 15/05/2026 00:40 ✅
 
 ### 7. Tests E2E post-deploy ✅
 - [x] 10/10 tests smoke passent sur Chromium (landing, pricing, login, signup, légales ×4, auth-redirects ×2) — 2026-05-15
-- [ ] Vérifier Sentry → premier event reçu (clé réelle à remplacer)
-- [ ] Vérifier PostHog → premier event reçu (clé réelle à remplacer)
+- [x] Clés Sentry réelles mises en place (SENTRY_DSN + NEXT_PUBLIC_SENTRY_DSN + SENTRY_ORG + SENTRY_PROJECT) — 2026-05-15
+- [x] Clés PostHog réelles mises en place (NEXT_PUBLIC_POSTHOG_KEY + NEXT_PUBLIC_POSTHOG_HOST EU) — 2026-05-15
+- [ ] Vérifier premier event Sentry reçu (après prochaine visite prod)
+- [ ] Vérifier premier event PostHog reçu (après prochaine visite prod)
 
 ### 8. Clés placeholder à remplacer quand disponibles
-- [ ] `PERPLEXITY_API_KEY` — clé réelle (actuellement placeholder)
-- [ ] `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` — DSN projet Sentry réel
-- [ ] `NEXT_PUBLIC_POSTHOG_KEY` + `NEXT_PUBLIC_POSTHOG_HOST` — clés projet PostHog réel
+- [ ] `PERPLEXITY_API_KEY` — clé réelle (actuellement OpenRouter, Perplexity déféré)
+- [x] `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` — DSN Sentry réel (ingest.de.sentry.io EU) ✅
+- [x] `NEXT_PUBLIC_POSTHOG_KEY` + `NEXT_PUBLIC_POSTHOG_HOST` — clés PostHog EU réelles ✅
 
 ---
 
