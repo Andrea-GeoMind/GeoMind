@@ -1,0 +1,5 @@
+{
+  "regions": ["cdg1"],
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install --frozen-lockfile"
+}
