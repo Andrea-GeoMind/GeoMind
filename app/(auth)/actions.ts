@@ -3,13 +3,14 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { env } from '@/lib/env'
+import { trackEvent } from '@/lib/posthog'
 
 export async function signUp(
   email: string,
   password: string
 ): Promise<{ error: string } | void> {
   const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -18,6 +19,10 @@ export async function signUp(
   })
 
   if (error) return { error: error.message }
+
+  if (data.user) {
+    trackEvent(data.user.id, 'signup', { method: 'email' })
+  }
 
   redirect('/verify-email')
 }

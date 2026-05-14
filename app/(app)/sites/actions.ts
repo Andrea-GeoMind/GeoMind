@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { canAddSite } from '@/lib/quotas'
 import { siteSchema, createSite, getSiteById, deleteSite } from '@/lib/db/queries/sites'
+import { trackEvent } from '@/lib/posthog'
 
 export async function createSiteAction(
   formData: FormData
@@ -28,6 +29,7 @@ export async function createSiteAction(
     }
 
   await createSite({ userId: user.id, ...parsed.data })
+  trackEvent(user.id, 'site_created', { url: parsed.data.url })
   revalidatePath('/dashboard')
 }
 
