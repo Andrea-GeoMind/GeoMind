@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
 import { AlertCircle } from 'lucide-react'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
@@ -13,6 +12,8 @@ import { ScoreGauge } from '@/components/charts/score-gauge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { IssuesList } from '@/components/features/technical/issues-list'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
+import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
+import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import type { TechnicalIssueRow } from '@/components/features/technical/issue-card'
 
 export const metadata: Metadata = {
@@ -47,19 +48,7 @@ export default async function TechnicalPage({ params }: Props) {
   const isBusiness = sub?.plan === 'business'
 
   if (!latest) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center">
-        <p className="text-muted-foreground">
-          Aucune analyse lancée pour ce site.{' '}
-          <Link
-            href={`/sites/${siteId}/discovery`}
-            className="font-medium text-[--brand-blue-500] underline-offset-4 hover:underline"
-          >
-            Lancer la découverte
-          </Link>
-        </p>
-      </div>
-    )
+    return <NoAnalysisState siteId={siteId} />
   }
 
   const isInProgress = latest.status === 'pending' || latest.status === 'running'
@@ -85,12 +74,13 @@ export default async function TechnicalPage({ params }: Props) {
       <OverviewPolling status={latest.status} />
 
       {isError && (
-        <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertCircle size={16} className="shrink-0" />
-          <span>
+          <span className="flex-1">
             L&apos;analyse a échoué.{' '}
             {latest.errorMessage ?? 'Une erreur inattendue est survenue.'}
           </span>
+          <RetryAnalysisButton siteId={siteId} />
         </div>
       )}
 
