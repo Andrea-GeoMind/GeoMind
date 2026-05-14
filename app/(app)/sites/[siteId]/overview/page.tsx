@@ -12,6 +12,7 @@ import { ScoreCard } from '@/components/features/analysis/score-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
+import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 
 export const metadata: Metadata = {
   title: "Vue d'ensemble — GEOMIND",
@@ -36,19 +37,7 @@ export default async function OverviewPage({ params }: Props) {
   const latest = await getLatestAnalysis(siteId)
 
   if (!latest) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center">
-        <p className="text-muted-foreground">
-          Aucune analyse lancée pour ce site.{' '}
-          <Link
-            href={`/sites/${siteId}/discovery`}
-            className="font-medium text-[--brand-blue-500] underline-offset-4 hover:underline"
-          >
-            Lancer la découverte
-          </Link>
-        </p>
-      </div>
-    )
+    return <NoAnalysisState siteId={siteId} />
   }
 
   const isInProgress = latest.status === 'pending' || latest.status === 'running'
