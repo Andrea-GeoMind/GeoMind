@@ -11,6 +11,7 @@ import { ScoreGauge } from '@/components/charts/score-gauge'
 import { ScoreCard } from '@/components/features/analysis/score-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
+import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 
 export const metadata: Metadata = {
   title: "Vue d'ensemble — GEOMIND",
@@ -99,12 +100,13 @@ export default async function OverviewPage({ params }: Props) {
       <OverviewPolling status={latest.status} />
 
       {isError && (
-        <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertCircle size={16} className="shrink-0" />
-          <span>
+          <span className="flex-1">
             L&apos;analyse a échoué.{' '}
             {latest.errorMessage ?? 'Une erreur inattendue est survenue.'}
           </span>
+          <RetryAnalysisButton siteId={siteId} />
         </div>
       )}
 
