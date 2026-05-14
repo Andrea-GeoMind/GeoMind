@@ -253,6 +253,34 @@ export const contentIssues = pgTable('content_issues', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── recommendations ──────────────────────────────────────────────────────────
+// Fiches recommandation générées par LLM pour chaque issue.
+// Polymorphe : issue_type discrimine entre technical_issues et content_issues.
+// variant 'simplified' = Haiku ; 'complete' = Sonnet (TKT-024).
+
+export const recommendationIssueTypeEnum = pgEnum('recommendation_issue_type', [
+  'technical',
+  'content',
+])
+
+export const recommendations = pgTable(
+  'recommendations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    analysisId: uuid('analysis_id')
+      .notNull()
+      .references(() => analyses.id, { onDelete: 'cascade' }),
+    issueType: recommendationIssueTypeEnum('issue_type').notNull(),
+    issueId: uuid('issue_id').notNull(),
+    variant: text('variant').notNull().default('simplified'),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    issueVariantUnique: unique().on(table.issueId, table.variant),
+  }),
+)
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -326,6 +354,7 @@ export const analysesRelations = relations(analyses, ({ one, many }) => ({
   authorityResults: many(authorityResults),
   technicalIssues: many(technicalIssues),
   contentIssues: many(contentIssues),
+  recommendations: many(recommendations),
 }))
 
 export const authorityResultsRelations = relations(authorityResults, ({ one, many }) => ({
@@ -357,6 +386,13 @@ export const technicalIssuesRelations = relations(technicalIssues, ({ one }) => 
 export const contentIssuesRelations = relations(contentIssues, ({ one }) => ({
   analysis: one(analyses, {
     fields: [contentIssues.analysisId],
+    references: [analyses.id],
+  }),
+}))
+
+export const recommendationsRelations = relations(recommendations, ({ one }) => ({
+  analysis: one(analyses, {
+    fields: [recommendations.analysisId],
     references: [analyses.id],
   }),
 }))
