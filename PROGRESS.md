@@ -73,6 +73,7 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-027** — Stripe checkout, customer portal et webhooks : lib/stripe.ts (client v22 dahlia), subscriptions queries (upsert/cancel/lookup), Server Actions createCheckoutSession + createPortalSession, webhook route (subscription.created/updated/deleted + invoice.payment_succeeded/failed), page billing complète, 292 tests verts — PR #19 merged (2026-05-14)
 - [x] **TKT-028** — quotas système complets + page Usage : lib/quotas.ts complété (canRunTabAnalysis, getRemainingAnalysesThisMonth, getSitesUsage, getUsageStats), page settings/usage avec barres de progression et alertes visuelles, 19 tests unitaires (311 verts) — PR #20 merged (2026-05-14)
 - [x] **TKT-029** — PWA setup : @serwist/next + serwist, manifest.json (icônes 192/512/maskable/apple-touch), app/sw.ts (précache + runtime cache), next.config.mjs wrappé withSerwist, viewport themeColor, components/install-prompt.tsx (banner après 30s), 311 tests verts — PR #21 merged (2026-05-14)
+- [x] **TKT-030** — pages légales + bannière cookies : CGV, Mentions légales (SIRET placeholder), Confidentialité RGPD, Cookies ; posthog-js + PostHogProvider (init conditionnel au consentement), CookieBanner (essentiels / analytics), CookieConsentButtons sur page cookies ; fix TS stripe.ts + plans.ts — commit f5213bb (2026-05-14)
 
 ---
 
