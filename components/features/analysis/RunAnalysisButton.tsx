@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle, Zap } from 'lucide-react'
+import { CheckCircle, Loader2, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { runAnalysisAction } from '@/app/(app)/sites/[siteId]/analysis-actions'
 
@@ -31,9 +31,9 @@ export function RunAnalysisButton({ siteId }: Props) {
 
   if (launched) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+      <div className="flex items-center gap-2 rounded-lg border border-[--score-good-500]/30 bg-[--score-good-500]/10 px-4 py-3 text-sm text-[--score-good-500]">
         <CheckCircle size={16} className="shrink-0" />
-        Analyse lancée, vous serez notifié à la fin.
+        Analyse lancée — résultats disponibles dans 2 à 5 minutes.
       </div>
     )
   }
@@ -44,10 +44,20 @@ export function RunAnalysisButton({ siteId }: Props) {
         onClick={handleClick}
         disabled={isPending}
         size="lg"
-        className="w-full gap-2 bg-[--brand-blue-500] text-white hover:bg-[--brand-blue-600]"
+        className="relative w-full gap-2 overflow-hidden bg-[--brand-blue-500] text-white hover:bg-[--brand-blue-600]"
       >
-        <Zap size={16} />
-        {isPending ? 'Lancement en cours…' : "Lancer l'analyse complète"}
+        {isPending ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            <span className="absolute inset-0 animate-pulse bg-white/10" />
+            Lancement en cours…
+          </>
+        ) : (
+          <>
+            <Zap size={16} />
+            Lancer l&apos;analyse complète
+          </>
+        )}
       </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
