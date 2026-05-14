@@ -12,7 +12,7 @@ export const PLAN_LABELS: Record<Plan, string> = {
   business: 'Business',
 }
 
-export const PLAN_UPGRADE_URLS: Record<Plan, string | null> = {
+export const PLAN_UPGRADE_URLS: Record<Plan, '/pricing' | null> = {
   free: '/pricing',
   pro: '/pricing',
   business: null,

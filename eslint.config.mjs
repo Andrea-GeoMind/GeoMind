@@ -21,6 +21,11 @@ const eslintConfig = [
       ],
     },
   },
+  // Legal pages contain French prose — apostrophes are intentional, not React mistakes
+  {
+    files: ['app/(marketing)/legal/**/*.tsx'],
+    rules: { 'react/no-unescaped-entities': 'off' },
+  },
 ]
 
 export default eslintConfig
