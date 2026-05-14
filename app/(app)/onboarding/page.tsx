@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Zap } from 'lucide-react'
 import { StepProgress } from '@/components/features/onboarding/StepProgress'
 import { WelcomeStep } from '@/components/features/onboarding/WelcomeStep'
 import { AddSiteStep } from '@/components/features/onboarding/AddSiteStep'
@@ -35,8 +36,8 @@ export default async function OnboardingPage({ searchParams }: Props) {
 function AnalysisStartedStep() {
   return (
     <div className="flex flex-col items-center gap-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-500/10">
-        <span className="text-3xl">🚀</span>
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+        <Zap className="h-8 w-8 text-primary" />
       </div>
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Analyse en cours !</h2>
