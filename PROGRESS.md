@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé.
+Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé. TKT-009 terminé. TKT-010 terminé. TKT-011 terminé. TKT-012 terminé. TKT-013 terminé. TKT-014 terminé. TKT-015 terminé. TKT-016 terminé. TKT-017 terminé. TKT-018 terminé. TKT-019 terminé. TKT-020 terminé. TKT-021 terminé. TKT-022 terminé.
 
 ---
 
@@ -58,6 +58,14 @@ Sprint 2 → Sprint 3 en cours. TKT-001 à TKT-008 terminés. TKT-008.5 terminé
 - [x] **TKT-019** — 16 règles GEO technique : technicalIssueCategoryEnum + table technical_issues, 16 règles pures (accessibility/structure/schema_org/performance/network), runner runTechnicalAnalysis({ siteId, analysisId }) avec Promise.all + insertTechnicalIssues, Inngest caller mis à jour, js_required_for_content hors scope, 246 tests verts — PR #11 merged (2026-05-13)
 - [x] **TKT-020** — onglet Technique : issues groupées par catégorie (Accessibilité/Structure/Schema.org/Performance), IssueCard cliquable avec badge sévérité, RecommendationSheet latéral (how/impact/effort pour 16 règles), overlay upgrade plan Free, getTechnicalIssuesByAnalysisId query — PR #12 merged (2026-05-13)
 - [x] **TKT-021** — 10 règles GEO contenu : contentIssueCategoryEnum + table content_issues, 10 règles pures (readability/metadata/structure/coverage), runner runContentAnalysis({ siteId, analysisId }) avec Promise.all + insertContentIssues, migration 0002_content_issues.sql, fix Inngest caller, 289 tests verts (43 nouveaux) — PR #13 merged (2026-05-13)
+
+---
+
+## Sprint 5 — Contenu + Coach IA + Publishers (Semaine 5)
+
+### Tickets
+
+- [x] **TKT-022** — onglet Contenu : issues groupées par catégorie (Lisibilité/Métadonnées/Structure/Couverture), ContentIssueCard cliquable avec badge sévérité, ContentRecommendationSheet latéral (how/impact/effort pour 10 règles), overlay upgrade plan Free, getContentIssuesByAnalysisId query, CONTENT_RECOMMENDATIONS statiques — livré dans HOTFIX PR #14
 
 ---
 
