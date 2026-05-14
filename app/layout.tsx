@@ -1,9 +1,10 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Figtree, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 // Validation des variables d'environnement au boot — crash explicitement si manquantes
 import '@/lib/env'
 import { Toaster } from '@/components/ui/toaster'
+import { InstallPrompt } from '@/components/install-prompt'
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -17,14 +18,26 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#2348B4',
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'GEOMIND — Auditez votre visibilité IA',
   description:
     'Sachez où vous êtes cité dans les IA. Comprenez pourquoi pas. Améliorez votre visibilité GEO.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'GEOMIND',
+  },
   icons: {
-    icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-    ],
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
   },
 }
 
@@ -38,6 +51,7 @@ export default function RootLayout({
       <body className="font-sans">
         {children}
         <Toaster />
+        <InstallPrompt />
       </body>
     </html>
   )
