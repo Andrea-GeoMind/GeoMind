@@ -1,6 +1,9 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+
+// next/navigation redirect is typed for internal routes; Stripe returns external https:// URLs
+const redirectExternal: (url: string) => never = redirect as (url: string) => never
 import { createClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRICE_IDS, type StripePlan } from '@/lib/stripe'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
@@ -34,7 +37,7 @@ export async function createCheckoutSession(plan: StripePlan): Promise<void> {
 
   if (!session.url) throw new Error('Stripe session URL manquante')
 
-  redirect(session.url)
+  redirectExternal(session.url)
 }
 
 export async function createPortalSession(): Promise<void> {
@@ -56,5 +59,5 @@ export async function createPortalSession(): Promise<void> {
     return_url: `${APP_URL}/settings/billing`,
   })
 
-  redirect(session.url)
+  redirectExternal(session.url)
 }

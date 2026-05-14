@@ -5,6 +5,8 @@ import './globals.css'
 import '@/lib/env'
 import { Toaster } from '@/components/ui/toaster'
 import { InstallPrompt } from '@/components/install-prompt'
+import { CookieBanner } from '@/components/cookie-banner'
+import { PostHogProvider } from '@/components/posthog-provider'
 
 const figtree = Figtree({
   subsets: ['latin'],
@@ -49,9 +51,12 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${figtree.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans">
-        {children}
-        <Toaster />
-        <InstallPrompt />
+        <PostHogProvider>
+          {children}
+          <Toaster />
+          <InstallPrompt />
+          <CookieBanner />
+        </PostHogProvider>
       </body>
     </html>
   )
