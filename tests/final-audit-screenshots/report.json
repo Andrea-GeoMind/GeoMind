@@ -1,0 +1,19 @@
+{
+  "signup": true,
+  "rest_signin": true,
+  "session_injected": true,
+  "login": true,
+  "pro_upgrade": true,
+  "form_submitted": true,
+  "site_created": true,
+  "discovery_done": false,
+  "analysis_started": false,
+  "analysis_complete": false,
+  "screenshot_overview": true,
+  "screenshot_authority": true,
+  "screenshot_technical": true,
+  "screenshot_content": true,
+  "screenshot_publishers": true,
+  "db_checks": false,
+  "cleanup": true
+}
