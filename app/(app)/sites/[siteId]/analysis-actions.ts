@@ -34,7 +34,7 @@ export async function runAnalysisAction(
 
   try {
     await inngest.send({
-      name: 'site.analysis.requested',
+      name: 'analysis.full.requested',
       data: { analysisId: analysis.id, siteId, userId: user.id },
     })
   } catch (err) {

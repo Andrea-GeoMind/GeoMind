@@ -128,6 +128,8 @@ Avant chaque commit : `pnpm typecheck && pnpm lint && pnpm test`. Aucun de ces 3
 
 12. **Drizzle pour les queries, `@supabase/ssr` pour l'auth.** Les Server Components / Server Actions lisent la session via `createServerClient` (cookies). Les queries data passent par Drizzle (typage fort + migrations). Pas de `supabase.from('table').select()` côté serveur sauf cas exceptionnel — la duplication ORM/SDK casse le typage.
 
+13. **Convention événements Inngest : point obligatoire.** Tous les événements Inngest utilisent la convention `domain.action.state` avec des points (ex : `site.crawl.requested`, `site.discovery.requested`, `analysis.full.requested`). Jamais de slashes. Le bouton "Lancer l'analyse" émet `analysis.full.requested` → déclenche `run-full-analysis` (orchestrateur complet).
+
 ---
 
 ## 6. Structure du repo
@@ -171,7 +173,6 @@ geomind/
 │   │       ├── billing/page.tsx
 │   │       └── usage/page.tsx
 │   └── api/
-│       ├── auth/[...all]/route.ts  ← Better Auth handler
 │       ├── stripe/webhooks/route.ts
 │       └── inngest/route.ts        ← Inngest webhook
 ├── components/
@@ -315,7 +316,7 @@ Toutes les variables sont validées par Zod dans `lib/env.ts` au démarrage. Si 
 - Documentation Next.js App Router : https://nextjs.org/docs/app
 - Documentation shadcn/ui : https://ui.shadcn.com
 - Documentation Drizzle : https://orm.drizzle.team
-- Documentation Better Auth : https://www.better-auth.com
+- Documentation Supabase Auth : https://supabase.com/docs/guides/auth
 - Documentation Inngest : https://www.inngest.com/docs
 - Documentation Vercel AI SDK : https://ai-sdk.dev
 - Documentation OpenRouter : https://openrouter.ai/docs
