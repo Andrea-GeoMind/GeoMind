@@ -22,7 +22,7 @@ export async function launchDiscoveryAction(
 
   try {
     await inngest.send({
-      name: 'site/crawl.requested',
+      name: 'site.crawl.requested',
       data: { siteId: site.id, userId: user.id },
     })
   } catch (err) {

@@ -34,11 +34,11 @@ export async function createSiteOnboardingAction(
 
   await inngest.send([
     {
-      name: 'site/crawl.requested',
+      name: 'site.crawl.requested',
       data: { siteId: site.id, userId: user.id },
     },
     {
-      name: 'site/discovery.requested',
+      name: 'site.discovery.requested',
       data: { siteId: site.id, userId: user.id },
     },
   ])
