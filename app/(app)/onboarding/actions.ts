@@ -32,16 +32,13 @@ export async function createSiteOnboardingAction(
 
   const site = await createSite({ userId: user.id, ...parsed.data })
 
-  await inngest.send([
-    {
-      name: 'site.crawl.requested',
-      data: { siteId: site.id, userId: user.id },
-    },
-    {
-      name: 'site.discovery.requested',
-      data: { siteId: site.id, userId: user.id },
-    },
-  ])
+  // N'envoie QUE le crawl — crawlSiteFunction envoie site.discovery.requested
+  // à la fin une fois les pages en DB. Envoyer discovery ici causerait un fail
+  // immédiat (pages.length === 0) avant que le crawl soit terminé.
+  await inngest.send({
+    name: 'site.crawl.requested',
+    data: { siteId: site.id, userId: user.id },
+  })
 
   redirect('/onboarding?step=3')
 }
