@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { canAddSite } from '@/lib/quotas'
 import { createSite } from '@/lib/db/queries/sites'
+import { createAnalysis } from '@/lib/db/queries/analyses'
 import { onboardingSiteSchema } from '@/lib/validations/site'
 import { inngest } from '@/lib/inngest/client'
 
@@ -32,12 +33,13 @@ export async function createSiteOnboardingAction(
 
   const site = await createSite({ userId: user.id, ...parsed.data })
 
-  // N'envoie QUE le crawl — crawlSiteFunction envoie site.discovery.requested
-  // à la fin une fois les pages en DB. Envoyer discovery ici causerait un fail
-  // immédiat (pages.length === 0) avant que le crawl soit terminé.
+  // Crée un enregistrement d'analyse et déclenche le pipeline complet :
+  // runFullAnalysisFunction gère le crawl + discovery + autorité + technique + contenu
+  // en une seule fonction Inngest (idempotent, avec steps).
+  const analysis = await createAnalysis({ siteId: site.id, userId: user.id })
   await inngest.send({
-    name: 'site.crawl.requested',
-    data: { siteId: site.id, userId: user.id },
+    name: 'analysis.full.requested',
+    data: { analysisId: analysis.id, siteId: site.id, userId: user.id },
   })
 
   redirect('/onboarding?step=3')
