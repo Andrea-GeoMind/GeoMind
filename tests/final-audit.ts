@@ -146,7 +146,7 @@ async function main() {
 
     log('Remplissage du formulaire…')
     await page.fill('input#name', 'Test Audit Final')
-    await page.fill('input#url', 'https://example.com')
+    await page.fill('input#url', 'https://dopamine-tech.com')
 
     await screenshot('00_onboarding_form')
 
@@ -168,11 +168,24 @@ async function main() {
     siteId = siteRows[0]?.id ?? null
     siteId ? ok('site_created', `siteId=${siteId}`) : fail('site_created', 'absent en DB')
 
-    // ── Attente découverte (max 3 min, poll 10s) ───────────────────────────────
-    log('Attente crawl + découverte…')
+    // ── Vérifier que l'analyse a été créée (immédiat — créée dans l'action onboarding) ─
+    const analysisRows = await sql`
+      SELECT id, status FROM analyses WHERE site_id=${siteId ?? ''}
+      ORDER BY created_at DESC LIMIT 1
+    `
+    if (analysisRows.length > 0) {
+      analysisId = analysisRows[0].id
+      ok('analysis_started', `analysisId=${analysisId} status=${analysisRows[0].status}`)
+    } else {
+      fail('analysis_started', 'absent en DB')
+    }
+
+    // ── Attente découverte (max 6 min, poll 15s) — créée par runFullAnalysisFunction ─
+    // La découverte se fait après le crawl (~2-4 min Firecrawl) à l'intérieur du pipeline.
+    log('Attente crawl + découverte (dans runFullAnalysisFunction)…')
     let discoveryDone = false
-    for (let i = 0; i < 18; i++) {
-      await new Promise((r) => setTimeout(r, 10_000))
+    for (let i = 0; i < 24; i++) {
+      await new Promise((r) => setTimeout(r, 15_000))
       if (siteId) {
         const [meta] = await sql`SELECT description FROM site_metadata WHERE site_id=${siteId}`
         if (meta?.description) {
@@ -180,26 +193,23 @@ async function main() {
           ok('discovery_done', `"${meta.description.substring(0, 50)}…"`)
           break
         }
-        log(`Poll découverte ${i + 1}/18 — pas encore`)
+        // Aussi check le status de l'analyse pour détecter une erreur tôt
+        if (analysisId) {
+          const [aRow] = await sql`SELECT status FROM analyses WHERE id=${analysisId}`
+          if (aRow?.status === 'error') {
+            fail('discovery_done', 'analysis status=error avant discovery')
+            break
+          }
+        }
+        log(`Poll découverte ${i + 1}/24 — pas encore`)
       }
     }
-    if (!discoveryDone) fail('discovery_done', 'timeout 3 min')
+    if (!discoveryDone) fail('discovery_done', 'timeout 6 min')
 
-    // ── Vérifier démarrage de l'analyse ───────────────────────────────────────
-    const analysisRows = await sql`
-      SELECT id, status FROM analyses WHERE site_id=${siteId ?? ''}
-      ORDER BY created_at DESC LIMIT 1
-    `
-    if (analysisRows.length > 0) {
-      analysisId = analysisRows[0].id
-      ok('analysis_started', `status=${analysisRows[0].status}`)
-    } else {
-      fail('analysis_started', 'absent en DB')
-    }
-
-    // ── Attendre status=success (max 5 min, poll 30s) ─────────────────────────
-    log('Attente analyse complète…')
-    for (let i = 0; i < 10; i++) {
+    // ── Attendre status=success (max 8 min, poll 30s) ─────────────────────────
+    // L'autorité = 20 prompts × 4 IAs = 80 appels, ~2-4 min avec concurrency=8
+    log('Attente analyse complète (autorité + technique + contenu)…')
+    for (let i = 0; i < 16; i++) {
       await new Promise((r) => setTimeout(r, 30_000))
       if (analysisId) {
         const [row] = await sql`
@@ -207,7 +217,7 @@ async function main() {
           FROM analyses WHERE id=${analysisId}
         `
         if (!row) break
-        log(`Poll ${i + 1}/10 — status=${row.status} scores=${row.global_score}/${row.authority_score}/${row.technical_score}/${row.content_score}`)
+        log(`Poll ${i + 1}/16 — status=${row.status} scores=${row.global_score}/${row.authority_score}/${row.technical_score}/${row.content_score}`)
         if (row.status === 'success') {
           report['global_score'] = row.global_score ?? 0
           report['authority_score'] = row.authority_score ?? 0
@@ -216,10 +226,19 @@ async function main() {
           ok('analysis_complete', `G=${row.global_score} A=${row.authority_score} T=${row.technical_score} C=${row.content_score}`)
           break
         }
-        if (row.status === 'error') { fail('analysis_complete', 'status=error'); break }
+        if (row.status === 'error') {
+          // Read full error message from DB (important for diagnosis)
+          const [errRow] = await sql`
+            SELECT error_message FROM analyses WHERE id=${analysisId}
+          `
+          const errMsg = errRow?.error_message ?? '(no message)'
+          fail('analysis_complete', `status=error — ${errMsg}`)
+          report['analysis_error_message'] = errMsg
+          break
+        }
       }
     }
-    if (!report['analysis_complete']) fail('analysis_complete', 'timeout')
+    if (!report['analysis_complete']) fail('analysis_complete', 'timeout 8 min')
 
     // ── Screenshots des onglets ────────────────────────────────────────────────
     if (siteId) {

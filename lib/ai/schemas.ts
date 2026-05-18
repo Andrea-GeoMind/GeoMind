@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 export const DiscoveryOutputSchema = z.object({
   description: z.string().min(10).max(1000),
-  keywords: z.array(z.string().min(1)).min(1).max(30),
+  keywords: z.array(z.string().min(1)).max(30).default([]),
   competitors: z
     .array(
       z.object({
