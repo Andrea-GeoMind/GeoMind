@@ -59,8 +59,17 @@ export default async function DiscoveryPage({ params }: Props) {
       </div>
 
       {!siteMetadata ? (
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
-          L&apos;analyse de découverte n&apos;a pas encore été lancée pour ce site.
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-border bg-card px-6 py-12 text-center shadow-sm">
+          <div className="space-y-1">
+            <p className="font-medium text-foreground">Aucune analyse lancée pour ce site</p>
+            <p className="text-sm text-muted-foreground">
+              GeoMind va crawler votre site, détecter votre activité et interroger les 4 moteurs IA
+              (ChatGPT, Claude, Gemini, Perplexity) pour mesurer votre visibilité GEO.
+            </p>
+          </div>
+          <div className="w-full max-w-xs">
+            <RunAnalysisButton siteId={siteId} />
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
