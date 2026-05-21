@@ -19,42 +19,70 @@ export default async function UsagePage() {
   const stats = await getUsageStats(user.id)
   const upgradeUrl = PLAN_UPGRADE_URLS[stats.plan]
 
-  return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900">Utilisation</h1>
-      <p className="mb-8 text-sm text-gray-500">
-        Quota consommé ce mois-ci — plan{' '}
-        <span className="font-medium text-gray-700">{PLAN_LABELS[stats.plan]}</span>
-      </p>
+  const planBadgeClass =
+    stats.plan === 'business'
+      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+      : stats.plan === 'pro'
+        ? 'bg-primary/10 text-primary'
+        : 'bg-muted text-muted-foreground'
 
-      <div className="space-y-6">
-        <UsageCard
-          label="Sites enregistrés"
-          used={stats.sites.used}
-          limit={stats.sites.limit}
-          unit="site"
-        />
-        <UsageCard
-          label="Analyses ce mois-ci"
-          used={stats.analyses.used}
-          limit={stats.analyses.limit}
-          unit="analyse"
-        />
+  return (
+    <div className="mx-auto max-w-2xl p-6 sm:p-8">
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold tracking-tight">Utilisation</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Quota consommé ce mois-ci — plan{' '}
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${planBadgeClass}`}>
+            {PLAN_LABELS[stats.plan]}
+          </span>
+        </p>
       </div>
 
+      {/* Usage cards */}
+      <div className="rounded-xl border bg-card shadow-sm p-6 mb-4">
+        <p className="text-base font-semibold mb-4">Quotas du mois en cours</p>
+        <div className="space-y-6">
+          <UsageRow
+            label="Sites enregistrés"
+            used={stats.sites.used}
+            limit={stats.sites.limit}
+            unit="site"
+          />
+          <div className="border-t" />
+          <UsageRow
+            label="Analyses ce mois-ci"
+            used={stats.analyses.used}
+            limit={stats.analyses.limit}
+            unit="analyse"
+          />
+        </div>
+      </div>
+
+      {/* Upgrade CTA */}
       {upgradeUrl && (
-        <p className="mt-8 text-sm text-gray-500">
-          Vous atteignez vos limites ?{' '}
-          <Link href={upgradeUrl} className="font-medium text-indigo-600 hover:text-indigo-700">
-            Passer à un plan supérieur →
-          </Link>
-        </p>
+        <div className="rounded-xl border bg-card shadow-sm p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium">Vous atteignez vos limites ?</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Passez à un plan supérieur pour plus de sites et d&apos;analyses.
+              </p>
+            </div>
+            <Link
+              href={upgradeUrl}
+              className="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm hover:opacity-90 transition-opacity"
+            >
+              Mettre à niveau →
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   )
 }
 
-function UsageCard({
+function UsageRow({
   label,
   used,
   limit,
@@ -69,28 +97,39 @@ function UsageCard({
   const isWarning = pct >= 80
   const isFull = pct >= 100
 
+  const barClass = isFull
+    ? 'bg-destructive'
+    : isWarning
+      ? 'bg-amber-400'
+      : 'bg-primary'
+
+  const valueClass = isFull
+    ? 'text-destructive'
+    : isWarning
+      ? 'text-amber-600'
+      : 'text-foreground'
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">{label}</p>
-        <p className="text-sm text-gray-500">
-          <span className={`font-semibold ${isFull ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-gray-900'}`}>
-            {used}
-          </span>
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-sm text-muted-foreground">
+          <span className={`font-semibold ${valueClass}`}>{used}</span>
           {' / '}
           {limit} {limit > 1 ? `${unit}s` : unit}
+          <span className="ml-2 text-xs font-medium">({pct}%)</span>
         </p>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className={`h-2 rounded-full transition-all ${
-            isFull ? 'bg-red-500' : isWarning ? 'bg-amber-400' : 'bg-indigo-500'
-          }`}
+          className={`h-2 rounded-full transition-all ${barClass}`}
           style={{ width: `${pct}%` }}
         />
       </div>
       {isFull && (
-        <p className="mt-2 text-xs text-red-600">Limite atteinte pour ce mois-ci.</p>
+        <p className="mt-1.5 text-xs text-destructive font-medium">
+          Limite atteinte pour ce mois-ci.
+        </p>
       )}
     </div>
   )

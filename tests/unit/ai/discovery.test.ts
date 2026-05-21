@@ -84,13 +84,13 @@ describe('DiscoveryOutputSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejette keywords vide', () => {
+  it('accepte keywords vide (LLM peut retourner tableau vide)', () => {
     const result = DiscoveryOutputSchema.safeParse({
       description: 'Description valide du business ici.',
       keywords: [],
       competitors: [],
     })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 })
 

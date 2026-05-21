@@ -26,9 +26,9 @@ const EFFORT_LABELS: Record<ContentRecommendation['effort'], string> = {
 }
 
 const EFFORT_ICONS: Record<ContentRecommendation['effort'], React.ReactNode> = {
-  low: <Zap size={12} className="shrink-0" />,
-  medium: <Clock size={12} className="shrink-0" />,
-  high: <Clock size={12} className="shrink-0" />,
+  low: <Zap size={12} className="shrink-0 text-[--score-good-500]" />,
+  medium: <Clock size={12} className="shrink-0 text-[--score-mid-500]" />,
+  high: <Clock size={12} className="shrink-0 text-[--score-bad-500]" />,
 }
 
 interface ContentRecommendationSheetProps {
@@ -81,17 +81,19 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
         {issue && severity && (
           <>
             <SheetHeader className="mb-6">
-              <div className="mb-2 flex items-center gap-2">
+              <div className="mb-3 flex items-center gap-2 flex-wrap">
                 <IssueSeverityBadge severity={severity} />
                 {rec && (
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {EFFORT_ICONS[rec.effort]}
                     {EFFORT_LABELS[rec.effort]}
                   </span>
                 )}
               </div>
-              <SheetTitle className="text-base leading-snug">{issue.title}</SheetTitle>
-              <SheetDescription className="text-sm">{issue.description}</SheetDescription>
+              <SheetTitle className="text-base font-extrabold leading-snug tracking-tight">
+                {issue.title}
+              </SheetTitle>
+              <SheetDescription className="text-sm leading-relaxed">{issue.description}</SheetDescription>
             </SheetHeader>
 
             {/* Toggle version complète */}
@@ -102,16 +104,16 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
                     type="button"
                     onClick={handleToggleComplete}
                     disabled={!isBusiness || isLoading}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isLoading ? (
                       <Loader2 size={12} className="shrink-0 animate-spin" />
                     ) : (
-                      <Sparkles size={12} className="shrink-0" />
+                      <Sparkles size={12} className="shrink-0 text-primary" />
                     )}
-                    {showComplete ? 'Version simplifiée' : 'Version complète'}
+                    {showComplete ? 'Version simplifiée' : 'Version complète IA'}
                     {!isBusiness && (
-                      <span className="ml-1 rounded bg-muted px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <span className="ml-1 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                         Business
                       </span>
                     )}
@@ -131,14 +133,14 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
                 </div>
               ) : rec ? (
                 <div className={isPro ? undefined : 'max-h-32 overflow-hidden'}>
-                  <section className="mb-5">
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <section className="mb-5 rounded-xl border border-border bg-muted/30 p-4">
+                    <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Comment corriger
                     </h4>
                     <p className="text-sm leading-relaxed text-foreground">{rec.how}</p>
                   </section>
-                  <section>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <section className="rounded-xl border border-border bg-muted/30 p-4">
+                    <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Impact attendu
                     </h4>
                     <p className="text-sm leading-relaxed text-foreground">{rec.impact}</p>
@@ -150,9 +152,10 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
                 </p>
               )}
 
+              {/* Free plan overlay */}
               {!isPro && rec && (
-                <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 rounded-b-lg bg-gradient-to-t from-background via-background/95 to-transparent pb-4 pt-16 text-center">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 rounded-b-xl bg-gradient-to-t from-background via-background/95 to-transparent pb-6 pt-16 text-center">
+                  <p className="text-sm font-semibold text-foreground">
                     Passez en Pro pour voir la fiche complète
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -160,7 +163,7 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
                   </p>
                   <Link
                     href="/pricing"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[--brand-blue-500] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                   >
                     Passer en Pro
                     <ArrowUpRight size={14} />
@@ -169,19 +172,20 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
               )}
             </div>
 
+            {/* Sample URLs */}
             {issue.sampleUrls.length > 0 && isPro && (
               <section className="mt-6 border-t border-border pt-5">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Pages concernées
                 </h4>
-                <ul className="space-y-1">
+                <ul className="space-y-1.5">
                   {issue.sampleUrls.slice(0, 5).map((url) => (
                     <li key={url}>
                       <a
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-[--brand-blue-500] underline-offset-4 hover:underline"
+                        className="inline-flex items-center gap-1 text-xs text-primary underline-offset-4 hover:underline"
                       >
                         <span className="max-w-xs truncate">{url}</span>
                         <ArrowUpRight size={10} className="shrink-0" />
@@ -208,13 +212,13 @@ function MarkdownContent({ content }: { content: string }) {
 
     if (line.startsWith('## ')) {
       elements.push(
-        <h3 key={i} className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground first:mt-0">
+        <h3 key={i} className="mb-2 mt-5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground first:mt-0">
           {line.slice(3)}
         </h3>
       )
     } else if (line.startsWith('# ')) {
       elements.push(
-        <h2 key={i} className="mb-2 mt-5 text-sm font-semibold first:mt-0">
+        <h2 key={i} className="mb-2 mt-5 text-sm font-extrabold tracking-tight first:mt-0">
           {line.slice(2)}
         </h2>
       )
@@ -226,7 +230,7 @@ function MarkdownContent({ content }: { content: string }) {
         i++
       }
       elements.push(
-        <pre key={i} className="my-3 overflow-x-auto rounded-md bg-muted p-3 text-xs">
+        <pre key={i} className="my-3 overflow-x-auto rounded-xl bg-muted p-3 text-xs">
           <code>{codeLines.join('\n')}</code>
         </pre>
       )

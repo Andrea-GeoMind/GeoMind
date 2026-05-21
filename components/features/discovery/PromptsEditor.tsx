@@ -58,31 +58,33 @@ export function PromptsEditor({ siteId, siteUrl, siteName, initialPrompts }: Pro
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Prompts</label>
-        <span className="text-xs text-muted-foreground">
+        <label className="text-sm font-semibold text-foreground">Prompts</label>
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
           {neutralCount}/{prompts.length} neutres
         </span>
       </div>
 
       <div className="space-y-2">
         {prompts.length === 0 && (
-          <p className="text-sm italic text-muted-foreground">Aucun prompt généré.</p>
+          <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-sm italic text-muted-foreground">
+            Aucun prompt généré.
+          </p>
         )}
         {prompts.map((p) => (
           <div
             key={p.id}
-            className="flex items-start gap-2 rounded-md border border-border bg-background px-3 py-2"
+            className="flex items-start gap-2 rounded-xl border border-border bg-background px-4 py-3"
           >
-            <span className="flex-1 text-sm leading-relaxed">{p.text}</span>
+            <span className="flex-1 text-sm leading-relaxed text-foreground">{p.text}</span>
             <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
               <NeutralPromptBadge isNeutral={p.isNeutral} iconOnly />
               <button
                 type="button"
                 onClick={() => handleDelete(p.id)}
-                className="rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Supprimer ce prompt"
               >
-                <Trash2 size={14} />
+                <Trash2 size={13} />
               </button>
             </div>
           </div>
@@ -91,27 +93,29 @@ export function PromptsEditor({ siteId, siteUrl, siteName, initialPrompts }: Pro
 
       <form
         onSubmit={handleAdd}
-        className="flex flex-col gap-2 rounded-md border border-dashed border-border p-3"
+        className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-4"
       >
-        <p className="text-xs font-medium text-muted-foreground">Ajouter un prompt</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Ajouter un prompt
+        </p>
         <div className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ex : Quel outil pour améliorer ma visibilité dans les IAs ?"
-            className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-9 flex-1 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             type="submit"
             disabled={isPending || !input.trim()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            <Plus size={14} />
+            <Plus size={13} />
             Ajouter
           </button>
         </div>
         {previewIsNeutral === false && (
-          <p className="flex items-center gap-1.5 text-xs text-[--score-bad-600]">
+          <p className="flex items-center gap-1.5 rounded-lg bg-[--score-bad-50] px-3 py-2 text-xs text-[--score-bad-700]">
             <AlertTriangle size={12} className="shrink-0" />
             Ce prompt mentionne votre domaine ou marque — il sera marqué{' '}
             <strong>non neutre</strong> et exclu du calcul GEO.

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { ScoreGauge } from '@/components/charts/score-gauge'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Shield, Wrench, FileText, BarChart2 } from 'lucide-react'
 
 type Pillar = 'authority' | 'technical' | 'content' | 'global'
 type Trend = 'up' | 'down' | 'stable'
@@ -22,6 +22,13 @@ const PILLAR_LABELS: Record<Pillar, string> = {
   content: 'Contenu',
 }
 
+const PILLAR_ICONS: Record<Pillar, React.ElementType> = {
+  global: BarChart2,
+  authority: Shield,
+  technical: Wrench,
+  content: FileText,
+}
+
 export function ScoreCard({
   pillar,
   score,
@@ -31,6 +38,7 @@ export function ScoreCard({
   onClick,
 }: ScoreCardProps) {
   const label = PILLAR_LABELS[pillar]
+  const Icon = PILLAR_ICONS[pillar]
   const isClickable = typeof onClick === 'function'
 
   const TrendIcon =
@@ -38,10 +46,10 @@ export function ScoreCard({
 
   const trendColor =
     trend === 'up'
-      ? 'text-[--score-good-600]'
+      ? 'text-[--score-good-600] bg-[--score-good-50]'
       : trend === 'down'
-        ? 'text-[--score-bad-600]'
-        : 'text-muted-foreground'
+        ? 'text-[--score-bad-600] bg-[--score-bad-50]'
+        : 'text-muted-foreground bg-muted'
 
   return (
     <div
@@ -56,20 +64,24 @@ export function ScoreCard({
           : undefined
       }
       className={cn(
-        'rounded-xl border border-border bg-card p-5 shadow-sm',
+        'rounded-2xl border border-border bg-card p-5 shadow-sm',
         'flex flex-col items-center gap-3',
         isClickable &&
-          'cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className,
       )}
     >
-      <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+        <Icon size={16} className="text-primary" aria-hidden />
+      </div>
+
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
 
       <ScoreGauge score={score} size="sm" showLabel={false} />
 
       {delta !== undefined && trend && (
-        <div className={cn('flex items-center gap-1 text-xs font-medium', trendColor)}>
-          <TrendIcon size={12} aria-hidden />
+        <div className={cn('flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', trendColor)}>
+          <TrendIcon size={11} aria-hidden />
           <span>
             {delta > 0 ? '+' : ''}
             {delta} pts

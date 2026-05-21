@@ -22,8 +22,8 @@ export function RetryAnalysisButton({ siteId }: RetryAnalysisButtonProps) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleRetry} disabled={isPending}>
-      <RefreshCw size={14} className={isPending ? 'animate-spin' : ''} />
+    <Button variant="outline" size="sm" onClick={handleRetry} disabled={isPending} className="shrink-0 gap-1.5">
+      <RefreshCw size={13} className={isPending ? 'animate-spin' : ''} />
       Recommencer
     </Button>
   )
