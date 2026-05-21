@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
-import { X } from 'lucide-react'
+import { X, CheckCircle, Loader2 } from 'lucide-react'
 import { updateKeywordsAction } from '@/app/(app)/sites/[siteId]/discovery/actions'
 
 interface KeywordsEditorProps {
@@ -66,20 +66,20 @@ export function KeywordsEditor({ siteId, initialKeywords }: KeywordsEditorProps)
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Mots-clés</label>
+        <label className="text-sm font-semibold text-foreground">Mots-clés</label>
         <SaveIndicator status={effectiveStatus} />
       </div>
-      <div className="flex min-h-[2.75rem] flex-wrap gap-1.5 rounded-md border border-input bg-background p-2">
+      <div className="flex min-h-[3rem] flex-wrap gap-1.5 rounded-xl border border-input bg-background p-2.5">
         {keywords.map((kw) => (
           <span
             key={kw}
-            className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"
+            className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
           >
             {kw}
             <button
               type="button"
               onClick={() => removeKeyword(kw)}
-              className="rounded-full text-muted-foreground hover:text-destructive focus:outline-none"
+              className="rounded-full text-primary/60 hover:text-destructive focus:outline-none"
               aria-label={`Supprimer ${kw}`}
             >
               <X size={10} />
@@ -111,8 +111,18 @@ export function KeywordsEditor({ siteId, initialKeywords }: KeywordsEditorProps)
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null
   if (status === 'saving')
-    return <span className="text-xs text-muted-foreground">Sauvegarde…</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <Loader2 size={11} className="animate-spin" />
+        Sauvegarde…
+      </span>
+    )
   if (status === 'saved')
-    return <span className="text-xs text-[--score-good-600]">✓ Enregistré</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-[--score-good-600]">
+        <CheckCircle size={11} />
+        Enregistré
+      </span>
+    )
   return <span className="text-xs text-destructive">Erreur lors de la sauvegarde</span>
 }

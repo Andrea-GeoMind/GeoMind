@@ -28,16 +28,27 @@ type Props = {
 
 export default function Sidebar({ userEmail }: Props) {
   const pathname = usePathname()
+  const initial = userEmail.charAt(0).toUpperCase()
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-background">
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/dashboard" className="text-lg font-bold tracking-tight">
-          GEOMIND
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-card">
+      {/* Logo */}
+      <div className="flex h-16 items-center border-b px-5">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm">
+            <span className="text-xs font-black text-white">G</span>
+          </div>
+          <span className="text-lg font-extrabold tracking-tight text-foreground">
+            Geo
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              Mind
+            </span>
+          </span>
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-0.5 p-3">
         {NAV_ITEMS.map(({ href, label, icon: Icon, match }) => {
           const isActive = pathname === href || pathname.startsWith((match ?? href) + '/')
           return (
@@ -45,21 +56,29 @@ export default function Sidebar({ userEmail }: Props) {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-primary/10 font-medium text-primary'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon
+                className={cn('h-4 w-4 shrink-0 transition-colors', isActive ? 'text-primary' : '')}
+              />
               {label}
             </Link>
           )
         })}
       </nav>
 
+      {/* User section */}
       <div className="border-t p-3">
-        <p className="mb-2 truncate px-3 text-xs text-muted-foreground">{userEmail}</p>
+        <div className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+            {initial}
+          </div>
+          <p className="min-w-0 truncate text-xs text-muted-foreground">{userEmail}</p>
+        </div>
         <form action={signOut}>
           <Button
             type="submit"

@@ -26,80 +26,94 @@ export default async function BillingPage({ searchParams }: PageProps) {
   const showSuccess = params.success === '1'
   const showCanceled = params.canceled === '1'
 
-  return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
-      <h1 className="mb-1 text-2xl font-semibold text-gray-900">Facturation</h1>
-      <p className="mb-8 text-sm text-gray-500">Gérez votre abonnement GeoMind.</p>
+  const planBadgeClass =
+    plan === 'business'
+      ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
+      : plan === 'pro'
+        ? 'bg-primary/10 text-primary'
+        : 'bg-muted text-muted-foreground'
 
+  return (
+    <div className="mx-auto max-w-2xl p-6 sm:p-8">
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold tracking-tight">Facturation</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Gérez votre abonnement GeoMind.
+        </p>
+      </div>
+
+      {/* Banners */}
       {showSuccess && (
-        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+        <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Paiement effectué — votre plan a été mis à jour.
         </div>
       )}
       {showCanceled && (
-        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Paiement annulé — aucun changement apporté.
         </div>
       )}
 
       {/* Plan actuel */}
-      <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between">
+      <div className="mb-4 rounded-xl border bg-card shadow-sm p-6">
+        <p className="text-base font-semibold mb-4">Plan actuel</p>
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
-              Plan actuel
-            </p>
-            <p className="mt-1 text-xl font-semibold text-gray-900">{PLAN_LABELS[plan]}</p>
-            <p className="mt-1 text-sm text-gray-500">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${planBadgeClass}`}>
+                {PLAN_LABELS[plan]}
+              </span>
+              {status === 'active' && plan !== 'free' && (
+                <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700">
+                  Actif
+                </span>
+              )}
+              {status === 'past_due' && (
+                <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-destructive">
+                  Paiement en retard
+                </span>
+              )}
+              {status === 'canceled' && (
+                <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                  Annulé
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
               {PLAN_LIMITS[plan].sites} site{PLAN_LIMITS[plan].sites > 1 ? 's' : ''} ·{' '}
               {PLAN_LIMITS[plan].analyses} analyses / mois
             </p>
           </div>
-          <div className="text-right">
-            {status === 'active' && plan !== 'free' && (
-              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                Actif
-              </span>
-            )}
-            {status === 'past_due' && (
-              <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-                Paiement en retard
-              </span>
-            )}
-            {status === 'canceled' && (
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-                Annulé
-              </span>
-            )}
-            {currentPeriodEnd && (
-              <p className="mt-1 text-xs text-gray-400">
-                Renouvellement le{' '}
+          {currentPeriodEnd && (
+            <p className="text-xs text-muted-foreground text-right shrink-0">
+              Renouvellement le{' '}
+              <span className="font-medium text-foreground">
                 {currentPeriodEnd.toLocaleDateString('fr-FR', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
                 })}
-              </p>
-            )}
-          </div>
+              </span>
+            </p>
+          )}
         </div>
 
         {hasStripe && (
-          <form
-            action={createPortalSession}
-            className="mt-4 border-t border-gray-100 pt-4"
-          >
-            <button
-              type="submit"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-            >
-              Gérer l&apos;abonnement (changer carte, annuler…) →
-            </button>
-          </form>
+          <div className="mt-4 border-t pt-4">
+            <form action={createPortalSession}>
+              <button
+                type="submit"
+                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                Gérer l&apos;abonnement (changer carte, annuler…) →
+              </button>
+            </form>
+          </div>
         )}
       </div>
 
-      {/* Offres */}
+      {/* Offres disponibles */}
       {plan === 'free' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <PlanCard
@@ -155,27 +169,38 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`rounded-xl border p-6 shadow-sm ${
-        highlighted ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'
+      className={`rounded-xl border bg-card shadow-sm p-6 transition-shadow hover:shadow-md ${
+        highlighted ? 'border-primary ring-1 ring-primary/20' : ''
       }`}
     >
-      <p className="text-lg font-semibold text-gray-900">{name}</p>
-      <p className="mt-1 text-3xl font-bold text-gray-900">
-        {price}€<span className="text-base font-normal text-gray-500">/mois</span>
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-base font-semibold">{name}</p>
+        {highlighted && (
+          <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary">
+            Recommandé
+          </span>
+        )}
+      </div>
+      <p className="mt-1 text-3xl font-extrabold tracking-tight">
+        {price}€<span className="text-base font-normal text-muted-foreground">/mois</span>
       </p>
-      <ul className="mt-4 space-y-1 text-sm text-gray-600">
-        <li>
-          ✓ {sites} site{sites > 1 ? 's' : ''}
+      <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+        <li className="flex items-center gap-2">
+          <span className="text-emerald-500 font-semibold">✓</span>
+          {sites} site{sites > 1 ? 's' : ''}
         </li>
-        <li>✓ {analyses} analyses / mois</li>
+        <li className="flex items-center gap-2">
+          <span className="text-emerald-500 font-semibold">✓</span>
+          {analyses} analyses / mois
+        </li>
       </ul>
       <form action={action} className="mt-5">
         <button
           type="submit"
-          className={`w-full rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+          className={`w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 ${
             highlighted
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-              : 'bg-gray-900 text-white hover:bg-gray-800'
+              ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm'
+              : 'bg-foreground text-background'
           }`}
         >
           {label ?? `Passer ${name}`}

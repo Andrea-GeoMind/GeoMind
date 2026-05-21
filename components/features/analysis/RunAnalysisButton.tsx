@@ -31,8 +31,8 @@ export function RunAnalysisButton({ siteId }: Props) {
 
   if (launched) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-[--score-good-500]/30 bg-[--score-good-500]/10 px-4 py-3 text-sm text-[--score-good-500]">
-        <CheckCircle size={16} className="shrink-0" />
+      <div className="flex items-center gap-2 rounded-xl border border-[--score-good-500]/30 bg-[--score-good-500]/10 px-4 py-3 text-sm font-medium text-[--score-good-700]">
+        <CheckCircle size={16} className="shrink-0 text-[--score-good-500]" />
         Analyse lancée — résultats disponibles dans 2 à 5 minutes.
       </div>
     )
@@ -44,7 +44,7 @@ export function RunAnalysisButton({ siteId }: Props) {
         onClick={handleClick}
         disabled={isPending}
         size="lg"
-        className="relative w-full gap-2 overflow-hidden bg-[--brand-blue-500] text-white hover:bg-[--brand-blue-600]"
+        className="relative w-full gap-2 overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700"
       >
         {isPending ? (
           <>

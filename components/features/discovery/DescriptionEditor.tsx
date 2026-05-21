@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { CheckCircle, Loader2 } from 'lucide-react'
 import { updateDescriptionAction } from '@/app/(app)/sites/[siteId]/discovery/actions'
 
 interface DescriptionEditorProps {
@@ -48,16 +49,19 @@ export function DescriptionEditor({ siteId, initialValue }: DescriptionEditorPro
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Description</label>
+        <label className="text-sm font-semibold text-foreground">Description</label>
         <SaveIndicator status={effectiveStatus} />
       </div>
       <textarea
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         rows={4}
-        className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         placeholder="Décrivez votre activité en 2-3 phrases…"
       />
+      <p className="text-xs text-muted-foreground">
+        Une description claire aide les IAs à comprendre votre activité.
+      </p>
     </div>
   )
 }
@@ -65,8 +69,18 @@ export function DescriptionEditor({ siteId, initialValue }: DescriptionEditorPro
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null
   if (status === 'saving')
-    return <span className="text-xs text-muted-foreground">Sauvegarde…</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        <Loader2 size={11} className="animate-spin" />
+        Sauvegarde…
+      </span>
+    )
   if (status === 'saved')
-    return <span className="text-xs text-[--score-good-600]">✓ Enregistré</span>
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-[--score-good-600]">
+        <CheckCircle size={11} />
+        Enregistré
+      </span>
+    )
   return <span className="text-xs text-destructive">Erreur lors de la sauvegarde</span>
 }

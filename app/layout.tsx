@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Figtree, JetBrains_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 // Validation des variables d'environnement au boot — crash explicitement si manquantes
 import '@/lib/env'
@@ -8,10 +8,11 @@ import { InstallPrompt } from '@/components/install-prompt'
 import { CookieBanner } from '@/components/cookie-banner'
 import { PostHogProvider } from '@/components/posthog-provider'
 
-const figtree = Figtree({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '800'],
 })
 
 const jetbrainsMono = JetBrains_Mono({
@@ -21,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const viewport: Viewport = {
-  themeColor: '#2348B4',
+  themeColor: '#4F46E5',
   width: 'device-width',
   initialScale: 1,
   minimumScale: 1,
@@ -49,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr" className={`${figtree.variable} ${jetbrainsMono.variable}`}>
+    <html lang="fr" className={`${plusJakartaSans.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans">
         <PostHogProvider>
           {children}

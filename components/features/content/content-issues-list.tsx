@@ -36,12 +36,12 @@ export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesLi
 
   if (issues.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-[--score-good-100] bg-[--score-good-50] px-6 py-10 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-[--score-good-200] bg-[--score-good-50] px-6 py-12 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[--score-good-100]">
           <CheckCircle2 className="h-6 w-6 text-[--score-good-600]" />
         </div>
-        <p className="font-semibold text-[--score-good-700]">Aucun point faible détecté</p>
-        <p className="text-sm text-[--score-good-700]/70">
+        <p className="font-semibold text-[--score-good-800]">Aucun point faible détecté</p>
+        <p className="text-sm text-[--score-good-700]/80">
           Votre site respecte toutes les règles GEO de contenu analysées.
         </p>
       </div>
@@ -54,12 +54,14 @@ export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesLi
         {(Object.entries(grouped) as [ContentIssueRow['category'], ContentIssueRow[]][]).map(
           ([cat, items]) => (
             <section key={cat}>
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {CATEGORY_LABELS[cat]}
-                <span className="ml-2 font-normal normal-case tracking-normal text-muted-foreground/70">
-                  ({items.length})
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {CATEGORY_LABELS[cat]}
+                </h3>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {items.length}
                 </span>
-              </h3>
+              </div>
               <div className="space-y-2">
                 {items.map((issue) => (
                   <ContentIssueCard key={issue.id} issue={issue} onClick={setSelected} />

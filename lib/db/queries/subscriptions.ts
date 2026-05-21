@@ -23,7 +23,7 @@ export async function upsertSubscription(data: {
   userId: string
   stripeCustomerId: string
   stripeSubscriptionId: string
-  plan: 'free' | 'pro' | 'business'
+  plan: 'free' | 'pro' | 'business' | 'admin'
   status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete'
   currentPeriodEnd: Date | null
 }): Promise<SubscriptionRow> {

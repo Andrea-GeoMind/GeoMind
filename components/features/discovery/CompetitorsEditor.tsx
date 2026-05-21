@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Globe } from 'lucide-react'
 import {
   addCompetitorAction,
   deleteCompetitorAction,
@@ -52,28 +52,33 @@ export function CompetitorsEditor({ siteId, initialCompetitors }: CompetitorsEdi
 
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium">Concurrents</label>
+      <label className="text-sm font-semibold text-foreground">Concurrents</label>
 
       <div className="space-y-2">
         {competitors.length === 0 && (
-          <p className="text-sm italic text-muted-foreground">Aucun concurrent détecté.</p>
+          <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-sm italic text-muted-foreground">
+            Aucun concurrent détecté.
+          </p>
         )}
         {competitors.map((c) => (
           <div
             key={c.id}
-            className="flex items-center justify-between rounded-md border border-border bg-background px-3 py-2"
+            className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5"
           >
-            <div className="min-w-0">
-              {c.name && <p className="truncate text-sm font-medium">{c.name}</p>}
-              <p className="truncate text-xs text-muted-foreground">{c.url}</p>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Globe size={14} className="shrink-0 text-muted-foreground" />
+              <div className="min-w-0">
+                {c.name && <p className="truncate text-sm font-medium text-foreground">{c.name}</p>}
+                <p className="truncate text-xs text-muted-foreground">{c.url}</p>
+              </div>
             </div>
             <button
               type="button"
               onClick={() => handleDelete(c.id)}
-              className="ml-3 shrink-0 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              className="ml-3 shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               aria-label="Supprimer ce concurrent"
             >
-              <Trash2 size={14} />
+              <Trash2 size={13} />
             </button>
           </div>
         ))}
@@ -81,28 +86,30 @@ export function CompetitorsEditor({ siteId, initialCompetitors }: CompetitorsEdi
 
       <form
         onSubmit={handleAdd}
-        className="flex flex-col gap-2 rounded-md border border-dashed border-border p-3"
+        className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-muted/20 p-4"
       >
-        <p className="text-xs font-medium text-muted-foreground">Ajouter un concurrent</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Ajouter un concurrent
+        </p>
         <input
           value={nameInput}
           onChange={(e) => setNameInput(e.target.value)}
           placeholder="Nom (ex : Concurrent.io)"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          className="h-9 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
         <div className="flex gap-2">
           <input
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://exemple.com"
-            className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-9 flex-1 rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <button
             type="submit"
             disabled={isPending || !urlInput.trim()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            <Plus size={14} />
+            <Plus size={13} />
             Ajouter
           </button>
         </div>
