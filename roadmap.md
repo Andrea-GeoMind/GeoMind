@@ -248,6 +248,43 @@
 
 ---
 
+### Ticket 11.5 — Prompts orientés citation (GEO-aware prompt engineering)
+
+**Objectif** : reformuler les 20 prompts générés lors de la découverte pour qu'ils produisent des réponses IA contenant des citations de sources. Un prompt purement informationnel comme "Quels sont les défis de l'implémentation Salesforce pour une ETI ?" amène l'IA à répondre depuis sa mémoire sans citer personne. Les prompts doivent au contraire déclencher des réponses où l'IA recommande des acteurs, ressources, ou outils précis — ce qui crée des citations exploitables par GeoMind.
+
+**Principe** : les moteurs IA (Perplexity, ChatGPT, Gemini) citent des URLs quand la question appelle une recommandation de source, de prestataire, ou de comparatif — pas quand elle appelle une explication conceptuelle.
+
+**Patterns à privilégier dans les prompts générés** :
+- `"Quels prestataires / outils / solutions recommandez-vous pour [domaine] ?"` → l'IA liste des entreprises avec URLs
+- `"Où trouver des ressources fiables / des avis / un comparatif sur [sujet] ?"` → l'IA cite des sites de référence
+- `"Quelles agences ou plateformes sont reconnues pour [expertise] ?"` → l'IA nomme des acteurs connus
+- `"Comparez les meilleures solutions [X] pour [profil] ?"` → l'IA structure une liste avec sources
+- `"Quels experts, blogs ou guides font référence sur [thématique] ?"` → déclencheur direct de citation
+- `"Quel outil / logiciel utiliser pour [besoin précis] ?"` → l'IA recommande des produits spécifiques
+
+**Patterns à éviter** (génèrent des réponses non-citantes) :
+- `"Quels sont les défis de…"` → réponse purement conceptuelle, 0 citation
+- `"Comment fonctionne…"` → réponse explicative, 0 citation
+- `"Pourquoi est-il important de…"` → réponse argumentative, 0 citation
+
+**Fichiers à modifier** :
+- `lib/ai/prompts/neutral-prompts.ts` : reécrire `NEUTRAL_PROMPTS_SYSTEM_PROMPT` pour imposer les patterns citation-inducing
+
+**Changements dans le prompt système** :
+1. Ajouter une section explicite "PATTERNS EFFICACES" avec exemples de formulations qui provoquent des citations
+2. Imposer que **au moins 14 des 20 prompts** utilisent un pattern de type recommandation/comparatif/source (quantifier explicitement dans l'instruction)
+3. Interdire explicitement les formulations purement conceptuelles/explicatives
+4. Garder une minorité (≤ 6) de prompts informationnels pour la variété et la détection de la présence générale dans les IAs
+5. Ajouter dans le message utilisateur un rappel du contexte : "Les prompts servent à mesurer si ce business est cité dans les réponses IA — privilégie les formulations qui poussent l'IA à nommer des acteurs."
+
+**Critères** :
+- Sur un business test (ex : intégrateur Salesforce ETI), au moins 14 des 20 prompts contiennent un mot déclencheur de citation : "recommandez", "meilleur", "comparatif", "où trouver", "quelle agence", "quel outil", "quelles ressources", "quelles plateformes", "quels prestataires", "quelles solutions"
+- Aucun régression sur la règle de neutralité : 0 prompt ne contient le domaine ou la marque du client
+- `pnpm typecheck && pnpm lint` : 0 erreur (fichier `.ts` pur, pas de composants)
+- Pas de modification de schéma DB ni de routes — uniquement le prompt système
+
+---
+
 ### Ticket 12 — UI édition découverte (étape 3 onboarding + page dédiée)
 **Objectif** : permettre à l'utilisateur d'ajuster description, mots-clés, concurrents, prompts.
 
