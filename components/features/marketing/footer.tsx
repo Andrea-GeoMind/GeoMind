@@ -2,10 +2,17 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="border-t py-8">
+    <footer className="border-t border-border/60 bg-background py-10">
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-sm font-bold tracking-tight">GEOMIND</p>
+        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+          {/* Logo */}
+          <p className="text-base font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              GEO
+            </span>
+            <span className="text-foreground">MIND</span>
+          </p>
+
           <nav className="flex flex-wrap justify-center gap-6">
             <Link
               href="/legal/cgv"
@@ -32,6 +39,7 @@ export default function Footer() {
               Cookies
             </Link>
           </nav>
+
           <p className="text-xs text-muted-foreground">© 2026 GEOMIND</p>
         </div>
       </div>
