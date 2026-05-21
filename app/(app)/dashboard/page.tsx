@@ -27,10 +27,11 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="p-4 sm:p-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-4xl p-6 sm:p-8">
+      {/* Header */}
+      <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Tableau de bord</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {siteList.length === 0
               ? 'Ajoutez votre premier site pour commencer.'
@@ -41,16 +42,20 @@ export default async function DashboardPage() {
       </div>
 
       {siteList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-24 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-            <Globe size={32} className="text-primary" />
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/30 py-24 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+            <Globe size={28} className="text-primary" />
           </div>
           <h2 className="mt-5 text-xl font-bold">Analysez votre premier site</h2>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
             En 60 secondes, découvrez si ChatGPT, Perplexity, Gemini et Claude vous citent —
             et ce que vous pouvez faire pour y apparaître.
           </p>
-          <Button asChild className="mt-6 gap-2">
+          <Button
+            asChild
+            className="mt-6 gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200 hover:from-indigo-500 hover:to-violet-500 dark:shadow-indigo-900/30"
+          >
             <Link href="/onboarding">
               <Sparkles className="h-4 w-4" />
               Lancer mon audit gratuit
@@ -58,13 +63,12 @@ export default async function DashboardPage() {
           </Button>
         </div>
       ) : (
-        <ul className="space-y-3">
+        /* Site list */
+        <div className="grid gap-3">
           {siteList.map((site) => (
-            <li key={site.id}>
-              <SiteCard site={site} />
-            </li>
+            <SiteCard key={site.id} site={site} />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )

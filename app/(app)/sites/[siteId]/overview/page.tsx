@@ -2,7 +2,7 @@ import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
@@ -88,8 +88,9 @@ export default async function OverviewPage({ params }: Props) {
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-8">
       <OverviewPolling status={latest.status} />
 
+      {/* Error banner */}
       {isError && (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           <AlertCircle size={16} className="shrink-0" />
           <span className="flex-1">
             L&apos;analyse a échoué.{' '}
@@ -99,34 +100,49 @@ export default async function OverviewPage({ params }: Props) {
         </div>
       )}
 
-      {/* Score global */}
-      <section className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      {/* Running banner */}
+      {isInProgress && (
+        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 px-4 py-3 text-sm font-medium text-primary">
+          <RefreshCw size={15} className="shrink-0 animate-spin" />
+          Analyse en cours — la page se met à jour automatiquement…
+        </div>
+      )}
+
+      {/* Score global hero card */}
+      <section className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Score GEO Global
         </p>
 
         {isInProgress ? (
           <div className="flex flex-col items-center gap-3">
             <Skeleton className="h-40 w-40 rounded-full" />
-            <Skeleton className="h-4 w-32" />
-            <p className="text-sm text-muted-foreground">Analyse en cours…</p>
+            <Skeleton className="h-3 w-28 rounded-full" />
           </div>
         ) : globalScore !== null ? (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <ScoreGauge score={globalScore} size="lg" />
             {deltas !== null && (
-              <span
-                className={
+              <div
+                className={[
+                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
                   deltas.globalDelta > 0
-                    ? 'text-sm font-semibold text-[--score-good-600]'
+                    ? 'bg-[--score-good-50] text-[--score-good-600]'
                     : deltas.globalDelta < 0
-                      ? 'text-sm font-semibold text-[--score-bad-600]'
-                      : 'text-sm font-medium text-muted-foreground'
-                }
+                      ? 'bg-[--score-bad-50] text-[--score-bad-600]'
+                      : 'bg-muted text-muted-foreground',
+                ].join(' ')}
               >
+                {deltas.globalDelta > 0 ? (
+                  <TrendingUp size={13} aria-hidden />
+                ) : deltas.globalDelta < 0 ? (
+                  <TrendingDown size={13} aria-hidden />
+                ) : (
+                  <Minus size={13} aria-hidden />
+                )}
                 {deltas.globalDelta > 0 ? '+' : ''}
                 {deltas.globalDelta} pts vs analyse précédente
-              </span>
+              </div>
             )}
           </div>
         ) : (
@@ -134,17 +150,17 @@ export default async function OverviewPage({ params }: Props) {
         )}
       </section>
 
-      {/* 3 sous-notes */}
+      {/* 3 pillar score cards */}
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Détail par pilier
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {isInProgress ? (
             <>
-              <Skeleton className="h-36 rounded-xl" />
-              <Skeleton className="h-36 rounded-xl" />
-              <Skeleton className="h-36 rounded-xl" />
+              <Skeleton className="h-44 rounded-2xl" />
+              <Skeleton className="h-44 rounded-2xl" />
+              <Skeleton className="h-44 rounded-2xl" />
             </>
           ) : currentAnalysis !== null ? (
             <>

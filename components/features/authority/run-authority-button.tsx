@@ -31,25 +31,26 @@ export function RunAuthorityButton({ siteId }: RunAuthorityButtonProps) {
 
   if (launched) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-        <CheckCircle size={16} className="shrink-0" />
-        Analyse Autorité relancée — la page se mettra à jour automatiquement.
+      <div className="flex items-center gap-2 rounded-xl border border-[--score-good-500]/30 bg-[--score-good-500]/10 px-4 py-2.5 text-sm font-medium text-[--score-good-700]">
+        <CheckCircle size={15} className="shrink-0 text-[--score-good-500]" />
+        Analyse relancée — mise à jour automatique.
       </div>
     )
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Button
         onClick={handleClick}
         disabled={isPending}
         variant="outline"
-        className="gap-2"
+        size="sm"
+        className="shrink-0 gap-2"
       >
-        <RefreshCw size={14} className={isPending ? 'animate-spin' : ''} />
-        {isPending ? 'Lancement en cours…' : 'Relancer analyse Autorité'}
+        <RefreshCw size={13} className={isPending ? 'animate-spin' : ''} />
+        {isPending ? 'Lancement…' : 'Relancer'}
       </Button>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

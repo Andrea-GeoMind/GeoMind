@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Globe, Trash2, ExternalLink } from 'lucide-react'
+import { Globe, Trash2, ExternalLink, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -46,35 +46,41 @@ export function SiteCard({ site }: Props) {
 
   return (
     <>
-      <Card>
-        <CardContent className="flex items-center justify-between gap-4 p-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10">
-              <Globe className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate font-medium">{site.name}</p>
-              <a
-                href={site.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 truncate text-xs text-muted-foreground hover:text-foreground"
-              >
-                {site.url}
-                <ExternalLink className="h-3 w-3 shrink-0" />
-              </a>
-            </div>
+      <Card className="transition-shadow duration-150 hover:shadow-md hover:[box-shadow:var(--shadow-md)]">
+        <CardContent className="flex items-center gap-4 p-4">
+          {/* Icon */}
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/15">
+            <Globe className="h-4 w-4 text-primary" />
           </div>
+
+          {/* Site info */}
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold">{site.name}</p>
+            <a
+              href={site.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {site.url}
+              <ExternalLink className="h-3 w-3 shrink-0" />
+            </a>
+          </div>
+
+          {/* CTA */}
           <Link
             href={`/sites/${site.id}/overview`}
-            className="shrink-0 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            className="group flex shrink-0 items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
           >
             Voir l&apos;analyse
+            <ArrowRight className="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5" />
           </Link>
+
+          {/* Delete */}
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 text-muted-foreground hover:text-destructive"
+            className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             onClick={() => setOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
@@ -88,8 +94,8 @@ export function SiteCard({ site }: Props) {
           <DialogHeader>
             <DialogTitle>Supprimer ce site ?</DialogTitle>
             <DialogDescription>
-              <strong>{site.name}</strong> ({site.url}) et toutes ses analyses seront
-              supprimés définitivement. Cette action est irréversible.
+              <strong>{site.name}</strong> ({site.url}) et toutes ses analyses seront supprimés
+              définitivement. Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
           {error && <p className="text-sm text-destructive">{error}</p>}

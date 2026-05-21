@@ -9,47 +9,54 @@ export const metadata: Metadata = {
 export default function CookiesPage() {
   return (
     <>
-      <h1 className="text-2xl font-bold tracking-tight">Politique de cookies</h1>
-      <p className="text-xs text-muted-foreground">Dernière mise à jour : mai 2026</p>
+      {/* Header */}
+      <div className="border-b border-border pb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
+          Politique de cookies
+        </h1>
+        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : mai 2026</p>
+      </div>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Qu&apos;est-ce qu&apos;un cookie ?</h2>
-        <p>
+        <h2 className="text-base font-semibold text-foreground">Qu&apos;est-ce qu&apos;un cookie ?</h2>
+        <p className="text-muted-foreground leading-relaxed">
           Un cookie est un petit fichier texte déposé sur votre appareil lors de la visite d&apos;un
           site. Il permet de mémoriser des informations entre deux visites ou sessions.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Cookies utilisés sur geomind.fr</h2>
-        <div className="overflow-x-auto">
+        <h2 className="text-base font-semibold text-foreground">Cookies utilisés sur geomind.fr</h2>
+        <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full border-collapse text-xs">
             <thead>
-              <tr className="border-b text-left text-muted-foreground">
-                <th className="py-2 pr-4 font-medium">Cookie</th>
-                <th className="py-2 pr-4 font-medium">Catégorie</th>
-                <th className="py-2 pr-4 font-medium">Durée</th>
-                <th className="py-2 font-medium">Finalité</th>
+              <tr className="border-b border-border bg-muted/40 text-left">
+                <th className="px-4 py-3 font-medium text-muted-foreground">Cookie</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Catégorie</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Durée</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Finalité</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-border">
               <tr>
-                <td className="py-2 pr-4 font-mono">sb-*</td>
-                <td className="py-2 pr-4">Essentiel</td>
-                <td className="py-2 pr-4">Session / 1 an</td>
-                <td className="py-2">Authentification Supabase</td>
+                <td className="px-4 py-3 font-mono text-foreground">sb-*</td>
+                <td className="px-4 py-3 text-muted-foreground">Essentiel</td>
+                <td className="px-4 py-3 text-muted-foreground">Session / 1 an</td>
+                <td className="px-4 py-3 text-muted-foreground">Authentification Supabase</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-mono">cookie-consent</td>
-                <td className="py-2 pr-4">Essentiel</td>
-                <td className="py-2 pr-4">Session</td>
-                <td className="py-2">Mémorise votre choix de consentement</td>
+                <td className="px-4 py-3 font-mono text-foreground">cookie-consent</td>
+                <td className="px-4 py-3 text-muted-foreground">Essentiel</td>
+                <td className="px-4 py-3 text-muted-foreground">Session</td>
+                <td className="px-4 py-3 text-muted-foreground">Mémorise votre choix de consentement</td>
               </tr>
               <tr>
-                <td className="py-2 pr-4 font-mono">ph_*</td>
-                <td className="py-2 pr-4">Analytique</td>
-                <td className="py-2 pr-4">13 mois</td>
-                <td className="py-2">PostHog — mesure d&apos;audience et amélioration produit</td>
+                <td className="px-4 py-3 font-mono text-foreground">ph_*</td>
+                <td className="px-4 py-3 text-muted-foreground">Analytique</td>
+                <td className="px-4 py-3 text-muted-foreground">13 mois</td>
+                <td className="px-4 py-3 text-muted-foreground">
+                  PostHog — mesure d&apos;audience et amélioration produit
+                </td>
               </tr>
             </tbody>
           </table>
@@ -57,16 +64,16 @@ export default function CookiesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Cookies essentiels</h2>
-        <p>
+        <h2 className="text-base font-semibold text-foreground">Cookies essentiels</h2>
+        <p className="text-muted-foreground leading-relaxed">
           Ces cookies sont indispensables au fonctionnement du service et ne nécessitent pas votre
           consentement au titre de l&apos;article 82 de la loi Informatique et Libertés.
         </p>
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Cookies analytiques (PostHog)</h2>
-        <p>
+        <h2 className="text-base font-semibold text-foreground">Cookies analytiques (PostHog)</h2>
+        <p className="text-muted-foreground leading-relaxed">
           Ces cookies mesurent l&apos;audience et améliorent le produit. Ils sont stockés sur les serveurs
           européens de PostHog et ne sont activés qu&apos;avec votre consentement explicite. Aucune donnée
           n&apos;est vendue à des tiers.
@@ -74,15 +81,23 @@ export default function CookiesPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Gérer vos préférences</h2>
-        <p>Vous pouvez modifier votre choix à tout moment :</p>
+        <h2 className="text-base font-semibold text-foreground">Gérer vos préférences</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Vous pouvez modifier votre choix à tout moment :
+        </p>
         <CookieConsentButtons />
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Contact</h2>
-        <p>
-          Pour toute question : <strong>contact@geomind.fr</strong>
+        <h2 className="text-base font-semibold text-foreground">Contact</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Pour toute question :{' '}
+          <a
+            href="mailto:contact@geomind.fr"
+            className="font-medium text-primary underline underline-offset-4 hover:opacity-80"
+          >
+            contact@geomind.fr
+          </a>
         </p>
       </section>
     </>

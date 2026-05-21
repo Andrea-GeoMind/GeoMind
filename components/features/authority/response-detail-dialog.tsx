@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ENGINE_LABELS } from '@/lib/analysis/authority-table'
 import type { CellData } from '@/lib/analysis/authority-table'
@@ -24,7 +25,7 @@ function highlightDomain(text: string, domain: string): React.ReactNode[] {
       ? (
           <mark
             key={i}
-            className="rounded bg-green-100 px-0.5 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+            className="rounded bg-[--score-good-100] px-0.5 text-[--score-good-800]"
           >
             {part}
           </mark>
@@ -33,11 +34,11 @@ function highlightDomain(text: string, domain: string): React.ReactNode[] {
   )
 }
 
-const ENGINE_BADGE_COLORS: Record<IAEngineName, string> = {
-  chatgpt: 'bg-emerald-100 text-emerald-800',
-  claude: 'bg-violet-100 text-violet-800',
-  gemini: 'bg-blue-100 text-blue-800',
-  perplexity: 'bg-amber-100 text-amber-800',
+const ENGINE_BADGE_STYLES: Record<IAEngineName, { bg: string; text: string }> = {
+  chatgpt:    { bg: 'bg-emerald-100',  text: 'text-emerald-800' },
+  claude:     { bg: 'bg-violet-100',   text: 'text-violet-800' },
+  gemini:     { bg: 'bg-blue-100',     text: 'text-blue-800' },
+  perplexity: { bg: 'bg-amber-100',    text: 'text-amber-800' },
 }
 
 export function ResponseDetailDialog({
@@ -49,13 +50,15 @@ export function ResponseDetailDialog({
 }: ResponseDetailDialogProps) {
   if (!cell) return null
 
+  const badge = ENGINE_BADGE_STYLES[cell.engine]
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
+          <DialogTitle className="flex items-center gap-2 text-base font-extrabold tracking-tight">
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ENGINE_BADGE_COLORS[cell.engine]}`}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.bg} ${badge.text}`}
             >
               {ENGINE_LABELS[cell.engine]}
             </span>
@@ -64,17 +67,19 @@ export function ResponseDetailDialog({
         </DialogHeader>
 
         {/* Prompt */}
-        <div className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wider">Prompt</span>
+        <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Prompt
+          </span>
           {promptText}
         </div>
 
         {/* Answer */}
-        <div className="space-y-1">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Réponse
           </span>
-          <p className="whitespace-pre-wrap rounded-lg border border-border bg-background p-4 text-sm leading-relaxed">
+          <p className="whitespace-pre-wrap rounded-xl border border-border bg-background p-4 text-sm leading-relaxed">
             {highlightDomain(cell.answer, clientDomain)}
           </p>
         </div>
@@ -82,20 +87,25 @@ export function ResponseDetailDialog({
         {/* Sources */}
         {cell.sources.length > 0 && (
           <div className="space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Sources citées ({cell.sources.length})
             </span>
             <ul className="space-y-1.5">
               {cell.sources.map((source) => (
                 <li
                   key={source.id}
-                  className={`flex items-start gap-2 rounded-md border px-3 py-2 text-xs ${
+                  className={[
+                    'flex items-center gap-2 rounded-xl border px-3 py-2 text-xs',
                     source.isClientDomain
-                      ? 'border-green-200 bg-green-50 text-green-800 dark:border-green-800/30 dark:bg-green-900/10 dark:text-green-300'
-                      : 'border-border bg-muted/30 text-muted-foreground'
-                  }`}
+                      ? 'border-[--score-good-200] bg-[--score-good-50] text-[--score-good-800]'
+                      : 'border-border bg-muted/30 text-muted-foreground',
+                  ].join(' ')}
                 >
-                  <span className="mt-0.5 shrink-0">{source.isClientDomain ? '✅' : '•'}</span>
+                  {source.isClientDomain ? (
+                    <CheckCircle2 size={13} className="shrink-0 text-[--score-good-500]" />
+                  ) : (
+                    <XCircle size={13} className="shrink-0 text-muted-foreground/40" />
+                  )}
                   <span className="min-w-0 break-all">{source.title ?? source.url}</span>
                 </li>
               ))}
