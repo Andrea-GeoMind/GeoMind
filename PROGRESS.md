@@ -6,7 +6,7 @@ Fichier d'état persistant. **Source de vérité** : cocher ici = ticket termin�
 
 ## État global
 
-Tous sprints terminés. TKT-001 à TKT-032.5 terminés. geomind.fr est en production sur Vercel (cdg1), domaine validé, E2E smoke 10/10 ✅. Sentry DSN réel, PostHog EU réel, Inngest synced geomind.fr ✅. Reste : Stripe Live (bloqué SIRET), Perplexity (déféré).
+Tous sprints terminés. TKT-001 à TKT-033 terminés. geomind.fr est en production sur Vercel (cdg1), domaine validé, E2E smoke 10/10 ✅. Sentry DSN réel, PostHog EU réel, Inngest synced geomind.fr ✅. Reste : Stripe Live (bloqué SIRET), Perplexity (déféré).
 
 ---
 
@@ -152,3 +152,4 @@ Tous sprints terminés. TKT-001 à TKT-032.5 terminés. geomind.fr est en produc
 | TKT-011.5 | ✅ | 2026-05-21 | Ticket 11.5 ajouté au roadmap — prompts orientés citation (GEO-aware prompt engineering) : patterns citation-inducing vs conceptuels, ≥14/20 prompts avec déclencheur de citation, modification ciblée neutral-prompts.ts — PR #30 merged |
 | TKT-AUDIT-MVP | ✅ | 2026-05-22 | Audit complet pré-MVP + 11 bugs corrigés : crash onboarding (inngest try-catch), limites plan conformes CdC (free 1/1 lifetime, pro 3/4, business 10/30), quota free lifetime vs mensuel, page /sites redirect, settings layout+tabs manquants, account page RGPD (email+password+delete cascade), billing valeurs hardcodées, usage label "à vie", doublons liens auth forms, CGV descriptions — 312 tests verts — PR #31 merged |
 | TKT-032.5 | ✅ | 2026-05-22 | Overlay fullscreen bloquant pendant les analyses : AnalysisLockProvider (Context React), AnalysisLoadingOverlay (z-9999, stepper 5 étapes, beforeunload handler), sidebar désactivée, AnalysisLockInit (ré-ouverture auto au reload), RunAnalysisButton+RetryAnalysisButton appellent lockAnalysis, OverviewPolling déverrouille à success/error — 312 tests verts — PR #32 merged |
+| TKT-033 | ✅ | 2026-05-22 | Verrouillage écran onboarding step 3 : bouton "Voir le tableau de bord" supprimé, AnalysisStartedStep extracté en composant client dédié, beforeunload natif + bannière avertissement "ne pas fermer cet onglet" — commit a691e4d sur main |
