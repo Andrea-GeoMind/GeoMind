@@ -4,42 +4,39 @@ import { insertTechnicalIssues } from '@/lib/db/queries/technical-issues'
 import { computeTechnicalScore } from '@/lib/analysis/scoring'
 import type { TechnicalRuleFn, TechnicalIssue, FirecrawlPage } from './types'
 
+// ── Règles GEO-critiques (accessibilité aux crawlers IA + données structurées) ──
 import { checkHttpsMissing } from './rules/https-missing'
-import { checkHttpErrorsRatio } from './rules/http-errors-ratio'
 import { checkRobotsTxtBlockAll } from './rules/robots-txt-block-all'
 import { checkRobotsTxtBlockAiBots } from './rules/robots-txt-block-ai-bots'
+import { checkLlmsTxtMissing } from './rules/llms-txt-missing'
 import { checkSitemapMissing } from './rules/sitemap-missing'
 import { checkSitemapMalformed } from './rules/sitemap-malformed'
-import { checkLlmsTxtMissing } from './rules/llms-txt-missing'
-import { checkH1MissingOrDuplicate } from './rules/h1-missing-or-duplicate'
-import { checkHierarchyMissing } from './rules/hierarchy-missing'
-import { checkDepthTooDeep } from './rules/depth-too-deep'
 import { checkSchemaOrgOrganization } from './rules/schema-org-organization'
 import { checkSchemaOrgFaq } from './rules/schema-org-faq'
 import { checkSchemaOrgArticle } from './rules/schema-org-article'
 import { checkSchemaOrgProduct } from './rules/schema-org-product'
-import { checkResponseTimeSlow } from './rules/response-time-slow'
-import { checkPageSizeHeavy } from './rules/page-size-heavy'
+
+// Règles retirées (SEO classique, aucun impact direct sur les citations IA) :
+// - checkH1MissingOrDuplicate   → structure HTML, pas GEO
+// - checkHierarchyMissing       → structure HTML, pas GEO
+// - checkDepthTooDeep           → URL, pas GEO
+// - checkResponseTimeSlow       → performance, pas GEO
+// - checkPageSizeHeavy          → performance, pas GEO
+// - checkHttpErrorsRatio        → erreurs HTTP, impact indirect trop faible
 
 export type { TechnicalIssue, FirecrawlPage } from './types'
 
 const RULES: TechnicalRuleFn[] = [
   checkHttpsMissing,
-  checkHttpErrorsRatio,
   checkRobotsTxtBlockAll,
   checkRobotsTxtBlockAiBots,
+  checkLlmsTxtMissing,
   checkSitemapMissing,
   checkSitemapMalformed,
-  checkLlmsTxtMissing,
-  checkH1MissingOrDuplicate,
-  checkHierarchyMissing,
-  checkDepthTooDeep,
   checkSchemaOrgOrganization,
   checkSchemaOrgFaq,
   checkSchemaOrgArticle,
   checkSchemaOrgProduct,
-  checkResponseTimeSlow,
-  checkPageSizeHeavy,
 ]
 
 export interface TechnicalAnalysisInput {

@@ -3,11 +3,10 @@ import { cn } from '@/lib/utils'
 const STEPS = [
   { label: 'Bienvenue' },
   { label: 'Votre site' },
-  { label: 'Analyse' },
 ]
 
 type Props = {
-  currentStep: 1 | 2 | 3
+  currentStep: 1 | 2
 }
 
 export function StepProgress({ currentStep }: Props) {
