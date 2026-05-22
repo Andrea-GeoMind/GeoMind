@@ -51,7 +51,7 @@ export default async function UsagePage() {
           />
           <div className="border-t" />
           <UsageRow
-            label="Analyses ce mois-ci"
+            label={stats.plan === 'free' ? 'Analyses (à vie)' : 'Analyses ce mois-ci'}
             used={stats.analyses.used}
             limit={stats.analyses.limit}
             unit="analyse"
@@ -128,7 +128,7 @@ function UsageRow({
       </div>
       {isFull && (
         <p className="mt-1.5 text-xs text-destructive font-medium">
-          Limite atteinte pour ce mois-ci.
+          Limite atteinte.
         </p>
       )}
     </div>

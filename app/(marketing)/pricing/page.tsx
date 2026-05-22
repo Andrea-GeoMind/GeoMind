@@ -45,7 +45,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                  <span className="text-foreground">3 analyses / mois</span>
+                  <span className="text-foreground">1 analyse à vie</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -92,11 +92,11 @@ export default function PricingPage() {
               <ul className="mt-8 flex-1 space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                  <span className="text-foreground">5 sites</span>
+                  <span className="text-foreground">3 sites</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                  <span className="text-foreground">30 analyses / mois</span>
+                  <span className="text-foreground">4 analyses / mois</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -141,7 +141,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                  <span className="text-foreground">100 analyses / mois</span>
+                  <span className="text-foreground">30 analyses / mois</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
@@ -195,14 +195,14 @@ export default function PricingPage() {
                 <tr>
                   <td className="px-6 py-4 font-medium text-foreground">Sites</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">1</td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">5</td>
+                  <td className="px-6 py-4 text-center font-medium text-foreground">3</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">10</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 font-medium text-foreground">Analyses / mois</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">3</td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">30</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">100</td>
+                  <td className="px-6 py-4 font-medium text-foreground">Analyses</td>
+                  <td className="px-6 py-4 text-center text-muted-foreground">1 à vie</td>
+                  <td className="px-6 py-4 text-center font-medium text-foreground">4 / mois</td>
+                  <td className="px-6 py-4 text-center text-muted-foreground">30 / mois</td>
                 </tr>
                 <tr>
                   <td className="px-6 py-4 font-medium text-foreground">Score GEO global</td>

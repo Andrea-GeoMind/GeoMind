@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,11 +55,6 @@ export function ResetPasswordForm() {
         {isPending ? 'Envoi...' : 'Envoyer le lien de réinitialisation'}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        <Link href="/login" className="text-primary hover:underline">
-          Retour à la connexion
-        </Link>
-      </p>
     </form>
   )
 }

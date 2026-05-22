@@ -7,8 +7,8 @@ describe('PLAN_LIMITS', () => {
     expect(PLAN_LIMITS.free.sites).toBe(1)
   })
 
-  it('Pro plan limite à 5 sites', () => {
-    expect(PLAN_LIMITS.pro.sites).toBe(5)
+  it('Pro plan limite à 3 sites', () => {
+    expect(PLAN_LIMITS.pro.sites).toBe(3)
   })
 
   it('Business plan limite à 10 sites', () => {
