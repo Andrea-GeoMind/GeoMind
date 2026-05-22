@@ -6,6 +6,7 @@ vi.mock('@/lib/db/queries/subscriptions', () => ({
 
 vi.mock('@/lib/db/queries/analyses', () => ({
   countAnalysesThisMonth: vi.fn(),
+  countAllAnalyses: vi.fn(),
 }))
 
 vi.mock('@/lib/db/client', () => ({
@@ -15,7 +16,7 @@ vi.mock('@/lib/db/client', () => ({
 }))
 
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
-import { countAnalysesThisMonth } from '@/lib/db/queries/analyses'
+import { countAnalysesThisMonth, countAllAnalyses } from '@/lib/db/queries/analyses'
 import { db } from '@/lib/db/client'
 import {
   canAddSite,
@@ -27,7 +28,8 @@ import {
 } from '@/lib/quotas'
 
 const mockSub = vi.mocked(getSubscriptionByUserId)
-const mockAnalysesCount = vi.mocked(countAnalysesThisMonth)
+const mockAnalysesThisMonth = vi.mocked(countAnalysesThisMonth)
+const mockAllAnalyses = vi.mocked(countAllAnalyses)
 const mockDb = vi.mocked(db)
 
 function mockSiteCount(n: number) {
@@ -58,15 +60,15 @@ describe('canAddSite', () => {
     expect(await canAddSite('user-1')).toBe(false)
   })
 
-  it('autorise plan pro sous la limite (5 sites)', async () => {
+  it('autorise plan pro sous la limite (3 sites)', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(4)
+    mockSiteCount(2)
     expect(await canAddSite('user-1')).toBe(true)
   })
 
-  it('refuse plan pro à la limite (5 sites)', async () => {
+  it('refuse plan pro à la limite (3 sites)', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(5)
+    mockSiteCount(3)
     expect(await canAddSite('user-1')).toBe(false)
   })
 
@@ -80,27 +82,27 @@ describe('canAddSite', () => {
 // ─── canRunFullAnalysis ───────────────────────────────────────────────────────
 
 describe('canRunFullAnalysis', () => {
-  it('autorise si sous la limite mensuelle (free : 3)', async () => {
+  it('autorise si sous la limite à vie (free : 1)', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAnalysesCount.mockResolvedValue(2)
+    mockAllAnalyses.mockResolvedValue(0)
     expect(await canRunFullAnalysis('user-1')).toBe(true)
   })
 
-  it('refuse si à la limite mensuelle (free : 3)', async () => {
+  it('refuse si à la limite à vie (free : 1)', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAnalysesCount.mockResolvedValue(3)
+    mockAllAnalyses.mockResolvedValue(1)
     expect(await canRunFullAnalysis('user-1')).toBe(false)
   })
 
-  it('autorise plan business sous la limite (100)', async () => {
+  it('autorise plan business sous la limite (30)', async () => {
     mockSub.mockResolvedValue({ plan: 'business' } as never)
-    mockAnalysesCount.mockResolvedValue(99)
+    mockAnalysesThisMonth.mockResolvedValue(29)
     expect(await canRunFullAnalysis('user-1')).toBe(true)
   })
 
-  it('refuse plan business à la limite (100)', async () => {
+  it('refuse plan business à la limite (30)', async () => {
     mockSub.mockResolvedValue({ plan: 'business' } as never)
-    mockAnalysesCount.mockResolvedValue(100)
+    mockAnalysesThisMonth.mockResolvedValue(30)
     expect(await canRunFullAnalysis('user-1')).toBe(false)
   })
 })
@@ -110,13 +112,13 @@ describe('canRunFullAnalysis', () => {
 describe('canRunTabAnalysis', () => {
   it('même comportement que canRunFullAnalysis — autorise si sous la limite', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesCount.mockResolvedValue(29)
+    mockAnalysesThisMonth.mockResolvedValue(3)
     expect(await canRunTabAnalysis('user-1')).toBe(true)
   })
 
   it('même comportement que canRunFullAnalysis — refuse à la limite', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesCount.mockResolvedValue(30)
+    mockAnalysesThisMonth.mockResolvedValue(4)
     expect(await canRunTabAnalysis('user-1')).toBe(false)
   })
 })
@@ -124,32 +126,32 @@ describe('canRunTabAnalysis', () => {
 // ─── getRemainingAnalysesThisMonth ────────────────────────────────────────────
 
 describe('getRemainingAnalysesThisMonth', () => {
-  it('retourne used/limit/remaining corrects pour free avec 1 analyse', async () => {
+  it('retourne used/limit/remaining corrects pour free avec 0 analyse', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAnalysesCount.mockResolvedValue(1)
+    mockAllAnalyses.mockResolvedValue(0)
     const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 1, limit: 3, remaining: 2 })
+    expect(result).toEqual({ used: 0, limit: 1, remaining: 1 })
   })
 
-  it('remaining vaut 0 quand la limite est atteinte', async () => {
+  it('remaining vaut 0 quand la limite est atteinte (free)', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAnalysesCount.mockResolvedValue(3)
+    mockAllAnalyses.mockResolvedValue(1)
     const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 3, limit: 3, remaining: 0 })
+    expect(result).toEqual({ used: 1, limit: 1, remaining: 0 })
   })
 
   it('remaining ne peut pas être négatif', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAnalysesCount.mockResolvedValue(10)
+    mockAllAnalyses.mockResolvedValue(10)
     const { remaining } = await getRemainingAnalysesThisMonth('user-1')
     expect(remaining).toBe(0)
   })
 
-  it('calcule correctement pour plan pro (30 analyses)', async () => {
+  it('calcule correctement pour plan pro (4 analyses)', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesCount.mockResolvedValue(12)
+    mockAnalysesThisMonth.mockResolvedValue(2)
     const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 12, limit: 30, remaining: 18 })
+    expect(result).toEqual({ used: 2, limit: 4, remaining: 2 })
   })
 })
 
@@ -158,9 +160,9 @@ describe('getRemainingAnalysesThisMonth', () => {
 describe('getSitesUsage', () => {
   it('retourne used/limit/remaining corrects', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(3)
+    mockSiteCount(2)
     const result = await getSitesUsage('user-1')
-    expect(result).toEqual({ used: 3, limit: 5, remaining: 2 })
+    expect(result).toEqual({ used: 2, limit: 3, remaining: 1 })
   })
 
   it('remaining vaut 0 à la limite', async () => {
@@ -176,21 +178,21 @@ describe('getSitesUsage', () => {
 describe('getUsageStats', () => {
   it('retourne plan + sites + analyses agrégés', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesCount.mockResolvedValue(5)
-    mockSiteCount(2)
+    mockAnalysesThisMonth.mockResolvedValue(2)
+    mockSiteCount(1)
     const stats = await getUsageStats('user-1')
     expect(stats.plan).toBe('pro')
-    expect(stats.sites).toEqual({ used: 2, limit: 5, remaining: 3 })
-    expect(stats.analyses).toEqual({ used: 5, limit: 30, remaining: 25 })
+    expect(stats.sites).toEqual({ used: 1, limit: 3, remaining: 2 })
+    expect(stats.analyses).toEqual({ used: 2, limit: 4, remaining: 2 })
   })
 
   it('utilise free par défaut si pas de subscription', async () => {
     mockSub.mockResolvedValue(null)
-    mockAnalysesCount.mockResolvedValue(0)
+    mockAllAnalyses.mockResolvedValue(0)
     mockSiteCount(0)
     const stats = await getUsageStats('user-1')
     expect(stats.plan).toBe('free')
     expect(stats.sites.limit).toBe(1)
-    expect(stats.analyses.limit).toBe(3)
+    expect(stats.analyses.limit).toBe(1)
   })
 })

@@ -200,7 +200,7 @@ export default function HomePage() {
                 <span className="text-sm text-muted-foreground">/mois</span>
               </div>
               <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['1 site', '3 analyses / mois', 'Score GEO global'].map((f) => (
+                {['1 site', '1 analyse à vie', 'Score GEO global'].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />
                     {f}
@@ -223,7 +223,7 @@ export default function HomePage() {
                 <span className="text-sm text-muted-foreground">/mois</span>
               </div>
               <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['5 sites', '30 analyses / mois', 'Analyse complète', 'Coach IA'].map((f) => (
+                {['3 sites', '4 analyses / mois', 'Analyse complète', 'Coach IA'].map((f) => (
                   <li key={f} className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />
                     {f}
@@ -246,7 +246,7 @@ export default function HomePage() {
                 <span className="text-sm text-muted-foreground">/mois</span>
               </div>
               <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['10 sites', '100 analyses / mois', 'API access', 'Support prioritaire'].map(
+                {['10 sites', '30 analyses / mois', 'Coach IA version complète', 'Support prioritaire'].map(
                   (f) => (
                     <li key={f} className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-accent" />
