@@ -82,7 +82,9 @@ export default async function BillingPage({ searchParams }: PageProps) {
             </div>
             <p className="text-sm text-muted-foreground">
               {PLAN_LIMITS[plan].sites} site{PLAN_LIMITS[plan].sites > 1 ? 's' : ''} ·{' '}
-              {PLAN_LIMITS[plan].analyses} analyses / mois
+              {plan === 'free'
+                ? `${PLAN_LIMITS[plan].analyses} analyse à vie`
+                : `${PLAN_LIMITS[plan].analyses} analyses / mois`}
             </p>
           </div>
           {currentPeriodEnd && (
@@ -119,8 +121,8 @@ export default async function BillingPage({ searchParams }: PageProps) {
           <PlanCard
             name="Pro"
             price="49"
-            sites={5}
-            analyses={30}
+            sites={3}
+            analyses={4}
             action={createCheckoutSession.bind(null, 'pro')}
             highlighted
           />
@@ -128,7 +130,7 @@ export default async function BillingPage({ searchParams }: PageProps) {
             name="Business"
             price="149"
             sites={10}
-            analyses={100}
+            analyses={30}
             action={createCheckoutSession.bind(null, 'business')}
           />
         </div>
@@ -140,7 +142,7 @@ export default async function BillingPage({ searchParams }: PageProps) {
             name="Business"
             price="149"
             sites={10}
-            analyses={100}
+            analyses={30}
             action={createCheckoutSession.bind(null, 'business')}
             label="Passer Business"
           />

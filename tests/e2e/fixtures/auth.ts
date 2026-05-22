@@ -71,12 +71,14 @@ export const test = base.extend<TestFixtures>({
     const email = `audit-${testInfo.workerIndex}-${ts}@example.com`
     const password = 'Test1234!'
     const userId = await createTestAccount(email, password)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use({ email, password, userId })
     await deleteTestAccount(userId)
   },
 
   loggedInPage: async ({ page, testAccount }, use) => {
     await loginViaUI(page, testAccount.email, testAccount.password)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page)
   },
 })

@@ -30,13 +30,13 @@ export default function CgvPage() {
         <p className="text-muted-foreground leading-relaxed">GEOMIND propose les abonnements suivants :</p>
         <ul className="list-disc space-y-1.5 pl-5 text-muted-foreground">
           <li>
-            <strong className="text-foreground">Plan Gratuit</strong> — 1 site, 1 analyse/mois, sans frais.
+            <strong className="text-foreground">Plan Gratuit</strong> — 1 site, 1 analyse à vie, sans frais.
           </li>
           <li>
-            <strong className="text-foreground">Plan Pro</strong> — 49 € HT/mois, 3 sites, 10 analyses/mois.
+            <strong className="text-foreground">Plan Pro</strong> — 49 € HT/mois, 3 sites, 4 analyses/mois.
           </li>
           <li>
-            <strong className="text-foreground">Plan Business</strong> — 149 € HT/mois, 10 sites, analyses illimitées.
+            <strong className="text-foreground">Plan Business</strong> — 149 € HT/mois, 10 sites, 30 analyses/mois.
           </li>
         </ul>
         <p className="text-muted-foreground leading-relaxed">

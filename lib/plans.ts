@@ -1,7 +1,7 @@
 export const PLAN_LIMITS = {
-  free: { sites: 1, analyses: 3 },
-  pro: { sites: 5, analyses: 30 },
-  business: { sites: 10, analyses: 100 },
+  free: { sites: 1, analyses: 1 },
+  pro: { sites: 3, analyses: 4 },
+  business: { sites: 10, analyses: 30 },
   admin: { sites: Infinity, analyses: Infinity },
 } as const
 

@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+
 export default function SitesPage() {
-  return null
+  redirect('/dashboard')
 }
