@@ -74,7 +74,7 @@ export default async function DiscoveryPage({ params }: Props) {
             </p>
           </div>
           <div className="w-full max-w-xs">
-            <RunAnalysisButton siteId={siteId} />
+            <RunAnalysisButton siteId={siteId} siteName={site.name} />
           </div>
         </div>
       ) : (
@@ -120,7 +120,7 @@ export default async function DiscoveryPage({ params }: Props) {
               GEOMIND va interroger les 4 moteurs IA (ChatGPT, Claude, Gemini, Perplexity) avec vos
               prompts neutres et analyser où votre site est cité.
             </p>
-            <RunAnalysisButton siteId={siteId} />
+            <RunAnalysisButton siteId={siteId} siteName={site.name} />
           </section>
         </div>
       )}

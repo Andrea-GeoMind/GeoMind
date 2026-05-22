@@ -94,7 +94,7 @@ export default async function AuthorityPage({ params }: Props) {
             L&apos;analyse a échoué.{' '}
             {latest.errorMessage ?? 'Une erreur inattendue est survenue.'}
           </span>
-          <RetryAnalysisButton siteId={siteId} />
+          <RetryAnalysisButton siteId={siteId} siteName={site.name} />
         </div>
       )}
 
