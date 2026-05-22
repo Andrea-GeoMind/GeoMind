@@ -3,7 +3,9 @@ import { notFound, redirect } from 'next/navigation'
 import { Globe, ChevronLeft, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
+import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { SiteTabs } from '@/components/features/sites/site-tabs'
+import { AnalysisLockInit } from '@/components/features/analysis/analysis-lock-init'
 
 type Props = {
   children: React.ReactNode
@@ -19,11 +21,25 @@ export default async function SiteLayout({ children, params }: Props) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const site = await getSiteById(siteId)
+  const [site, latestAnalysis] = await Promise.all([
+    getSiteById(siteId),
+    getLatestAnalysis(siteId),
+  ])
   if (!site || site.userId !== user.id) notFound()
+
+  const isInProgress =
+    latestAnalysis?.status === 'pending' || latestAnalysis?.status === 'running'
 
   return (
     <div className="flex flex-col">
+      {isInProgress && latestAnalysis && (
+        <AnalysisLockInit
+          analysisId={latestAnalysis.id}
+          siteId={siteId}
+          siteName={site.name}
+        />
+      )}
+
       {/* Site header */}
       <div className="border-b border-border bg-card px-6 py-4">
         {/* Breadcrumb */}

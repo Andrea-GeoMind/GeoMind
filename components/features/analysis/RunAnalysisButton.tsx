@@ -1,20 +1,20 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { CheckCircle, Loader2, Zap } from 'lucide-react'
+import { Loader2, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { runAnalysisAction } from '@/app/(app)/sites/[siteId]/analysis-actions'
+import { useAnalysisLock } from './analysis-lock-context'
 
 type Props = {
   siteId: string
+  siteName: string
 }
 
-export function RunAnalysisButton({ siteId }: Props) {
-  const router = useRouter()
+export function RunAnalysisButton({ siteId, siteName }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [launched, setLaunched] = useState(false)
+  const { lockAnalysis } = useAnalysisLock()
 
   function handleClick() {
     setError(null)
@@ -24,18 +24,8 @@ export function RunAnalysisButton({ siteId }: Props) {
         setError(result.error)
         return
       }
-      setLaunched(true)
-      setTimeout(() => router.push(`/sites/${siteId}/overview`), 2000)
+      lockAnalysis(result.analysisId, siteId, siteName)
     })
-  }
-
-  if (launched) {
-    return (
-      <div className="flex items-center gap-2 rounded-xl border border-[--score-good-500]/30 bg-[--score-good-500]/10 px-4 py-3 text-sm font-medium text-[--score-good-700]">
-        <CheckCircle size={16} className="shrink-0 text-[--score-good-500]" />
-        Analyse lancée — résultats disponibles dans 2 à 5 minutes.
-      </div>
-    )
   }
 
   return (
