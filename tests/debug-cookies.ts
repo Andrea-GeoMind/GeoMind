@@ -4,7 +4,6 @@
 
 import { chromium } from 'playwright'
 import { createClient } from '@supabase/supabase-js'
-import * as fs from 'fs'
 
 const BASE_URL = 'https://geomind.fr'
 const SUPABASE_URL = 'https://jiuruhaeckqwysyqwbao.supabase.co'

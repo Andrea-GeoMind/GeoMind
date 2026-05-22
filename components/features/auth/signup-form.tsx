@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -91,12 +90,6 @@ export function SignupForm() {
         {isPending ? 'Création du compte...' : 'Créer mon compte'}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Déjà un compte ?{' '}
-        <Link href="/login" className="text-primary hover:underline">
-          Se connecter
-        </Link>
-      </p>
     </form>
   )
 }

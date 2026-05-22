@@ -111,6 +111,15 @@ export async function getLatestSuccessfulAnalyses(siteId: string, limit: number)
     .limit(limit)
 }
 
+// Counts all non-error analyses ever (for free plan lifetime limit).
+export async function countAllAnalyses(userId: string): Promise<number> {
+  const [result] = await db
+    .select({ value: count() })
+    .from(analyses)
+    .where(and(eq(analyses.userId, userId), ne(analyses.status, 'error')))
+  return result?.value ?? 0
+}
+
 // Excludes `error` rows: a failed analysis must not count against the monthly quota.
 export async function countAnalysesThisMonth(userId: string): Promise<number> {
   const startOfMonth = new Date()

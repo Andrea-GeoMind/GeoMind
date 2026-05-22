@@ -37,10 +37,15 @@ export async function createSiteOnboardingAction(
   // runFullAnalysisFunction gère le crawl + discovery + autorité + technique + contenu
   // en une seule fonction Inngest (idempotent, avec steps).
   const analysis = await createAnalysis({ siteId: site.id, userId: user.id })
-  await inngest.send({
-    name: 'analysis.full.requested',
-    data: { analysisId: analysis.id, siteId: site.id, userId: user.id },
-  })
+  try {
+    await inngest.send({
+      name: 'analysis.full.requested',
+      data: { analysisId: analysis.id, siteId: site.id, userId: user.id },
+    })
+  } catch {
+    // If the event bus is unreachable, the analysis stays 'pending' and can
+    // be retried from the site overview. Don't let this block the redirect.
+  }
 
   redirect('/onboarding?step=3')
 }

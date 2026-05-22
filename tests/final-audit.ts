@@ -166,7 +166,7 @@ async function main() {
       SELECT id FROM sites WHERE user_id=${userId} ORDER BY created_at DESC LIMIT 1
     `
     siteId = siteRows[0]?.id ?? null
-    siteId ? ok('site_created', `siteId=${siteId}`) : fail('site_created', 'absent en DB')
+    if (siteId) { ok('site_created', `siteId=${siteId}`) } else { fail('site_created', 'absent en DB') }
 
     // ── Vérifier que l'analyse a été créée (immédiat — créée dans l'action onboarding) ─
     const analysisRows = await sql`
@@ -256,9 +256,11 @@ async function main() {
         await new Promise((r) => setTimeout(r, 2_000))
         const p = await screenshot(tab.name)
         const bodyText = await page.locator('body').textContent().catch(() => '')
-        tab.check.test(bodyText ?? '')
-          ? ok(`screenshot_${tab.slug}`, p)
-          : fail(`screenshot_${tab.slug}`, `check ${tab.check} not matched`)
+        if (tab.check.test(bodyText ?? '')) {
+          ok(`screenshot_${tab.slug}`, p)
+        } else {
+          fail(`screenshot_${tab.slug}`, `check ${tab.check} not matched`)
+        }
       }
     } else {
       fail('screenshots', 'siteId unavailable')
@@ -280,11 +282,11 @@ async function main() {
       report['recommendations_count'] = Number(c.reco)
       report['publishers_count'] = Number(c.pub)
 
-      Number(c.auth) > 0 ? ok('db_authority_results', `count=${c.auth}`) : fail('db_authority_results', `count=${c.auth}`)
-      Number(c.tech) > 0 ? ok('db_technical_issues', `count=${c.tech}`) : fail('db_technical_issues', `count=${c.tech}`)
-      Number(c.content) > 0 ? ok('db_content_issues', `count=${c.content}`) : fail('db_content_issues', `count=${c.content}`)
-      Number(c.reco) > 0 ? ok('db_recommendations', `count=${c.reco}`) : fail('db_recommendations', `count=${c.reco}`)
-      Number(c.pub) === 15 ? ok('db_publishers', `count=${c.pub} ✓`) : fail('db_publishers', `count=${c.pub} (expected 15)`)
+      if (Number(c.auth) > 0) { ok('db_authority_results', `count=${c.auth}`) } else { fail('db_authority_results', `count=${c.auth}`) }
+      if (Number(c.tech) > 0) { ok('db_technical_issues', `count=${c.tech}`) } else { fail('db_technical_issues', `count=${c.tech}`) }
+      if (Number(c.content) > 0) { ok('db_content_issues', `count=${c.content}`) } else { fail('db_content_issues', `count=${c.content}`) }
+      if (Number(c.reco) > 0) { ok('db_recommendations', `count=${c.reco}`) } else { fail('db_recommendations', `count=${c.reco}`) }
+      if (Number(c.pub) === 15) { ok('db_publishers', `count=${c.pub} ✓`) } else { fail('db_publishers', `count=${c.pub} (expected 15)`) }
     } else {
       fail('db_checks', 'no analysisId')
     }
@@ -297,7 +299,7 @@ async function main() {
   } finally {
     if (userId) {
       const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
-      error ? fail('cleanup', error.message) : ok('cleanup', `${userId} supprimé`)
+      if (error) { fail('cleanup', error.message) } else { ok('cleanup', `${userId} supprimé`) }
     }
     await browser.close()
     await sql.end()

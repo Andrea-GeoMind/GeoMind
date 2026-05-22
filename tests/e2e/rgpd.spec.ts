@@ -3,7 +3,7 @@
  *
  * Lancer sur prod : PLAYWRIGHT_BASE_URL=https://geomind.fr pnpm test:e2e
  */
-import { test, expect, deleteTestAccount } from './fixtures/auth'
+import { test, expect } from './fixtures/auth'
 import { test as base } from '@playwright/test'
 
 test.describe('Scénario H — RGPD cascade', () => {
