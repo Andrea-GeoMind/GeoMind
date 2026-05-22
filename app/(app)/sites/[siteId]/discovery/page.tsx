@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { Info, Zap } from 'lucide-react'
+import { Info, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
@@ -11,6 +11,8 @@ import { KeywordsEditor } from '@/components/features/discovery/KeywordsEditor'
 import { CompetitorsEditor } from '@/components/features/discovery/CompetitorsEditor'
 import { PromptsEditor } from '@/components/features/discovery/PromptsEditor'
 import { RunAnalysisButton } from '@/components/features/analysis/RunAnalysisButton'
+import { DiscoveryPolling } from '@/components/features/discovery/DiscoveryPolling'
+import { LaunchDiscoveryButton } from '@/components/features/discovery/LaunchDiscoveryButton'
 
 export const metadata: Metadata = {
   title: 'Découverte — GEOMIND',
@@ -61,21 +63,20 @@ export default async function DiscoveryPage({ params }: Props) {
       </div>
 
       {!siteMetadata ? (
-        /* Empty state — no analysis yet */
+        /* Crawl + discovery in progress — auto-poll every 5s */
         <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card px-6 py-14 text-center shadow-sm">
+          <DiscoveryPolling />
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-            <Zap className="h-8 w-8 text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
           <div className="space-y-1.5 max-w-sm">
-            <p className="font-extrabold tracking-tight text-foreground">Aucune analyse lancée pour ce site</p>
+            <p className="font-extrabold tracking-tight text-foreground">Découverte en cours…</p>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              GeoMind va crawler votre site, détecter votre activité et interroger les 4 moteurs IA
-              (ChatGPT, Claude, Gemini, Perplexity) pour mesurer votre visibilité GEO.
+              GeoMind crawle votre site et génère votre profil GEO : description, mots-clés,
+              concurrents et prompts de test. Cette étape prend 30 à 60 secondes.
             </p>
           </div>
-          <div className="w-full max-w-xs">
-            <RunAnalysisButton siteId={siteId} siteName={site.name} />
-          </div>
+          <LaunchDiscoveryButton siteId={siteId} />
         </div>
       ) : (
         <div className="space-y-4">

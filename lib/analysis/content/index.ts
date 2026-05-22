@@ -4,30 +4,29 @@ import { insertContentIssues } from '@/lib/db/queries/content-issues'
 import { computeContentScore } from '@/lib/analysis/scoring'
 import type { ContentRuleFn, ContentIssue, FirecrawlPage } from './types'
 
+// ── Règles GEO-critiques (contenu citable par les LLMs) ───────────────────────
 import { checkThinContent } from './rules/thin-content'
-import { checkMetaDescriptionMissing } from './rules/meta-description-missing'
-import { checkMetaDescriptionTooShort } from './rules/meta-description-too-short'
-import { checkDuplicateMetaDescriptions } from './rules/duplicate-meta-descriptions'
-import { checkTitleMissingOrShort } from './rules/title-missing-or-short'
-import { checkNoStructuredLists } from './rules/no-structured-lists'
 import { checkNoFaqContent } from './rules/no-faq-content'
-import { checkLowPageCount } from './rules/low-page-count'
 import { checkNoDatesInContent } from './rules/no-dates-in-content'
 import { checkNoDefinitionPatterns } from './rules/no-definition-patterns'
+import { checkNoStructuredLists } from './rules/no-structured-lists'
+import { checkLowPageCount } from './rules/low-page-count'
+
+// Règles retirées (SEO classique, aucun impact direct sur les citations IA) :
+// - checkMetaDescriptionMissing     → balise meta, invisible pour les LLMs
+// - checkMetaDescriptionTooShort    → idem
+// - checkDuplicateMetaDescriptions  → idem
+// - checkTitleMissingOrShort        → impact SEO, pas GEO direct
 
 export type { ContentIssue, FirecrawlPage } from './types'
 
 const RULES: ContentRuleFn[] = [
   checkThinContent,
-  checkMetaDescriptionMissing,
-  checkMetaDescriptionTooShort,
-  checkDuplicateMetaDescriptions,
-  checkTitleMissingOrShort,
-  checkNoStructuredLists,
   checkNoFaqContent,
-  checkLowPageCount,
   checkNoDatesInContent,
   checkNoDefinitionPatterns,
+  checkNoStructuredLists,
+  checkLowPageCount,
 ]
 
 export interface ContentAnalysisInput {

@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { canAddSite } from '@/lib/quotas'
 import { createSite } from '@/lib/db/queries/sites'
-import { createAnalysis } from '@/lib/db/queries/analyses'
 import { onboardingSiteSchema } from '@/lib/validations/site'
 import { inngest } from '@/lib/inngest/client'
 
@@ -33,19 +32,17 @@ export async function createSiteOnboardingAction(
 
   const site = await createSite({ userId: user.id, ...parsed.data })
 
-  // Crée un enregistrement d'analyse et déclenche le pipeline complet :
-  // runFullAnalysisFunction gère le crawl + discovery + autorité + technique + contenu
-  // en une seule fonction Inngest (idempotent, avec steps).
-  const analysis = await createAnalysis({ siteId: site.id, userId: user.id })
+  // Phase 1 : crawl + découverte uniquement.
+  // L'utilisateur valide les résultats sur /discovery avant de lancer l'analyse complète.
   try {
     await inngest.send({
-      name: 'analysis.full.requested',
-      data: { analysisId: analysis.id, siteId: site.id, userId: user.id },
+      name: 'site.crawl.requested',
+      data: { siteId: site.id, userId: user.id },
     })
   } catch {
-    // If the event bus is unreachable, the analysis stays 'pending' and can
-    // be retried from the site overview. Don't let this block the redirect.
+    // If the event bus is unreachable the crawl stays pending — the user
+    // can trigger it manually from the discovery page.
   }
 
-  redirect('/onboarding?step=3')
+  redirect(`/sites/${site.id}/discovery`)
 }
