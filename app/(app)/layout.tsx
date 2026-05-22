@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import * as Sentry from '@sentry/nextjs'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/features/app/sidebar'
+import { AnalysisLockProvider } from '@/components/features/analysis/analysis-lock-provider'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,9 +18,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar userEmail={user.email ?? ''} />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+    <AnalysisLockProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar userEmail={user.email ?? ''} />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </AnalysisLockProvider>
   )
 }
