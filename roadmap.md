@@ -651,6 +651,52 @@
 
 ---
 
+### Ticket 32.5 — Overlay de chargement bloquant pendant les analyses
+
+**Objectif** : quand une analyse (découverte ou complète) est lancée, ouvrir une fenêtre modale fullscreen qui bloque toute navigation dans l'app tant que l'analyse n'est pas terminée. Le client ne peut pas changer d'onglet, cliquer sur la sidebar, ni quitter la page — il voit le statut en temps réel jusqu'à la fin.
+
+**Contexte** : aujourd'hui, après le click sur "Lancer l'analyse", l'utilisateur est redirigé vers `/overview` et peut naviguer librement. Un polling passif tourne en arrière-plan. Le problème : l'utilisateur quitte souvent la page, revient plus tard et ne sait pas où en est l'analyse. Ce ticket force une attente active avec feedback visuel engageant.
+
+**Fichiers** :
+- `components/features/analysis/AnalysisLockProvider.tsx` ← nouveau — Context React + état "locked"
+- `components/features/analysis/AnalysisLoadingOverlay.tsx` ← nouveau — modale fullscreen bloquante
+- `components/features/analysis/RunAnalysisButton.tsx` ← déclenche le lock au clic
+- `components/features/app/sidebar.tsx` ← désactive les liens nav quand locked
+- `app/(app)/layout.tsx` ← wraps avec `<AnalysisLockProvider>`
+- `components/features/overview/overview-polling.tsx` ← déverrouille quand status ≠ pending/running
+
+**Comportement détaillé** :
+
+1. **Lock au lancement** — Au clic sur "Lancer l'analyse" (`RunAnalysisButton`), après succès de la Server Action, appeler `lockAnalysis(analysisId)` depuis le context. Le lock stocke `{ analysisId, startedAt, type: 'discovery' | 'full' }` dans un Context React (pas localStorage — le lock doit mourir si l'onglet se ferme).
+
+2. **Overlay fullscreen bloquant** (`AnalysisLoadingOverlay`) — Apparaît dès que `locked === true`. Caractéristiques :
+   - Position `fixed inset-0 z-[9999]` pour passer au-dessus de tout (sidebar incluse)
+   - Fond `bg-background/95 backdrop-blur-sm` — pas complètement opaque, le contenu en dessous reste visible en flou
+   - Pas de bouton "fermer", pas de click en dehors pour fermer (`pointer-events-none` sur la zone de fond)
+   - Affiche : nom du site, type d'analyse, spinner animé, étape courante (voir ci-dessous), durée estimée ("~2-5 min")
+   - **Étapes progressives** : afficher un stepper ou message rotatif — "Crawl du site…", "Interrogation des moteurs IA…", "Analyse des citations…", "Calcul des scores…" — basé sur un timer côté client (pas de vrai tracking d'étape, juste simulation temporelle progressive toutes les 20-30s)
+   - Un seul CTA en bas : lien désactivé grisé "Changer d'onglet" avec tooltip "Restez ici pour voir vos résultats en temps réel"
+
+3. **Bloc navigation** — Pendant le lock :
+   - La `Sidebar` reçoit une prop `locked` et rend tous ses `<Link>` non-cliquables (`pointer-events-none opacity-50`), avec un tooltip "Analyse en cours…"
+   - Ajouter un handler `beforeunload` dans l'overlay pour prévenir la fermeture de l'onglet navigateur (message natif du browser : "Des modifications sont en cours")
+
+4. **Déverrouillage** — `overview-polling.tsx` poll toutes les 5s. Quand le status passe à `success` ou `error`, appeler `unlockAnalysis()` depuis le context. L'overlay se ferme avec une animation (fade out), puis :
+   - Si `success` : afficher un toast "Analyse terminée ! Voici vos résultats." + `router.refresh()` sur la page overview
+   - Si `error` : afficher un toast d'erreur + libérer la navigation normalement
+
+5. **Résilience** — Si l'utilisateur recharge la page alors qu'une analyse est `pending`/`running` en DB, l'overlay doit se ré-ouvrir automatiquement. Au mount du layout, vérifier si un `analysis` avec status `pending`/`running` existe pour le site courant (via Server Component → prop passée au Provider). Si oui, initialiser le lock dès le rendu.
+
+**Critères** :
+- Cliquer sur un lien de la sidebar pendant une analyse → non-cliquable (visuellement désactivé + tooltip)
+- Fermer l'onglet pendant une analyse → dialog de confirmation native du browser
+- Recharger la page pendant une analyse → overlay se ré-ouvre
+- Quand l'analyse se termine (success ou error) → overlay se ferme, navigation restaurée
+- L'overlay est rendu au-dessus de la sidebar ET du main content (z-index ≥ 9999)
+- Aucun appel LLM ou logique métier dans les composants de l'overlay — uniquement lecture du status via polling existant
+
+---
+
 ## Ordre de priorité si retard de planning
 
 Si le rythme dérape, voici l'ordre de coupe (du moins critique au plus critique) :
