@@ -1,3 +1,78 @@
+// ─── Maturité GEO ─────────────────────────────────────────────────────────────
+
+export type ScoreMaturityLevel = 'beginner' | 'progressing' | 'advanced' | 'expert'
+
+export interface ScoreMaturity {
+  label: string
+  level: ScoreMaturityLevel
+}
+
+/**
+ * Transforme un score numérique en niveau de maturité lisible.
+ * Débutant (0-39) / En progression (40-69) / Avancé (70-89) / Expert (90-100)
+ * Utilisé dans ScoreGauge et ScoreCard pour remplacer les labels "Bon/Moyen/Faible".
+ */
+export function getScoreMaturity(score: number): ScoreMaturity {
+  if (score >= 90) return { label: 'Expert', level: 'expert' }
+  if (score >= 70) return { label: 'Avancé', level: 'advanced' }
+  if (score >= 40) return { label: 'En progression', level: 'progressing' }
+  return { label: 'Débutant', level: 'beginner' }
+}
+
+// ─── Action prioritaire ───────────────────────────────────────────────────────
+
+export type PillarKey = 'authority' | 'technical' | 'content'
+
+export interface PriorityAction {
+  pillar: PillarKey
+  label: string
+  description: string
+  href: (siteId: string) => string
+}
+
+/**
+ * Identifie le pilier le plus faible et retourne l'action prioritaire associée.
+ * Utilisé sur la page d'ensemble pour guider l'utilisateur vers un seul point d'action.
+ */
+export function getPriorityAction(
+  authorityScore: number,
+  technicalScore: number,
+  contentScore: number
+): PriorityAction {
+  const pillars: Array<{ key: PillarKey; score: number }> = [
+    { key: 'authority', score: authorityScore },
+    { key: 'technical', score: technicalScore },
+    { key: 'content', score: contentScore },
+  ]
+
+  const weakest = pillars.reduce((min, p) => (p.score < min.score ? p : min), pillars[0]!)
+
+  const ACTIONS: Record<PillarKey, Omit<PriorityAction, 'pillar'>> = {
+    authority: {
+      label: 'Boostez votre Autorité IA',
+      description:
+        'Votre site est rarement cité par les moteurs IA. Concentrez-vous sur les publishers et les signaux d\'autorité.',
+      href: (id) => `/sites/${id}/authority`,
+    },
+    technical: {
+      label: 'Corrigez vos problèmes Techniques',
+      description:
+        'Des frictions techniques empêchent les IAs de lire correctement votre site. Consultez les recommandations.',
+      href: (id) => `/sites/${id}/technical`,
+    },
+    content: {
+      label: 'Améliorez la structure de votre Contenu',
+      description:
+        'Votre contenu n\'est pas structuré pour les réponses IA. Suivez les recommandations de contenu.',
+      href: (id) => `/sites/${id}/content`,
+    },
+  }
+
+  return { pillar: weakest.key, ...ACTIONS[weakest.key]! }
+}
+
+// ─── Scores ───────────────────────────────────────────────────────────────────
+
 export interface AuthorityData {
   successfulCalls: number
   clientCitationsFound: number
