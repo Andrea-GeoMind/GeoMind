@@ -3,7 +3,7 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Shield, Wrench, FileText, BookOpen, Search } from 'lucide-react'
+import { LayoutDashboard, Shield, Wrench, FileText, BookOpen, Search, MessageSquare } from 'lucide-react'
 
 const TABS = [
   { label: "Vue d'ensemble", segment: 'overview', icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const TABS = [
   { label: 'Contenu', segment: 'content', icon: FileText },
   { label: 'Publishers', segment: 'publishers', icon: BookOpen },
   { label: 'Découverte', segment: 'discovery', icon: Search },
+  { label: 'Coach IA', segment: 'coach', icon: MessageSquare },
 ]
 
 type Props = {
