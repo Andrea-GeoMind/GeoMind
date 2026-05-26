@@ -4,6 +4,7 @@ import { sites } from '@/lib/db/schema'
 import { PLAN_LIMITS, type Plan } from '@/lib/plans'
 import { countAllAnalyses, countAnalysesThisMonth } from '@/lib/db/queries/analyses'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
+import { countCoachMessagesThisMonth } from '@/lib/db/queries/coach'
 
 async function getUserPlan(userId: string): Promise<Plan> {
   const sub = await getSubscriptionByUserId(userId)
@@ -73,4 +74,22 @@ export async function getUsageStats(userId: string): Promise<UsageStats> {
     getRemainingAnalysesThisMonth(userId),
   ])
   return { plan, sites: sitesUsage, analyses: analysesUsage }
+}
+
+export async function canSendCoachMessage(userId: string): Promise<boolean> {
+  const plan = await getUserPlan(userId)
+  const limit = PLAN_LIMITS[plan].coachMessagesPerMonth
+  if (limit === 0) return false
+  if (limit === Infinity) return true
+  const used = await countCoachMessagesThisMonth(userId)
+  return used < limit
+}
+
+export async function getRemainingCoachMessages(userId: string): Promise<UsageCount> {
+  const plan = await getUserPlan(userId)
+  const limit = PLAN_LIMITS[plan].coachMessagesPerMonth
+  if (limit === 0) return { used: 0, limit: 0, remaining: 0 }
+  if (limit === Infinity) return { used: 0, limit: Infinity, remaining: Infinity }
+  const used = await countCoachMessagesThisMonth(userId)
+  return { used, limit, remaining: Math.max(0, limit - used) }
 }
