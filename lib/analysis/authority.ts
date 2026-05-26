@@ -95,12 +95,22 @@ export async function runAuthorityAnalysis(
     )
   )
 
+  // Suffixe ajouté à chaque prompt au moment de l'envoi aux LLMs.
+  // Force un format liste avec URLs, sans modifier le prompt stocké en DB (qui reste neutre).
+  const CITATION_SUFFIX =
+    "\n\nIMPORTANT : ta réponse doit impérativement lister au moins 10 acteurs différents (entreprises, outils ou prestataires), chacun accompagné de son site web officiel (URL complète)."
+
   // Construction des tâches : 1 tâche = 1 prompt × 1 IA
   type Task = { promptId: string; promptText: string; promptIsNeutral: boolean; engine: IAEngine }
   const tasks: Task[] = []
   for (const prompt of neutralPrompts) {
     for (const engine of engines) {
-      tasks.push({ promptId: prompt.id, promptText: prompt.text, promptIsNeutral: prompt.isNeutral, engine })
+      tasks.push({
+        promptId: prompt.id,
+        promptText: prompt.text + CITATION_SUFFIX,
+        promptIsNeutral: prompt.isNeutral,
+        engine,
+      })
     }
   }
 

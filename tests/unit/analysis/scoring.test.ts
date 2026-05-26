@@ -5,6 +5,8 @@ import {
   computeContentScore,
   computeGlobalScore,
   computeScores,
+  getScoreMaturity,
+  getPriorityAction,
 } from '@/lib/analysis/scoring'
 
 // ─── computeAuthorityScore ────────────────────────────────────────────────────
@@ -163,5 +165,63 @@ describe('computeScores', () => {
     const a = computeScores(input, 70, 60)
     const b = computeScores(input, 70, 60)
     expect(a).toEqual(b)
+  })
+})
+
+// ─── getScoreMaturity ─────────────────────────────────────────────────────────
+
+describe('getScoreMaturity', () => {
+  it('returns Débutant for scores 0–39', () => {
+    expect(getScoreMaturity(0).label).toBe('Débutant')
+    expect(getScoreMaturity(0).level).toBe('beginner')
+    expect(getScoreMaturity(39).label).toBe('Débutant')
+  })
+
+  it('returns En progression for scores 40–69', () => {
+    expect(getScoreMaturity(40).label).toBe('En progression')
+    expect(getScoreMaturity(40).level).toBe('progressing')
+    expect(getScoreMaturity(69).label).toBe('En progression')
+  })
+
+  it('returns Avancé for scores 70–89', () => {
+    expect(getScoreMaturity(70).label).toBe('Avancé')
+    expect(getScoreMaturity(70).level).toBe('advanced')
+    expect(getScoreMaturity(89).label).toBe('Avancé')
+  })
+
+  it('returns Expert for scores 90–100', () => {
+    expect(getScoreMaturity(90).label).toBe('Expert')
+    expect(getScoreMaturity(90).level).toBe('expert')
+    expect(getScoreMaturity(100).label).toBe('Expert')
+  })
+})
+
+// ─── getPriorityAction ────────────────────────────────────────────────────────
+
+describe('getPriorityAction', () => {
+  it('identifies authority as priority when it is the lowest', () => {
+    const action = getPriorityAction(10, 80, 75)
+    expect(action.pillar).toBe('authority')
+  })
+
+  it('identifies technical as priority when it is the lowest', () => {
+    const action = getPriorityAction(60, 15, 70)
+    expect(action.pillar).toBe('technical')
+  })
+
+  it('identifies content as priority when it is the lowest', () => {
+    const action = getPriorityAction(70, 65, 20)
+    expect(action.pillar).toBe('content')
+  })
+
+  it('returns a non-empty label and description', () => {
+    const action = getPriorityAction(30, 50, 80)
+    expect(action.label.length).toBeGreaterThan(0)
+    expect(action.description.length).toBeGreaterThan(0)
+  })
+
+  it('returns a valid href function', () => {
+    const action = getPriorityAction(30, 50, 80)
+    expect(action.href('site-123')).toContain('site-123')
   })
 })
