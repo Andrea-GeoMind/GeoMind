@@ -124,73 +124,71 @@ export default async function OverviewPage({ params }: Props) {
       )}
 
       {/* Score global hero card */}
-      <section className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Score GEO Global
-        </p>
-
-        {isInProgress ? (
-          <div className="flex flex-col items-center gap-3">
-            <Skeleton className="h-40 w-40 rounded-full" />
-            <Skeleton className="h-3 w-28 rounded-full" />
-          </div>
-        ) : globalScore !== null ? (
-          <div className="flex flex-col items-center gap-3">
-            <ScoreGauge score={globalScore} size="lg" />
-
-            {/* Niveau de maturité global */}
-            {globalMaturity && (
-              <p className="text-sm text-muted-foreground">
-                Niveau :{' '}
-                <span className="font-semibold text-foreground">{globalMaturity.label}</span>
-              </p>
-            )}
-
-            {deltas !== null && (
-              <div
-                className={[
-                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
-                  deltas.globalDelta > 0
-                    ? 'bg-[--score-good-50] text-[--score-good-600]'
-                    : deltas.globalDelta < 0
-                      ? 'bg-[--score-bad-50] text-[--score-bad-600]'
-                      : 'bg-muted text-muted-foreground',
-                ].join(' ')}
-              >
-                {deltas.globalDelta > 0 ? (
-                  <TrendingUp size={13} aria-hidden />
-                ) : deltas.globalDelta < 0 ? (
-                  <TrendingDown size={13} aria-hidden />
-                ) : (
-                  <Minus size={13} aria-hidden />
-                )}
-                {deltas.globalDelta > 0 ? '+' : ''}
-                {deltas.globalDelta} pts vs analyse précédente
-              </div>
-            )}
-
-            {/* Explication du calcul */}
-            <p className="max-w-xs text-center text-xs text-muted-foreground">
-              Moyenne de vos scores Autorité, Technique et Contenu.
-              Un score &gt; 70 est considéré comme avancé.
+      <section className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-border/60 px-6 py-4">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Score GEO Global</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Moyenne de vos scores Autorité, Technique et Contenu
             </p>
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Score non disponible</p>
-        )}
+          {deltas !== null && !isInProgress && (
+            <div
+              className={[
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
+                deltas.globalDelta > 0
+                  ? 'bg-[--score-good-50] text-[--score-good-600]'
+                  : deltas.globalDelta < 0
+                    ? 'bg-[--score-bad-50] text-[--score-bad-600]'
+                    : 'bg-muted text-muted-foreground',
+              ].join(' ')}
+            >
+              {deltas.globalDelta > 0 ? (
+                <TrendingUp size={11} aria-hidden />
+              ) : deltas.globalDelta < 0 ? (
+                <TrendingDown size={11} aria-hidden />
+              ) : (
+                <Minus size={11} aria-hidden />
+              )}
+              {deltas.globalDelta > 0 ? '+' : ''}
+              {deltas.globalDelta} pts
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col items-center gap-3 px-6 py-8">
+          {isInProgress ? (
+            <div className="flex flex-col items-center gap-3">
+              <Skeleton className="h-40 w-40 rounded-full" />
+              <Skeleton className="h-3 w-28 rounded-full" />
+            </div>
+          ) : globalScore !== null ? (
+            <>
+              <ScoreGauge score={globalScore} size="lg" />
+              {globalMaturity && (
+                <p className="text-sm text-muted-foreground">
+                  Niveau :{' '}
+                  <span className="font-semibold text-foreground">{globalMaturity.label}</span>
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">Score non disponible</p>
+          )}
+        </div>
       </section>
 
       {/* 3 pillar score cards */}
       <section>
-        <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Détail par pilier
         </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {isInProgress ? (
             <>
-              <Skeleton className="h-44 rounded-2xl" />
-              <Skeleton className="h-44 rounded-2xl" />
-              <Skeleton className="h-44 rounded-2xl" />
+              <Skeleton className="h-36 rounded-2xl" />
+              <Skeleton className="h-36 rounded-2xl" />
+              <Skeleton className="h-36 rounded-2xl" />
             </>
           ) : currentAnalysis !== null ? (
             <>
@@ -200,6 +198,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.authorityScore ?? 0}
                   delta={deltas?.authorityDelta}
                   trend={deltas !== null ? deltaTrend(deltas.authorityDelta) : undefined}
+                  onClick={() => {}}
                 />
               </Link>
               <Link href={`/sites/${siteId}/technical`} className="contents">
@@ -208,6 +207,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.technicalScore ?? 0}
                   delta={deltas?.technicalDelta}
                   trend={deltas !== null ? deltaTrend(deltas.technicalDelta) : undefined}
+                  onClick={() => {}}
                 />
               </Link>
               <Link href={`/sites/${siteId}/content` as Route} className="contents">
@@ -216,6 +216,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.contentScore ?? 0}
                   delta={deltas?.contentDelta}
                   trend={deltas !== null ? deltaTrend(deltas.contentDelta) : undefined}
+                  onClick={() => {}}
                 />
               </Link>
             </>
@@ -223,29 +224,29 @@ export default async function OverviewPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Bannière action prioritaire */}
+      {/* Action prioritaire */}
       {priorityAction && !isInProgress && (
         <Link
           href={priorityAction.href(siteId) as Route}
-          className="group flex items-start gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 p-5 transition-all hover:border-primary/40 hover:shadow-sm"
+          className="group flex items-start gap-4 rounded-2xl border border-primary/20 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 p-5 transition-all hover:border-primary/40 hover:shadow-sm"
         >
-          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-            <Lightbulb size={15} className="text-primary" aria-hidden />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Lightbulb size={16} className="text-primary" aria-hidden />
           </div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
               Action prioritaire
             </p>
-            <p className="mt-0.5 text-sm font-semibold text-foreground">
+            <p className="mt-1 text-sm font-semibold text-foreground leading-snug">
               {priorityAction.label}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
               {priorityAction.description}
             </p>
           </div>
           <ArrowRight
-            size={16}
-            className="mt-1 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            size={15}
+            className="mt-1 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
             aria-hidden
           />
         </Link>
