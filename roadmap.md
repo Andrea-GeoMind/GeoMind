@@ -651,6 +651,133 @@
 
 ---
 
+## Sprint 6 — Qualité produit (post-launch)
+
+### Ticket 034 — Refonte design et organisation UI
+**Objectif** : rendre l'interface claire, cohérente et professionnelle. Le design actuel est perçu comme désorganisé et ne donne pas confiance. Priorité : lisibilité des données, hiérarchie visuelle, navigation évidente.
+
+**Problèmes identifiés** :
+- Hiérarchie visuelle floue : on ne sait pas quoi regarder en premier
+- Onglets analyse peu lisibles sur mobile
+- Cards et tableaux surchargés d'informations sans priorisation
+- Landing page insuffisamment convaincante pour des TPE/PME non-experts
+
+**Fichiers à modifier** :
+- `app/(marketing)/page.tsx` : revoir le hero, la section "comment ça marche", les preuves sociales
+- `app/(app)/dashboard/page.tsx` : recentrer sur l'action principale (lancer une analyse)
+- `app/(app)/sites/[siteId]/overview/page.tsx` : score global plus lisible, hiérarchie claire
+- `app/(app)/sites/[siteId]/authority/page.tsx` : tableau croisé simplifié
+- `components/features/analysis/` : revoir les ScoreCards, badges, états vides
+- `app/globals.css` : réviser la palette si nécessaire
+
+**Critères d'acceptation** :
+- Un non-expert comprend en 5 secondes ce que fait le produit (landing)
+- La vue d'ensemble d'un site montre clairement : score global + 3 sous-scores + action suivante
+- Les onglets Autorité/Technique/Contenu ont une structure identique et prévisible
+- Aucun écran ne dépasse 3 niveaux de hiérarchie visuelle
+- `pnpm typecheck && pnpm lint` : 0 erreur
+- Responsive validé sur 375px et 1280px
+
+---
+
+### Ticket 035 — Coach IA
+**Objectif** : implémenter le Coach IA — une interface conversationnelle qui permet au client de poser des questions sur son analyse et d'obtenir des conseils personnalisés basés sur ses données réelles (scores, issues, citations).
+
+**Contexte** : c'est la feature qui transforme GeoMind d'un rapport statique en un outil actif. Le coach a accès au contexte complet du site analysé et répond avec des conseils actionnables, pas des généralités.
+
+**Étapes** :
+1. Table `coach_messages` en DB : `id`, `site_id`, `analysis_id`, `role` (user/assistant), `content`, `created_at`
+2. Server Action `sendCoachMessage` : vérifie ownership + plan (coach = Pro+), construit le contexte (scores + top issues + citations), appelle le LLM (Haiku streaming), persiste les messages
+3. Contexte système du coach : scores actuels, issues critiques, taux de citation par IA, comparaison avec analyse précédente — tout injecté dans le system prompt
+4. UI Coach : page ou Sheet latéral persistant, input message, historique de conversation, streaming de la réponse
+5. Quota : Free = coach désactivé (badge upgrade), Pro = 20 messages/mois, Business = illimité
+
+**Fichiers à créer** :
+- `lib/db/schema.ts` : table `coach_messages`
+- `lib/db/queries/coach.ts` : insert/get messages
+- `lib/ai/prompts/coach.ts` : system prompt contextualisé
+- `lib/inngest/functions/run-coach.ts` : si streaming Inngest, sinon Server Action directe
+- `components/features/coach/CoachPanel.tsx` : UI conversationnelle
+- `components/features/coach/CoachMessage.tsx` : bulle message
+- `app/(app)/sites/[siteId]/coach/page.tsx` : page coach
+
+**Critères d'acceptation** :
+- Le coach répond en streaming (pas d'attente bloquante)
+- Le coach connaît les scores, issues et taux de citation du site
+- Free : accès refusé avec message upgrade clair
+- Pro : compteur de messages restants visible
+- Business : accès illimité
+- Les messages sont persistés et retrouvables à chaque visite
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
+### Ticket 036 — Enrichissement règles GEO technique et contenu
+**Objectif** : passer de 16 règles techniques + 10 règles contenu à un ensemble plus complet et plus pertinent pour la visibilité dans les IAs. Les règles actuelles sont perçues comme trop légères et trop proches du SEO classique.
+
+**Nouvelles règles techniques à ajouter** :
+- Présence d'une page FAQ structurée (schema FAQPage)
+- Présence d'une page "À propos" avec informations E-E-A-T (auteur, expertise, date)
+- Présence de données structurées Organization/LocalBusiness avec sameAs vers Wikipédia/Wikidata
+- Balise `<link rel="canonical">` cohérente
+- Présence d'un sitemap XML lié dans robots.txt
+- Profondeur de page < 3 clics depuis la home
+- Absence de contenu dupliqué entre pages principales
+
+**Nouvelles règles contenu à ajouter** :
+- Les titres de page répondent à une question (format "Comment/Pourquoi/Quels...")
+- Présence d'une section "Questions fréquentes" sur les pages clés
+- Contenu mis à jour dans les 6 derniers mois (date visible)
+- Citations de sources externes (liens sortants vers sources reconnues)
+- Présence de données chiffrées ou statistiques vérifiables
+- Longueur de contenu suffisante sur les pages principales (>800 mots)
+
+**Fichiers à modifier** :
+- `lib/analysis/technical/rules/` : ajouter les nouveaux fichiers de règles
+- `lib/analysis/content/rules/` : ajouter les nouveaux fichiers de règles
+- `lib/db/schema.ts` : mettre à jour les enums si nécessaire
+- `components/features/technical/TechnicalRecommendationSheet.tsx` : ajouter les fiches
+- `components/features/content/ContentRecommendationSheet.tsx` : ajouter les fiches
+
+**Critères d'acceptation** :
+- Au moins 22 règles techniques et 15 règles contenu
+- Chaque nouvelle règle a : une détection fiable, une sévérité justifiée, une fiche recommandation avec how/impact/effort
+- Les règles sont clairement différenciées du SEO classique (focus sur ce que les IAs lisent)
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
+### Ticket 037 — UX des scores — explication et pédagogie
+**Objectif** : rendre les scores compréhensibles pour un non-expert. Actuellement un score de 43/100 n'explique pas ce qu'il signifie, comment il est calculé, ni quoi faire. Le score doit être un point de départ vers l'action, pas une note opaque.
+
+**Problèmes identifiés** :
+- Pas d'explication de ce que mesure chaque score
+- Pas de contexte : est-ce que 43/100 c'est bien ou mal pour mon secteur ?
+- Pas de lien direct entre score et action prioritaire
+- Le score global est une moyenne floue pour l'utilisateur
+
+**Ce à implémenter** :
+1. **Tooltip pédagogique sur chaque score** : "Ce score mesure [X]. Il est calculé en [méthode simple]. Un score > 70 est considéré bon."
+2. **Niveau de maturité** : transformer le score en label lisible — Débutant (0-39) / En progression (40-69) / Avancé (70-89) / Expert (90-100) — avec couleur et icône
+3. **"Pourquoi ce score ?"** : section dépliable sous chaque ScoreCard listant les 3 principales raisons du score actuel (issues critiques ou points forts)
+4. **Action prioritaire** : sous le score global, une seule phrase d'action : "Votre priorité : corriger [issue la plus impactante]" avec lien vers l'onglet concerné
+5. **Comparaison sectorielle** (si données disponibles) : "Dans votre secteur, la moyenne est X/100"
+
+**Fichiers à modifier** :
+- `components/charts/ScoreGauge.tsx` : ajouter label de maturité + tooltip
+- `components/features/analysis/ScoreCard.tsx` : section "Pourquoi ce score ?" + action prioritaire
+- `app/(app)/sites/[siteId]/overview/page.tsx` : bannière action prioritaire
+- `lib/analysis/scoring.ts` : fonction `getScoreLabel(score)` + `getPriorityAction(issues)`
+
+**Critères d'acceptation** :
+- Chaque score affiche son label de maturité (Débutant/En progression/Avancé/Expert)
+- Un tooltip explique la méthode de calcul en 1-2 phrases simples
+- La vue d'ensemble affiche 1 action prioritaire claire et cliquable
+- Un utilisateur sans bagage technique comprend son score sans aide extérieure
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
 ## Ordre de priorité si retard de planning
 
 Si le rythme dérape, voici l'ordre de coupe (du moins critique au plus critique) :

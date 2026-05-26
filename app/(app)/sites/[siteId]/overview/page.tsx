@@ -2,11 +2,12 @@ import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
-import { computeDeltas } from '@/lib/analysis/compare'
+import { computeDeltas, } from '@/lib/analysis/compare'
+import { getScoreMaturity, getPriorityAction } from '@/lib/analysis/scoring'
 import { ScoreGauge } from '@/components/charts/score-gauge'
 import { ScoreCard } from '@/components/features/analysis/score-card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -78,6 +79,20 @@ export default async function OverviewPage({ params }: Props) {
 
   const globalScore = currentAnalysis?.globalScore ?? null
 
+  const priorityAction =
+    currentAnalysis?.authorityScore !== null &&
+    currentAnalysis?.technicalScore !== null &&
+    currentAnalysis?.contentScore !== null &&
+    currentAnalysis !== null
+      ? getPriorityAction(
+          currentAnalysis.authorityScore ?? 0,
+          currentAnalysis.technicalScore ?? 0,
+          currentAnalysis.contentScore ?? 0,
+        )
+      : null
+
+  const globalMaturity = globalScore !== null ? getScoreMaturity(globalScore) : null
+
   function deltaTrend(delta: number): 'up' | 'down' | 'stable' {
     if (delta > 0) return 'up'
     if (delta < 0) return 'down'
@@ -122,6 +137,15 @@ export default async function OverviewPage({ params }: Props) {
         ) : globalScore !== null ? (
           <div className="flex flex-col items-center gap-3">
             <ScoreGauge score={globalScore} size="lg" />
+
+            {/* Niveau de maturité global */}
+            {globalMaturity && (
+              <p className="text-sm text-muted-foreground">
+                Niveau :{' '}
+                <span className="font-semibold text-foreground">{globalMaturity.label}</span>
+              </p>
+            )}
+
             {deltas !== null && (
               <div
                 className={[
@@ -144,6 +168,12 @@ export default async function OverviewPage({ params }: Props) {
                 {deltas.globalDelta} pts vs analyse précédente
               </div>
             )}
+
+            {/* Explication du calcul */}
+            <p className="max-w-xs text-center text-xs text-muted-foreground">
+              Moyenne de vos scores Autorité, Technique et Contenu.
+              Un score &gt; 70 est considéré comme avancé.
+            </p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">Score non disponible</p>
@@ -192,6 +222,34 @@ export default async function OverviewPage({ params }: Props) {
           ) : null}
         </div>
       </section>
+
+      {/* Bannière action prioritaire */}
+      {priorityAction && !isInProgress && (
+        <Link
+          href={priorityAction.href(siteId) as Route}
+          className="group flex items-start gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 p-5 transition-all hover:border-primary/40 hover:shadow-sm"
+        >
+          <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Lightbulb size={15} className="text-primary" aria-hidden />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Action prioritaire
+            </p>
+            <p className="mt-0.5 text-sm font-semibold text-foreground">
+              {priorityAction.label}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {priorityAction.description}
+            </p>
+          </div>
+          <ArrowRight
+            size={16}
+            className="mt-1 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
+        </Link>
+      )}
     </div>
   )
 }

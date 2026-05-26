@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { getScoreMaturity } from '@/lib/analysis/scoring'
 
 interface ScoreGaugeProps {
   score: number
@@ -10,30 +11,11 @@ interface ScoreGaugeProps {
   showLabel?: boolean
 }
 
-function getScoreColor(score: number): {
-  stroke: string
-  text: string
-  label: string
-} {
-  if (score >= 60) {
-    return {
-      stroke: 'var(--score-good-500)',
-      text: 'var(--score-good-600)',
-      label: 'Bon',
-    }
-  }
-  if (score >= 30) {
-    return {
-      stroke: 'var(--score-mid-500)',
-      text: 'var(--score-mid-600)',
-      label: 'Moyen',
-    }
-  }
-  return {
-    stroke: 'var(--score-bad-500)',
-    text: 'var(--score-bad-600)',
-    label: 'Faible',
-  }
+function getScoreColor(score: number): { stroke: string; text: string } {
+  // Seuils alignés sur les niveaux de maturité : Expert/Avancé ≥70, En progression ≥40, Débutant <40
+  if (score >= 70) return { stroke: 'var(--score-good-500)', text: 'var(--score-good-600)' }
+  if (score >= 40) return { stroke: 'var(--score-mid-500)', text: 'var(--score-mid-600)' }
+  return { stroke: 'var(--score-bad-500)', text: 'var(--score-bad-600)' }
 }
 
 const SIZE_CONFIG = {
@@ -134,7 +116,7 @@ export function ScoreGauge({
           className="text-xs font-semibold uppercase tracking-widest"
           style={{ color: color.text }}
         >
-          {color.label}
+          {getScoreMaturity(clampedScore).label}
         </span>
       )}
     </div>

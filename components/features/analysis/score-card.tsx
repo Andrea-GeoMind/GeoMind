@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { ScoreGauge } from '@/components/charts/score-gauge'
+import { getScoreMaturity } from '@/lib/analysis/scoring'
 import { TrendingUp, TrendingDown, Minus, Shield, Wrench, FileText, BarChart2 } from 'lucide-react'
 
 type Pillar = 'authority' | 'technical' | 'content' | 'global'
@@ -22,11 +23,26 @@ const PILLAR_LABELS: Record<Pillar, string> = {
   content: 'Contenu',
 }
 
+/** Description pédagogique affichée sous le score — répond à "qu'est-ce que ça mesure ?" */
+const PILLAR_DESCRIPTIONS: Record<Pillar, string> = {
+  global: 'Moyenne de vos 3 piliers GEO : Autorité, Technique et Contenu.',
+  authority: 'Fréquence à laquelle les IAs citent votre site dans leurs réponses.',
+  technical: 'Qualité technique de votre site pour être lu et compris par les IAs.',
+  content: 'Pertinence et structure de votre contenu pour apparaître dans les réponses IA.',
+}
+
 const PILLAR_ICONS: Record<Pillar, React.ElementType> = {
   global: BarChart2,
   authority: Shield,
   technical: Wrench,
   content: FileText,
+}
+
+const MATURITY_COLORS: Record<string, string> = {
+  expert: 'text-[--score-good-600] bg-[--score-good-50] ring-[--score-good-200]',
+  advanced: 'text-[--score-good-600] bg-[--score-good-50] ring-[--score-good-200]',
+  progressing: 'text-[--score-mid-600] bg-[--score-mid-50] ring-[--score-mid-200]',
+  beginner: 'text-[--score-bad-600] bg-[--score-bad-50] ring-[--score-bad-200]',
 }
 
 export function ScoreCard({
@@ -38,8 +54,11 @@ export function ScoreCard({
   onClick,
 }: ScoreCardProps) {
   const label = PILLAR_LABELS[pillar]
+  const description = PILLAR_DESCRIPTIONS[pillar]
   const Icon = PILLAR_ICONS[pillar]
   const isClickable = typeof onClick === 'function'
+  const maturity = getScoreMaturity(score)
+  const maturityColor = MATURITY_COLORS[maturity.level] ?? MATURITY_COLORS['beginner']!
 
   const TrendIcon =
     trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
@@ -71,14 +90,33 @@ export function ScoreCard({
         className,
       )}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-        <Icon size={16} className="text-primary" aria-hidden />
+      {/* Icône + label */}
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+          <Icon size={16} className="text-primary" aria-hidden />
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
       </div>
 
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-
+      {/* Jauge */}
       <ScoreGauge score={score} size="sm" showLabel={false} />
 
+      {/* Badge maturité */}
+      <span
+        className={cn(
+          'rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1',
+          maturityColor,
+        )}
+      >
+        {maturity.label}
+      </span>
+
+      {/* Description pédagogique */}
+      <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+
+      {/* Delta vs analyse précédente */}
       {delta !== undefined && trend && (
         <div className={cn('flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', trendColor)}>
           <TrendIcon size={11} aria-hidden />
