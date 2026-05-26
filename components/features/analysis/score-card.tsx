@@ -1,7 +1,6 @@
 import { cn } from '@/lib/utils'
-import { ScoreGauge } from '@/components/charts/score-gauge'
 import { getScoreMaturity } from '@/lib/analysis/scoring'
-import { TrendingUp, TrendingDown, Minus, Shield, Wrench, FileText, BarChart2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Shield, Wrench, FileText, BarChart2, ArrowRight } from 'lucide-react'
 
 type Pillar = 'authority' | 'technical' | 'content' | 'global'
 type Trend = 'up' | 'down' | 'stable'
@@ -9,7 +8,6 @@ type Trend = 'up' | 'down' | 'stable'
 interface ScoreCardProps {
   pillar: Pillar
   score: number
-  /** Delta vs analyse précédente (ex : +8, -3) */
   delta?: number
   trend?: Trend
   className?: string
@@ -23,12 +21,11 @@ const PILLAR_LABELS: Record<Pillar, string> = {
   content: 'Contenu',
 }
 
-/** Description pédagogique affichée sous le score — répond à "qu'est-ce que ça mesure ?" */
-const PILLAR_DESCRIPTIONS: Record<Pillar, string> = {
-  global: 'Moyenne de vos 3 piliers GEO : Autorité, Technique et Contenu.',
-  authority: 'Fréquence à laquelle les IAs citent votre site dans leurs réponses.',
-  technical: 'Qualité technique de votre site pour être lu et compris par les IAs.',
-  content: 'Pertinence et structure de votre contenu pour apparaître dans les réponses IA.',
+const PILLAR_SUBLABELS: Record<Pillar, string> = {
+  global: 'Score global',
+  authority: 'Citations IA',
+  technical: 'Lisibilité IA',
+  content: 'Pertinence',
 }
 
 const PILLAR_ICONS: Record<Pillar, React.ElementType> = {
@@ -38,11 +35,25 @@ const PILLAR_ICONS: Record<Pillar, React.ElementType> = {
   content: FileText,
 }
 
-const MATURITY_COLORS: Record<string, string> = {
-  expert: 'text-[--score-good-600] bg-[--score-good-50] ring-[--score-good-200]',
-  advanced: 'text-[--score-good-600] bg-[--score-good-50] ring-[--score-good-200]',
-  progressing: 'text-[--score-mid-600] bg-[--score-mid-50] ring-[--score-mid-200]',
-  beginner: 'text-[--score-bad-600] bg-[--score-bad-50] ring-[--score-bad-200]',
+const SCORE_BAR_COLORS: Record<string, string> = {
+  expert: 'bg-[--score-good-500]',
+  advanced: 'bg-[--score-good-500]',
+  progressing: 'bg-[--score-mid-500]',
+  beginner: 'bg-[--score-bad-500]',
+}
+
+const SCORE_TEXT_COLORS: Record<string, string> = {
+  expert: 'text-[--score-good-600]',
+  advanced: 'text-[--score-good-600]',
+  progressing: 'text-[--score-mid-600]',
+  beginner: 'text-[--score-bad-600]',
+}
+
+const MATURITY_BADGE_COLORS: Record<string, string> = {
+  expert: 'text-[--score-good-600] bg-[--score-good-50]',
+  advanced: 'text-[--score-good-600] bg-[--score-good-50]',
+  progressing: 'text-[--score-mid-600] bg-[--score-mid-50]',
+  beginner: 'text-[--score-bad-600] bg-[--score-bad-50]',
 }
 
 export function ScoreCard({
@@ -54,21 +65,21 @@ export function ScoreCard({
   onClick,
 }: ScoreCardProps) {
   const label = PILLAR_LABELS[pillar]
-  const description = PILLAR_DESCRIPTIONS[pillar]
+  const sublabel = PILLAR_SUBLABELS[pillar]
   const Icon = PILLAR_ICONS[pillar]
   const isClickable = typeof onClick === 'function'
   const maturity = getScoreMaturity(score)
-  const maturityColor = MATURITY_COLORS[maturity.level] ?? MATURITY_COLORS['beginner']!
+  const barColor = SCORE_BAR_COLORS[maturity.level] ?? SCORE_BAR_COLORS['beginner']!
+  const textColor = SCORE_TEXT_COLORS[maturity.level] ?? SCORE_TEXT_COLORS['beginner']!
+  const badgeColor = MATURITY_BADGE_COLORS[maturity.level] ?? MATURITY_BADGE_COLORS['beginner']!
 
-  const TrendIcon =
-    trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
-
+  const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
   const trendColor =
     trend === 'up'
-      ? 'text-[--score-good-600] bg-[--score-good-50]'
+      ? 'text-[--score-good-600]'
       : trend === 'down'
-        ? 'text-[--score-bad-600] bg-[--score-bad-50]'
-        : 'text-muted-foreground bg-muted'
+        ? 'text-[--score-bad-600]'
+        : 'text-muted-foreground'
 
   return (
     <div
@@ -83,46 +94,62 @@ export function ScoreCard({
           : undefined
       }
       className={cn(
-        'rounded-2xl border border-border bg-card p-5 shadow-sm',
-        'flex flex-col items-center gap-3',
+        'group rounded-2xl border border-border bg-card p-5 shadow-sm',
+        'flex flex-col gap-4',
         isClickable &&
           'cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className,
       )}
     >
-      {/* Icône + label */}
-      <div className="flex flex-col items-center gap-1.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-          <Icon size={16} className="text-primary" aria-hidden />
+      {/* Header: icône + label + flèche */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8">
+            <Icon size={14} className="text-primary" aria-hidden />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-foreground">{label}</p>
+            <p className="text-[10px] text-muted-foreground">{sublabel}</p>
+          </div>
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        {isClickable && (
+          <ArrowRight
+            size={14}
+            className="text-muted-foreground/40 transition-all group-hover:translate-x-0.5 group-hover:text-primary"
+            aria-hidden
+          />
+        )}
       </div>
 
-      {/* Jauge */}
-      <ScoreGauge score={score} size="sm" showLabel={false} />
+      {/* Score + maturity */}
+      <div className="flex items-end justify-between">
+        <div className="flex items-baseline gap-1">
+          <span className={cn('text-3xl font-extrabold tabular-nums leading-none', textColor)}>
+            {Math.round(score)}
+          </span>
+          <span className="text-xs text-muted-foreground">/100</span>
+        </div>
+        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', badgeColor)}>
+          {maturity.label}
+        </span>
+      </div>
 
-      {/* Badge maturité */}
-      <span
-        className={cn(
-          'rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1',
-          maturityColor,
-        )}
-      >
-        {maturity.label}
-      </span>
+      {/* Barre de progression */}
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn('h-full rounded-full transition-all duration-700', barColor)}
+          style={{ width: `${Math.min(100, Math.max(0, Math.round(score)))}%` }}
+          aria-label={`${Math.round(score)}%`}
+        />
+      </div>
 
-      {/* Description pédagogique */}
-      <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-        {description}
-      </p>
-
-      {/* Delta vs analyse précédente */}
+      {/* Delta */}
       {delta !== undefined && trend && (
-        <div className={cn('flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold', trendColor)}>
+        <div className={cn('flex items-center gap-1 text-xs font-semibold', trendColor)}>
           <TrendIcon size={11} aria-hidden />
           <span>
             {delta > 0 ? '+' : ''}
-            {delta} pts
+            {delta} pts vs précédent
           </span>
         </div>
       )}

@@ -98,46 +98,54 @@ export default async function TechnicalPage({ params }: Props) {
       {/* Score + KPI row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Score hero */}
-        <section className="col-span-1 flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm sm:col-span-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Score Technique
-          </p>
-          {isInProgress ? (
-            <div className="flex flex-col items-center gap-3">
-              <Skeleton className="h-36 w-36 rounded-full" />
-              <Skeleton className="h-3 w-24 rounded-full" />
-            </div>
-          ) : latest.technicalScore !== null ? (
-            <ScoreGauge score={latest.technicalScore} size="lg" />
-          ) : (
-            <p className="text-sm text-muted-foreground">Score non disponible</p>
-          )}
+        <section className="col-span-1 overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:col-span-2">
+          <div className="border-b border-border/60 px-6 py-4">
+            <h2 className="text-sm font-semibold text-foreground">Score Technique</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Qualité technique de votre site pour être lu et compris par les IAs
+            </p>
+          </div>
+          <div className="flex items-center justify-center py-8">
+            {isInProgress ? (
+              <div className="flex flex-col items-center gap-3">
+                <Skeleton className="h-36 w-36 rounded-full" />
+                <Skeleton className="h-3 w-24 rounded-full" />
+              </div>
+            ) : latest.technicalScore !== null ? (
+              <ScoreGauge score={latest.technicalScore} size="lg" />
+            ) : (
+              <p className="text-sm text-muted-foreground">Score non disponible</p>
+            )}
+          </div>
         </section>
 
         {/* Issues count KPI */}
-        <section className="flex flex-col justify-center gap-1 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          {isInProgress ? (
-            <>
-              <Skeleton className="h-10 w-16 rounded-lg" />
-              <Skeleton className="h-3 w-28 rounded-full mt-1" />
-            </>
-          ) : (
-            <>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Points faibles
-              </p>
-              <p className="mt-1 text-5xl font-extrabold numeric text-foreground">{issues.length}</p>
-              <p className="text-xs text-muted-foreground">
-                {totalPenalty > 0 ? `−${totalPenalty} pts de pénalité` : 'Aucune pénalité'}
-              </p>
-            </>
-          )}
+        <section className="rounded-2xl border border-border bg-card shadow-sm">
+          <div className="border-b border-border/60 px-6 py-4">
+            <h2 className="text-sm font-semibold text-foreground">Points faibles</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">Règles GEO non respectées</p>
+          </div>
+          <div className="flex flex-col justify-center px-6 py-8">
+            {isInProgress ? (
+              <>
+                <Skeleton className="h-10 w-16 rounded-lg" />
+                <Skeleton className="h-3 w-28 rounded-full mt-2" />
+              </>
+            ) : (
+              <>
+                <p className="text-5xl font-extrabold text-foreground">{issues.length}</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {totalPenalty > 0 ? `−${totalPenalty} pts de pénalité` : 'Aucune pénalité'}
+                </p>
+              </>
+            )}
+          </div>
         </section>
       </div>
 
       {/* Issues list */}
       <section>
-        <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Points faibles détectés
         </h2>
         {isInProgress ? (
