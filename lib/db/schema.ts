@@ -290,6 +290,8 @@ export const publisherCategoryEnum = pgEnum('publisher_category', [
   'public_base',
 ])
 
+export const coachRoleEnum = pgEnum('coach_role', ['user', 'assistant'])
+
 export const publishers = pgTable('publishers', {
   id: uuid('id').primaryKey().defaultRandom(),
   analysisId: uuid('analysis_id')
@@ -302,6 +304,24 @@ export const publishers = pgTable('publishers', {
   url: text('url').notNull(),
   category: publisherCategoryEnum('category').notNull(),
   pitchAngle: text('pitch_angle').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── coach_messages ───────────────────────────────────────────────────────────
+// Historique de conversation du Coach IA par site + analyse.
+// userId dupliqué ici pour comptage quota mensuel sans JOIN.
+
+export const coachMessages = pgTable('coach_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  analysisId: uuid('analysis_id').references(() => analyses.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  role: coachRoleEnum('role').notNull(),
+  content: text('content').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -336,6 +356,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   prompts: many(prompts),
   analyses: many(analyses),
   publishers: many(publishers),
+  coachMessages: many(coachMessages),
 }))
 
 export const firecrawlPagesRelations = relations(firecrawlPages, ({ one }) => ({
@@ -432,4 +453,13 @@ export const recommendationsRelations = relations(recommendations, ({ one }) => 
     fields: [recommendations.analysisId],
     references: [analyses.id],
   }),
+}))
+
+export const coachMessagesRelations = relations(coachMessages, ({ one }) => ({
+  site: one(sites, { fields: [coachMessages.siteId], references: [sites.id] }),
+  analysis: one(analyses, {
+    fields: [coachMessages.analysisId],
+    references: [analyses.id],
+  }),
+  profile: one(profiles, { fields: [coachMessages.userId], references: [profiles.id] }),
 }))
