@@ -107,20 +107,25 @@ export default async function AuthorityPage({ params }: Props) {
       )}
 
       {/* Score Autorité hero card */}
-      <section className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Score Autorité
-        </p>
-        {isInProgress ? (
-          <div className="flex flex-col items-center gap-3">
-            <Skeleton className="h-40 w-40 rounded-full" />
-            <Skeleton className="h-3 w-28 rounded-full" />
-          </div>
-        ) : latest.authorityScore !== null ? (
-          <ScoreGauge score={latest.authorityScore} size="lg" />
-        ) : (
-          <p className="text-sm text-muted-foreground">Score non disponible</p>
-        )}
+      <section className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border/60 px-6 py-4">
+          <h2 className="text-sm font-semibold text-foreground">Score Autorité</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Fréquence à laquelle les moteurs IA citent votre site dans leurs réponses
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-3 px-6 py-8">
+          {isInProgress ? (
+            <div className="flex flex-col items-center gap-3">
+              <Skeleton className="h-40 w-40 rounded-full" />
+              <Skeleton className="h-3 w-28 rounded-full" />
+            </div>
+          ) : latest.authorityScore !== null ? (
+            <ScoreGauge score={latest.authorityScore} size="lg" />
+          ) : (
+            <p className="text-sm text-muted-foreground">Score non disponible</p>
+          )}
+        </div>
       </section>
 
       {/* Citations bar chart */}
@@ -132,7 +137,7 @@ export default async function AuthorityPage({ params }: Props) {
 
       {/* Cross-table */}
       <section>
-        <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Réponses par prompt et par IA
         </h2>
         {isInProgress ? (
@@ -148,9 +153,9 @@ export default async function AuthorityPage({ params }: Props) {
       </section>
 
       {/* Relaunch section */}
-      <section className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-6 py-5 shadow-sm">
+      <section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/40 px-5 py-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">Nouvelle analyse Autorité</p>
+          <p className="text-sm font-semibold text-foreground">Relancer l&apos;analyse Autorité</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Relance uniquement la phase Autorité (prompts × moteurs IA).
           </p>
