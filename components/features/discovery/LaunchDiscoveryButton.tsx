@@ -3,12 +3,13 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Sparkles } from 'lucide-react'
+import { launchDiscoveryAction } from '@/app/(app)/sites/[siteId]/discovery/launch-action'
 
 type Props = {
-  onLaunch: () => Promise<{ error?: string }>
+  siteId: string
 }
 
-export function LaunchDiscoveryButton({ onLaunch }: Props) {
+export function LaunchDiscoveryButton({ siteId }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -17,13 +18,12 @@ export function LaunchDiscoveryButton({ onLaunch }: Props) {
   function handleClick() {
     setError(null)
     startTransition(async () => {
-      const result = await onLaunch()
+      const result = await launchDiscoveryAction(siteId)
       if (result.error) {
         setError(result.error)
         return
       }
       setLaunched(true)
-      // Recharge la page après 3s pour afficher l'état "en cours"
       setTimeout(() => router.refresh(), 3000)
     })
   }
