@@ -3,16 +3,14 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Shield, Wrench, FileText, BookOpen, Search, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, Shield, Wrench, FileText, BookOpen } from 'lucide-react'
 
 const TABS = [
-  { label: "Vue d'ensemble", segment: 'overview', icon: LayoutDashboard },
-  { label: 'Autorité', segment: 'authority', icon: Shield },
-  { label: 'Technique', segment: 'technical', icon: Wrench },
-  { label: 'Contenu', segment: 'content', icon: FileText },
-  { label: 'Publishers', segment: 'publishers', icon: BookOpen },
-  { label: 'Découverte', segment: 'discovery', icon: Search },
-  { label: 'Coach IA', segment: 'coach', icon: MessageSquare },
+  { label: "Vue d'ensemble", segment: 'overview',   icon: LayoutDashboard },
+  { label: 'Autorité',       segment: 'authority',  icon: Shield },
+  { label: 'Technique',      segment: 'technical',  icon: Wrench },
+  { label: 'Contenu',        segment: 'content',    icon: FileText },
+  { label: 'Publishers',     segment: 'publishers', icon: BookOpen },
 ]
 
 type Props = {
