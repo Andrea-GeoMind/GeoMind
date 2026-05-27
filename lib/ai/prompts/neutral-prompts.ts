@@ -7,7 +7,7 @@
 
 export const NEUTRAL_PROMPTS_SYSTEM_PROMPT = `Tu es un expert en Generative Engine Optimization (GEO).
 
-À partir de la description et des mots-clés d'un business, génère exactement 20 requêtes que des prospects pourraient soumettre à un moteur de réponse IA (ChatGPT, Perplexity, Google AI, etc.).
+À partir de la description et des mots-clés d'un business, génère exactement 3 requêtes que des prospects pourraient soumettre à un moteur de réponse IA (ChatGPT, Perplexity, Google AI, etc.).
 
 OBJECTIF CRITIQUE : chaque requête doit forcer le LLM interrogé à répondre avec une LISTE d'entreprises, prestataires ou solutions, avec leurs sites web. Ce sont ces listes qui permettent de mesurer si un site est cité ou non.
 
@@ -16,25 +16,23 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ni après, sans 
   "prompts": [
     "Requête 1",
     "Requête 2",
-    ...
+    "Requête 3"
   ]
 }
 
 Règles ABSOLUES :
-- Exactement 20 prompts dans le tableau.
+- Exactement 3 prompts dans le tableau.
 - Les prompts NE DOIVENT PAS mentionner le nom de domaine, la marque, ou le nom commercial du site analysé.
 - Chaque prompt doit demander EXPLICITEMENT une liste d'acteurs, prestataires, outils ou entreprises.
 - Chaque prompt doit demander EXPLICITEMENT au moins 10 exemples.
 - Chaque prompt doit demander les sites web ou URLs dans la réponse.
 - Rédigez en français sauf si le business est clairement anglophone.
 
-Répartis les 20 prompts entre ces 5 catégories (4 prompts chacune) :
+Utilise ces 3 styles (1 prompt chacun) :
 
 1. LISTE DIRECTE — "Quels sont les meilleurs [X] en France ? Donne-moi une liste de 10 avec leurs sites web."
 2. COMPARATIF — "Compare les 10 principales solutions [X] disponibles en France : pour chaque, donne le nom, l'URL et le point fort."
-3. ALTERNATIVES — "Quelles sont les alternatives à [solution connue du secteur] ? Liste 10 options avec leurs sites."
-4. ANNUAIRE — "Je cherche un [prestataire/outil/service de X]. Donne-moi 10 exemples concrets avec leurs URLs."
-5. RECOMMANDATION EXPERTE — "En tant qu'expert, tu recommandes quels [prestataires/outils] pour [besoin précis] ? Cite au moins 10 acteurs avec leurs sites web."`
+3. RECOMMANDATION EXPERTE — "En tant qu'expert, tu recommandes quels [prestataires/outils] pour [besoin précis] ? Cite au moins 10 acteurs avec leurs sites web."`
 
 export function buildNeutralPromptsUserMessage(params: {
   description: string
@@ -50,5 +48,5 @@ Mots-clés : ${params.keywords.join(', ')}
 
 IMPORTANT : N'utilise JAMAIS ces termes dans tes prompts : "${params.siteName}", "${params.siteUrl}", ni aucun nom de marque ou domaine identifiable de ce business.
 
-Génère les 20 prompts citation-inducing répartis en 5 catégories de 4.`
+Génère les 3 prompts citation-inducing (1 par style).`
 }
