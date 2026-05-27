@@ -4,8 +4,6 @@ import { db } from '@/lib/db/client'
 import {
   analyses,
   authorityResults,
-  technicalIssues,
-  contentIssues,
   recommendations,
   publishers,
   prompts,
@@ -56,15 +54,11 @@ export async function GET(
   // Récupérer les compteurs en parallèle
   const [
     [{ authorityCount }],
-    [{ techCount }],
-    [{ contentCount }],
     [{ recoCount }],
     [{ publishersCount }],
     [{ promptsTotal }],
   ] = await Promise.all([
     db.select({ authorityCount: count() }).from(authorityResults).where(eq(authorityResults.analysisId, analysisId)),
-    db.select({ techCount: count() }).from(technicalIssues).where(eq(technicalIssues.analysisId, analysisId)),
-    db.select({ contentCount: count() }).from(contentIssues).where(eq(contentIssues.analysisId, analysisId)),
     db.select({ recoCount: count() }).from(recommendations).where(eq(recommendations.analysisId, analysisId)),
     db.select({ publishersCount: count() }).from(publishers).where(eq(publishers.analysisId, analysisId)),
     db.select({ promptsTotal: count() }).from(prompts).where(eq(prompts.siteId, analysis.siteId)),
