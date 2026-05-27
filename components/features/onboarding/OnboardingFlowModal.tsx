@@ -19,23 +19,49 @@ type Phase = 'crawling' | 'reviewing' | 'launching' | 'analyzing' | 'done'
 
 const CRAWL_STEPS = [
   { label: 'Crawl des pages de votre site…', at: 0 },
-  { label: 'Analyse de votre activité…', at: 15 },
-  { label: 'Génération des mots-clés…', at: 28 },
-  { label: 'Création des prompts neutres…', at: 38 },
+  { label: 'Analyse de votre activité…', at: 12 },
+  { label: 'Génération des mots-clés…', at: 22 },
+  { label: 'Création des prompts neutres…', at: 30 },
 ]
+
+// ─── Hook : intervalle pausé quand l'onglet est caché ─────────────────────────
+
+function useActiveInterval(cb: () => void, delay: number) {
+  const cbRef = useRef(cb)
+  cbRef.current = cb
+  useEffect(() => {
+    let id: ReturnType<typeof setInterval> | null = null
+
+    function start() {
+      if (id) return
+      id = setInterval(() => cbRef.current(), delay)
+    }
+    function stop() {
+      if (id) { clearInterval(id); id = null }
+    }
+
+    function onVisibility() {
+      document.hidden ? stop() : start()
+    }
+
+    start()
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [delay])
+}
 
 // ─── Sous-composant : étape Crawl ─────────────────────────────────────────────
 
 function CrawlingPhase() {
   const [elapsed, setElapsed] = useState(0)
+  useActiveInterval(() => setElapsed((s) => s + 1), 1000)
 
-  useEffect(() => {
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  const step = [...CRAWL_STEPS].reverse().find((s) => elapsed >= s.at) ?? CRAWL_STEPS[0]
-  const pct = Math.min(Math.round((elapsed / 50) * 100), 95)
+  const step = [...CRAWL_STEPS].reverse().find((s) => elapsed >= s.at) ?? CRAWL_STEPS[0]!
+  // Plafonne à 90% — les derniers % ne se débloquent que quand le job répond
+  const pct = Math.min(Math.round((elapsed / 40) * 90), 90)
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
@@ -47,7 +73,7 @@ function CrawlingPhase() {
         <p className="text-sm text-muted-foreground">
           GeoMind crawle votre site et génère votre profil GEO.
           <br />
-          Cette étape prend 30 à 60 secondes.
+          Cette étape prend 20 à 40 secondes.
         </p>
       </div>
       <div className="w-full space-y-2">
@@ -57,7 +83,7 @@ function CrawlingPhase() {
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000 ease-linear"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-[width] duration-1000 ease-linear"
             style={{ width: `${Math.max(pct, 3)}%` }}
           />
         </div>
@@ -236,32 +262,9 @@ function ReviewingPhase({
 }
 
 // ─── Sous-composant : étape Analyse ───────────────────────────────────────────
+// Reçoit progress/step du parent (un seul polling, pas de double fetch)
 
-function AnalyzingPhase({ analysisId }: { analysisId: string }) {
-  const [progress, setProgress] = useState(2)
-  const [step, setStep] = useState('Démarrage de l\'analyse…')
-  const [elapsed, setElapsed] = useState(0)
-
-  useEffect(() => {
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => {
-    async function fetchProgress() {
-      try {
-        const res = await fetch(`/api/analysis/${analysisId}/progress`)
-        if (!res.ok) return
-        const data: AnalysisProgressResponse = await res.json()
-        setProgress(data.progress)
-        setStep(data.step)
-      } catch { /* silencieux */ }
-    }
-    fetchProgress()
-    const id = setInterval(fetchProgress, 3000)
-    return () => clearInterval(id)
-  }, [analysisId])
-
+function AnalyzingPhase({ progress, step, elapsed }: { progress: number; step: string; elapsed: number }) {
   const minutes = Math.floor(elapsed / 60)
   const secs = elapsed % 60
   const timeStr = minutes > 0 ? `${minutes} min ${String(secs).padStart(2, '0')} s` : `${secs} s`
@@ -276,7 +279,7 @@ function AnalyzingPhase({ analysisId }: { analysisId: string }) {
         <p className="text-sm text-muted-foreground">
           GEOMIND interroge ChatGPT, Perplexity, Gemini et Claude.
           <br />
-          Résultats dans 2 à 5 minutes.
+          Résultats dans 2 à 4 minutes.
         </p>
       </div>
       <div className="w-full space-y-2">
@@ -286,12 +289,12 @@ function AnalyzingPhase({ analysisId }: { analysisId: string }) {
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 transition-all duration-700 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 transition-[width] duration-700 ease-out"
             style={{ width: `${Math.max(progress, 2)}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground/60">
-          <span>Analyse réelle — mise à jour toutes les 3s</span>
+          <span>Mise à jour toutes les 5 s</span>
           <span className="tabular-nums">{progress}%</span>
         </div>
       </div>
@@ -309,8 +312,10 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
   const [phase, setPhase] = useState<Phase>('crawling')
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData | null>(null)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
+  const [analysisProgress, setAnalysisProgress] = useState(2)
+  const [analysisStep, setAnalysisStep] = useState('Démarrage de l\'analyse…')
+  const [analysisElapsed, setAnalysisElapsed] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Bloquer fermeture de l'onglet
   useEffect(() => {
@@ -320,47 +325,47 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
     return () => window.removeEventListener('beforeunload', handler)
   }, [phase])
 
-  // Poll découverte (phase crawling)
-  useEffect(() => {
-    if (phase !== 'crawling') return
+  // Poll découverte (phase crawling) — toutes les 5s, pausé quand onglet caché
+  useActiveInterval(
+    useCallback(() => {
+      if (phase !== 'crawling') return
+      fetch(`/api/site/${siteId}/discovery-status`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((json) => {
+          if (json?.ready) {
+            setDiscoveryData(json.data as DiscoveryData)
+            setPhase('reviewing')
+          }
+        })
+        .catch(() => { /* silencieux */ })
+    }, [phase, siteId]),
+    5000
+  )
 
-    async function check() {
-      try {
-        const res = await fetch(`/api/site/${siteId}/discovery-status`)
-        if (!res.ok) return
-        const json = await res.json()
-        if (json.ready) {
-          setDiscoveryData(json.data)
-          setPhase('reviewing')
-          if (pollRef.current) clearInterval(pollRef.current)
-        }
-      } catch { /* silencieux */ }
-    }
+  // Poll analyse (phase analyzing) — toutes les 5s, unique source de vérité
+  useActiveInterval(
+    useCallback(() => {
+      if (phase !== 'analyzing' || !analysisId) return
+      fetch(`/api/analysis/${analysisId}/progress`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((json: AnalysisProgressResponse | null) => {
+          if (!json) return
+          setAnalysisProgress(json.progress)
+          setAnalysisStep(json.step)
+          if (json.status === 'success') setPhase('done')
+        })
+        .catch(() => { /* silencieux */ })
+    }, [phase, analysisId]),
+    5000
+  )
 
-    check()
-    pollRef.current = setInterval(check, 3000)
-    return () => { if (pollRef.current) clearInterval(pollRef.current) }
-  }, [phase, siteId])
-
-  // Poll analyse (phase analyzing)
-  useEffect(() => {
-    if (phase !== 'analyzing' || !analysisId) return
-
-    async function check() {
-      try {
-        const res = await fetch(`/api/analysis/${analysisId}/progress`)
-        if (!res.ok) return
-        const json: AnalysisProgressResponse = await res.json()
-        if (json.status === 'success') {
-          setPhase('done')
-        }
-      } catch { /* silencieux */ }
-    }
-
-    check()
-    const id = setInterval(check, 3000)
-    return () => clearInterval(id)
-  }, [phase, analysisId])
+  // Timer temps écoulé pour la phase analyse (toutes les secondes, pausé si onglet caché)
+  useActiveInterval(
+    useCallback(() => {
+      if (phase === 'analyzing') setAnalysisElapsed((s) => s + 1)
+    }, [phase]),
+    1000
+  )
 
   // Redirect quand done
   useEffect(() => {
@@ -377,6 +382,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
       setPhase('reviewing')
       return
     }
+    setAnalysisElapsed(0)
     setAnalysisId(result.analysisId)
     setPhase('analyzing')
   }, [siteId])
@@ -397,18 +403,22 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
           )}
 
           {phase === 'launching' && (
-            <div className="flex flex-col items-center gap-6 text-center py-4">
+            <div className="flex flex-col items-center gap-6 py-4 text-center">
               <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
               <p className="text-sm font-medium">Lancement de l&apos;analyse…</p>
             </div>
           )}
 
           {phase === 'analyzing' && analysisId && (
-            <AnalyzingPhase analysisId={analysisId} />
+            <AnalyzingPhase
+              progress={analysisProgress}
+              step={analysisStep}
+              elapsed={analysisElapsed}
+            />
           )}
 
           {phase === 'done' && (
-            <div className="flex flex-col items-center gap-6 text-center py-4">
+            <div className="flex flex-col items-center gap-6 py-4 text-center">
               <CheckCircle className="h-12 w-12 text-emerald-500" />
               <p className="text-lg font-bold">Analyse terminée !</p>
               <p className="text-sm text-muted-foreground">Redirection vers vos résultats…</p>

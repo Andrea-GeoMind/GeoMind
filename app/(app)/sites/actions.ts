@@ -33,10 +33,11 @@ export async function createSiteAction(
   trackEvent(user.id, 'site_created', { url: parsed.data.url })
 
   // Déclencher le crawl + découverte, puis rediriger vers la modale d'onboarding
+  // 5 pages suffisent pour la découverte initiale.
   try {
     await inngest.send({
       name: 'site.crawl.requested',
-      data: { siteId: site.id, userId: user.id },
+      data: { siteId: site.id, userId: user.id, maxPages: 5 },
     })
   } catch {
     // Si le bus est injoignable, le crawl reste en pending — l'utilisateur
