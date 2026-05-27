@@ -36,7 +36,7 @@ export async function GET(
       description: metadata.description ?? '',
       keywords: metadata.keywords ?? [],
       competitors: competitors.map((c) => ({ id: c.id, url: c.url, name: c.name ?? '' })),
-      prompts: prompts.slice(0, 5).map((p) => ({ id: p.id, text: p.text, isNeutral: p.isNeutral })),
+      prompts: prompts.map((p) => ({ id: p.id, text: p.text, isNeutral: p.isNeutral })),
     },
   })
 }
