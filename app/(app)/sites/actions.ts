@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { canAddSite } from '@/lib/quotas'
 import { siteSchema, createSite, getSiteById, deleteSite } from '@/lib/db/queries/sites'
 import { trackEvent } from '@/lib/posthog'
+import { inngest } from '@/lib/inngest/client'
 
 export async function createSiteAction(
   formData: FormData
@@ -28,9 +29,21 @@ export async function createSiteAction(
       error: 'Limite de sites atteinte pour votre plan. Passez au plan supérieur.',
     }
 
-  await createSite({ userId: user.id, ...parsed.data })
+  const site = await createSite({ userId: user.id, ...parsed.data })
   trackEvent(user.id, 'site_created', { url: parsed.data.url })
-  revalidatePath('/dashboard')
+
+  // Déclencher le crawl + découverte, puis rediriger vers la modale d'onboarding
+  try {
+    await inngest.send({
+      name: 'site.crawl.requested',
+      data: { siteId: site.id, userId: user.id },
+    })
+  } catch {
+    // Si le bus est injoignable, le crawl reste en pending — l'utilisateur
+    // peut le relancer depuis la page de découverte.
+  }
+
+  redirect(`/onboarding?siteId=${site.id}&step=3`)
 }
 
 export async function deleteSiteAction(
