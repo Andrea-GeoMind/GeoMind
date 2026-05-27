@@ -77,27 +77,25 @@ export async function GET(
   let step: string
 
   if (authorityCount === 0) {
-    // Crawl + découverte en cours
+    // Pas encore de résultats autorité — crawl ou file d'attente
     progress = 8
     step = 'Crawl du site en cours…'
   } else if (analysis.authorityScore === null) {
-    // Authority responses arrivent progressivement
+    // Réponses IA arrivent progressivement (score pas encore calculé)
     const ratio = Math.min(authorityCount / expectedAuthority, 1)
     progress = Math.round(8 + ratio * 47) // 8% → 55%
     step = `Interrogation des moteurs IA… (${authorityCount}/${expectedAuthority} réponses)`
-  } else if (techCount === 0 && contentCount === 0) {
-    progress = 58
-    step = 'Analyse technique & contenu…'
   } else if (analysis.technicalScore === null || analysis.contentScore === null) {
-    progress = 68
-    step = 'Calcul des scores…'
-  } else if (recoCount === 0) {
-    progress = 78
-    step = 'Génération des recommandations…'
+    // Phases technique + contenu en cours (peut trouver 0 problème → score != null quand done)
+    progress = 62
+    step = 'Analyse technique & contenu…'
   } else if (publishersCount === 0) {
-    progress = 88
-    step = 'Identification des publishers…'
+    // Scores calculés, mais recommendations + publishers pas encore terminés.
+    // detectPublishers insère toujours ≥1 résultat → son absence = phase en cours.
+    progress = recoCount > 0 ? 85 : 76
+    step = recoCount > 0 ? 'Identification des publishers…' : 'Génération des recommandations…'
   } else {
+    // Tout est prêt, mark-success en cours (gap infime avant status=success)
     progress = 95
     step = 'Finalisation…'
   }
