@@ -1,54 +1,62 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-
-const STEPS = [
-  { label: 'Crawl du site en cours…', delay: 0 },
-  { label: 'Interrogation des moteurs IA…', delay: 20_000 },
-  { label: 'Analyse des citations…', delay: 50_000 },
-  { label: 'Calcul des scores…', delay: 100_000 },
-  { label: "Finalisation de l'analyse…", delay: 160_000 },
-] as const
-
-const MAX_SECONDS = 300
+import type { AnalysisProgressResponse } from '@/app/api/analysis/[analysisId]/progress/route'
 
 type Props = {
   siteName: string | null
+  analysisId: string | null
 }
 
-export function AnalysisLoadingOverlay({ siteName }: Props) {
-  const [stepIndex, setStepIndex] = useState(0)
+export function AnalysisLoadingOverlay({ siteName, analysisId }: Props) {
+  const [progress, setProgress] = useState(2)
+  const [step, setStep] = useState('Démarrage de l\'analyse…')
   const [elapsed, setElapsed] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Chronomètre
   useEffect(() => {
-    const timers = STEPS.slice(1).map(({ delay }, i) =>
-      setTimeout(() => setStepIndex(i + 1), delay)
-    )
-    return () => timers.forEach(clearTimeout)
-  }, [])
-
-  useEffect(() => {
-    const id = setInterval(() => setElapsed((s) => Math.min(s + 1, MAX_SECONDS)), 1000)
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000)
     return () => clearInterval(id)
   }, [])
 
+  // Polling du vrai état DB toutes les 3 secondes
   useEffect(() => {
-    function handleBeforeUnload(e: BeforeUnloadEvent) {
+    if (!analysisId) return
+
+    async function fetchProgress() {
+      try {
+        const res = await fetch(`/api/analysis/${analysisId}/progress`)
+        if (!res.ok) return
+        const data: AnalysisProgressResponse = await res.json()
+        setProgress(data.progress)
+        setStep(data.step)
+      } catch {
+        // Silencieux — on garde le dernier état connu
+      }
+    }
+
+    fetchProgress()
+    intervalRef.current = setInterval(fetchProgress, 3000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [analysisId])
+
+  // Prévenir fermeture de l'onglet
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault()
       e.returnValue = ''
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
-  const pct = Math.min(Math.round((elapsed / MAX_SECONDS) * 100), 99)
   const minutes = Math.floor(elapsed / 60)
   const secs = elapsed % 60
   const timeStr = minutes > 0 ? `${minutes} min ${String(secs).padStart(2, '0')} s` : `${secs} s`
-  const remaining = MAX_SECONDS - elapsed
-  const remainingMin = Math.ceil(remaining / 60)
 
   return (
     <div
@@ -72,42 +80,21 @@ export function AnalysisLoadingOverlay({ siteName }: Props) {
         </div>
 
         <div className="w-full space-y-4">
-          <p className="min-h-[1.25rem] text-sm font-medium text-primary">
-            {STEPS[stepIndex].label}
-          </p>
-          <div className="flex justify-center gap-1.5">
-            {STEPS.map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all duration-700',
-                  i < stepIndex
-                    ? 'w-4 bg-primary/50'
-                    : i === stepIndex
-                      ? 'w-8 bg-primary'
-                      : 'w-1.5 bg-muted'
-                )}
-              />
-            ))}
-          </div>
+          {/* Étape courante */}
+          <p className="min-h-[1.25rem] text-sm font-medium text-primary">{step}</p>
 
-          {/* Jauge de temps */}
-          <div className="w-full space-y-2">
+          {/* Barre de progression réelle */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="tabular-nums">{timeStr}</span>
-              <span>
-                {remainingMin <= 1
-                  ? "Moins d'une minute restante"
-                  : `~${remainingMin} min restantes`}
-              </span>
+              <span className="tabular-nums font-medium">{progress}%</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000 ease-linear"
-                style={{ width: `${Math.max(pct, 1)}%` }}
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700 ease-out"
+                style={{ width: `${Math.max(progress, 2)}%` }}
               />
             </div>
-            <p className="text-right text-xs tabular-nums text-muted-foreground/60">{pct}%</p>
           </div>
         </div>
 
