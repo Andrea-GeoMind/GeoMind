@@ -28,7 +28,7 @@ export function AnalysisLockProvider({ children }: { children: React.ReactNode }
     <AnalysisLockContext.Provider
       value={{ locked, analysisId, siteId, siteName, lockAnalysis, unlockAnalysis }}
     >
-      {locked && <AnalysisLoadingOverlay siteName={siteName} />}
+      {locked && <AnalysisLoadingOverlay siteName={siteName} analysisId={analysisId} />}
       {children}
     </AnalysisLockContext.Provider>
   )
