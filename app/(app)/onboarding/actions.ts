@@ -33,11 +33,12 @@ export async function createSiteOnboardingAction(
   const site = await createSite({ userId: user.id, ...parsed.data })
 
   // Phase 1 : crawl + découverte uniquement.
-  // L'utilisateur valide les résultats sur /discovery avant de lancer l'analyse complète.
+  // 5 pages suffisent pour identifier description / mots-clés / concurrents / prompts.
+  // (La ré-analyse complète re-crawle avec 20 pages si les données ont > 2h.)
   try {
     await inngest.send({
       name: 'site.crawl.requested',
-      data: { siteId: site.id, userId: user.id },
+      data: { siteId: site.id, userId: user.id, maxPages: 5 },
     })
   } catch {
     // If the event bus is unreachable the crawl stays pending — the user
