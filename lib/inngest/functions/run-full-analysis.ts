@@ -15,6 +15,7 @@ import {
   updateAnalysisContentScore,
 } from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
+import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
 
 const DEFAULT_MAX_PAGES = 20
 
@@ -29,8 +30,16 @@ export const runFullAnalysisFunction = inngest.createFunction(
     await step.run('mark-running', () => updateAnalysisStatus(analysisId, 'running'))
 
     try {
-      // 1. Crawl (always refreshed on each analysis)
-      await step.run('crawl', () => crawlSite({ siteId, maxPages: DEFAULT_MAX_PAGES }))
+      // 1. Crawl — sauté si les pages ont moins de 2 heures (cas typique : juste après la découverte).
+      //    Lors d'une ré-analyse manuelle > 2h, on re-crawle pour avoir des données fraîches.
+      const CRAWL_FRESHNESS_MS = 2 * 60 * 60 * 1000 // 2 heures
+      const lastCrawledAt = await step.run('check-crawl-freshness', () => getLastCrawledAt(siteId))
+      const crawlIsStale =
+        !lastCrawledAt || Date.now() - new Date(lastCrawledAt).getTime() > CRAWL_FRESHNESS_MS
+
+      if (crawlIsStale) {
+        await step.run('crawl', () => crawlSite({ siteId, maxPages: DEFAULT_MAX_PAGES }))
+      }
 
       // 2. Discovery — skip if site_metadata already exists
       const existingMetadata = await step.run('check-discovery', () =>
