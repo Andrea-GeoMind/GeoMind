@@ -1,16 +1,51 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Rocket } from 'lucide-react'
 
+const MAX_SECONDS = 300
+
+const PHASES = [
+  { label: 'Connexion aux moteurs IA…', threshold: 0 },
+  { label: 'Interrogation ChatGPT…', threshold: 0.1 },
+  { label: 'Interrogation Perplexity…', threshold: 0.28 },
+  { label: 'Interrogation Gemini…', threshold: 0.46 },
+  { label: 'Interrogation Claude…', threshold: 0.64 },
+  { label: 'Analyse des citations…', threshold: 0.82 },
+  { label: 'Calcul des scores GEO…', threshold: 0.94 },
+]
+
+function getCurrentPhase(ratio: number) {
+  let phase = PHASES[0]
+  for (const p of PHASES) {
+    if (ratio >= p.threshold) phase = p
+  }
+  return phase
+}
+
 export function AnalysisStartedStep() {
+  const [elapsed, setElapsed] = useState(0)
+
   useEffect(() => {
-    function handleBeforeUnload(e: BeforeUnloadEvent) {
-      e.preventDefault()
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
   }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => setElapsed((s) => Math.min(s + 1, MAX_SECONDS)), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const ratio = elapsed / MAX_SECONDS
+  const pct = Math.min(Math.round(ratio * 100), 99) // cap à 99 tant que pas terminé
+  const phase = getCurrentPhase(ratio)
+  const minutes = Math.floor(elapsed / 60)
+  const secs = elapsed % 60
+  const timeStr =
+    minutes > 0 ? `${minutes} min ${String(secs).padStart(2, '0')} s` : `${secs} s`
+  const remaining = MAX_SECONDS - elapsed
+  const remainingMin = Math.ceil(remaining / 60)
 
   return (
     <div className="flex flex-col items-center gap-7 text-center">
@@ -31,15 +66,26 @@ export function AnalysisStartedStep() {
         </p>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="h-2 w-2 animate-bounce rounded-full bg-indigo-600"
-            style={{ animationDelay: `${i * 0.15}s` }}
+      {/* Progress gauge */}
+      <div className="w-full space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-medium text-indigo-600">{phase.label}</span>
+          <span className="tabular-nums text-muted-foreground">{timeStr}</span>
+        </div>
+
+        <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000 ease-linear"
+            style={{ width: `${Math.max(pct, 2)}%` }}
           />
-        ))}
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          {pct}% —{' '}
+          {remainingMin <= 1
+            ? "Moins d’une minute restante"
+            : `Environ ${remainingMin} min restantes`}
+        </div>
       </div>
 
       {/* Warning — do not close */}

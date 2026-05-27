@@ -9,8 +9,10 @@ const STEPS = [
   { label: 'Interrogation des moteurs IA…', delay: 20_000 },
   { label: 'Analyse des citations…', delay: 50_000 },
   { label: 'Calcul des scores…', delay: 100_000 },
-  { label: 'Finalisation de l\'analyse…', delay: 160_000 },
+  { label: "Finalisation de l'analyse…", delay: 160_000 },
 ] as const
+
+const MAX_SECONDS = 300
 
 type Props = {
   siteName: string | null
@@ -18,12 +20,18 @@ type Props = {
 
 export function AnalysisLoadingOverlay({ siteName }: Props) {
   const [stepIndex, setStepIndex] = useState(0)
+  const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
     const timers = STEPS.slice(1).map(({ delay }, i) =>
       setTimeout(() => setStepIndex(i + 1), delay)
     )
     return () => timers.forEach(clearTimeout)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => setElapsed((s) => Math.min(s + 1, MAX_SECONDS)), 1000)
+    return () => clearInterval(id)
   }, [])
 
   useEffect(() => {
@@ -34,6 +42,13 @@ export function AnalysisLoadingOverlay({ siteName }: Props) {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [])
+
+  const pct = Math.min(Math.round((elapsed / MAX_SECONDS) * 100), 99)
+  const minutes = Math.floor(elapsed / 60)
+  const secs = elapsed % 60
+  const timeStr = minutes > 0 ? `${minutes} min ${String(secs).padStart(2, '0')} s` : `${secs} s`
+  const remaining = MAX_SECONDS - elapsed
+  const remainingMin = Math.ceil(remaining / 60)
 
   return (
     <div
@@ -75,14 +90,30 @@ export function AnalysisLoadingOverlay({ siteName }: Props) {
               />
             ))}
           </div>
+
+          {/* Jauge de temps */}
+          <div className="w-full space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span className="tabular-nums">{timeStr}</span>
+              <span>
+                {remainingMin <= 1
+                  ? "Moins d'une minute restante"
+                  : `~${remainingMin} min restantes`}
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000 ease-linear"
+                style={{ width: `${Math.max(pct, 1)}%` }}
+              />
+            </div>
+            <p className="text-right text-xs tabular-nums text-muted-foreground/60">{pct}%</p>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">Durée estimée : 2 à 5 minutes</p>
-          <p className="text-xs text-muted-foreground/50">
-            Restez sur cette fenêtre pour voir vos résultats en temps réel
-          </p>
-        </div>
+        <p className="text-xs text-muted-foreground/50">
+          Restez sur cette fenêtre pour voir vos résultats en temps réel
+        </p>
       </div>
     </div>
   )
