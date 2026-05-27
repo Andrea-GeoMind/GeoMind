@@ -1,7 +1,9 @@
 import { inngest } from '@/lib/inngest/client'
-import { crawlSite } from '@/lib/crawl/firecrawl'
+import { scrapeForDiscovery } from '@/lib/crawl/firecrawl'
 
-const DEFAULT_MAX_PAGES = 20
+// Pour la découverte, 5 pages suffisent et scrapeForDiscovery est beaucoup
+// plus rapide que crawl() (map + scrape direct vs job async + polling).
+const DEFAULT_MAX_PAGES = 5
 
 export const crawlSiteFunction = inngest.createFunction(
   { id: 'crawl-site', triggers: [{ event: 'site.crawl.requested' }] },
@@ -13,7 +15,7 @@ export const crawlSiteFunction = inngest.createFunction(
     }
 
     const result = await step.run('crawl-firecrawl', () =>
-      crawlSite({ siteId, maxPages })
+      scrapeForDiscovery({ siteId, maxPages })
     )
 
     await step.sendEvent('trigger-discovery', {
