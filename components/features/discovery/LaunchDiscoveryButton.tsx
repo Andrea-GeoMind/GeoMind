@@ -1,42 +1,66 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Loader2, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { launchDiscoveryAction } from '@/app/(app)/sites/[siteId]/discovery/launch-action'
+import { useRouter } from 'next/navigation'
+import { Loader2, Sparkles } from 'lucide-react'
 
 type Props = {
-  siteId: string
+  onLaunch: () => Promise<{ error?: string }>
 }
 
-export function LaunchDiscoveryButton({ siteId }: Props) {
+export function LaunchDiscoveryButton({ onLaunch }: Props) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [launched, setLaunched] = useState(false)
 
   function handleClick() {
     setError(null)
     startTransition(async () => {
-      const result = await launchDiscoveryAction(siteId)
-      if (result?.error) setError(result.error)
+      const result = await onLaunch()
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      setLaunched(true)
+      // Recharge la page après 3s pour afficher l'état "en cours"
+      setTimeout(() => router.refresh(), 3000)
     })
   }
 
+  if (launched) {
+    return (
+      <div className="flex flex-col items-center gap-3 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+          <Sparkles size={20} className="text-green-600" />
+        </div>
+        <p className="text-sm font-medium text-foreground">Découverte lancée !</p>
+        <p className="text-xs text-muted-foreground">
+          GeoMind crawle votre site et analyse votre activité. Revenez dans quelques minutes.
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-2">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={isPending}
+    <div className="flex flex-col items-center gap-3">
+      <button
         onClick={handleClick}
-        className="gap-2"
+        disabled={isPending}
+        className="inline-flex items-center gap-2 rounded-lg bg-[--brand-blue-500] px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {isPending ? (
-          <Loader2 size={14} className="animate-spin" />
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            Lancement…
+          </>
         ) : (
-          <RefreshCw size={14} />
+          <>
+            <Sparkles size={16} />
+            Lancer la découverte
+          </>
         )}
-        Relancer la découverte
-      </Button>
+      </button>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
