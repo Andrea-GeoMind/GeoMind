@@ -41,7 +41,7 @@ function useActiveInterval(cb: () => void, delay: number) {
     }
 
     function onVisibility() {
-      document.hidden ? stop() : start()
+      if (document.hidden) { stop() } else { start() }
     }
 
     start()
