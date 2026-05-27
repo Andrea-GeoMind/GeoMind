@@ -17,7 +17,74 @@ function getClient(): FirecrawlApp {
   return _client
 }
 
+// ─── scrapeForDiscovery ────────────────────────────────────────────────────────
+// Utilisé pour la découverte initiale (site.crawl.requested).
+// Stratégie : map() pour lister les URLs (< 2s), puis scrape() en parallèle sur
+// chaque URL trouvée (requêtes HTTP directes, sans job asynchrone ni polling).
+// Un site à 2 pages : ~5-8s. Un site à 20 pages : ~10-15s (limité à maxPages).
+
+export async function scrapeForDiscovery({
+  siteId,
+  maxPages = 5,
+}: {
+  siteId: string
+  maxPages?: number
+}): Promise<{ siteId: string; pagesCount: number }> {
+  const site = await getSiteById(siteId)
+  if (!site) throw new Error(`scrapeForDiscovery: site introuvable (id=${siteId})`)
+
+  const client = getClient()
+
+  // 1. Lister les URLs présentes sur le site (rapide — pas de contenu scrappé)
+  let urlsToScrape: string[] = [site.url]
+  try {
+    const mapResult = await client.map(site.url, { limit: maxPages + 5 })
+    if (mapResult.links && mapResult.links.length > 0) {
+      const discovered = mapResult.links
+        .map((l) => l.url)
+        .filter((u): u is string => typeof u === 'string' && u.startsWith('http'))
+        .slice(0, maxPages)
+      // Toujours inclure la homepage
+      if (!discovered.includes(site.url)) discovered.unshift(site.url)
+      urlsToScrape = discovered.slice(0, maxPages)
+    }
+  } catch {
+    // map() indisponible → on se rabat sur la homepage uniquement
+  }
+
+  // 2. Scraper chaque URL en parallèle (requête HTTP directe, pas de polling)
+  const pages: FirecrawlPageInsert[] = []
+  await Promise.allSettled(
+    urlsToScrape.map(async (url) => {
+      try {
+        const doc = await client.scrape(url, { formats: ['markdown'] })
+        if (!doc) return
+        const parsed = firecrawlDocumentSchema.safeParse(doc)
+        if (!parsed.success) return
+        pages.push({
+          siteId,
+          url: parsed.data.metadata?.url ?? url,
+          markdown: parsed.data.markdown ?? null,
+          metadata: parsed.data.metadata ? (parsed.data.metadata as Record<string, unknown>) : null,
+          statusCode: parsed.data.metadata?.statusCode ?? null,
+        })
+      } catch {
+        // Page inaccessible — on continue avec les autres
+      }
+    })
+  )
+
+  if (pages.length === 0) {
+    throw new Error(`scrapeForDiscovery: aucune page accessible pour ${site.url}`)
+  }
+
+  await upsertFirecrawlPages(pages)
+  return { siteId, pagesCount: pages.length }
+}
+
 // ─── crawlSite ─────────────────────────────────────────────────────────────────
+// Utilisé pour les ré-analyses complètes (run-full-analysis quand pages > 2h).
+// Crawl async Firecrawl : explore tous les liens, scrape jusqu'à maxPages pages.
 
 export async function crawlSite({
   siteId,
