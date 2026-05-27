@@ -20,7 +20,7 @@ export const DiscoveryOutputSchema = z.object({
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>
 
 export const NeutralPromptsOutputSchema = z.object({
-  prompts: z.array(z.string().min(10)).length(3),
+  prompts: z.array(z.string().min(10)).length(20),
 })
 
 export type NeutralPromptsOutput = z.infer<typeof NeutralPromptsOutputSchema>
