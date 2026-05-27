@@ -9,7 +9,6 @@ import {
   recommendations,
   publishers,
   prompts,
-  sites,
 } from '@/lib/db/schema'
 import { createClient } from '@/lib/supabase/server'
 
