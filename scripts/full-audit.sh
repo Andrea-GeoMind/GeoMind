@@ -18,11 +18,20 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# ── Charger les credentials locaux pour les fixtures E2E (Supabase, etc.) ──
+if [ -f "$PROJECT_DIR/.env.local" ]; then
+  set -o allexport
+  # shellcheck disable=SC1090
+  source "$PROJECT_DIR/.env.local"
+  set +o allexport
+fi
+
 # ── Configuration (override via env ou argv) ──
 BASE_URL="${1:-${PROD_API_URL:?PROD_API_URL non défini — exporter ou passer en argv}}"
-WEB_URL="${PROD_WEB_URL:-<frontend-prod-url>}"
+WEB_URL="${PROD_WEB_URL:-$BASE_URL}"
 ADMIN_TOKEN="${ADMIN_TOKEN:-change-me}"
-E2E_CMD="${E2E_CMD:-python3 -m pytest tests/e2e/ -v --tb=short}"
+# webkit non supporté sur macOS 12 → chromium uniquement
+E2E_CMD="${E2E_CMD:-PLAYWRIGHT_BASE_URL=${WEB_URL} pnpm playwright test --project=chromium --reporter=line}"
 
 green()  { printf "\033[32m%s\033[0m" "$1"; }
 red()    { printf "\033[31m%s\033[0m" "$1"; }

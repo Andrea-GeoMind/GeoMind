@@ -39,7 +39,7 @@ REAL_ERRORS=$(grep -cE "Error\b|TypeError|ReferenceError|SyntaxError|Build faile
 
 if [ "$REAL_ERRORS" -gt 0 ]; then
     echo "  Erreurs significatives :"
-    grep -E "Error\b|TypeError|ReferenceError|SyntaxError|⨯|Build failed" "$LOG_FILE" 2>/dev/null | grep -v "PackFileCacheStrategy\|Serializing" | head -10
+    grep -E "Error\b|TypeError|ReferenceError|SyntaxError|⨯|Build failed" "$LOG_FILE" 2>/dev/null | grep -v "PackFileCacheStrategy\|Serializing" | head -10 || true
     echo ""
     # On ne bloque pas sur les erreurs de log en dev (elles peuvent être des erreurs d'env manquants)
     echo "  $(yellow '⚠  Des erreurs ont été détectées dans les logs dev')"
