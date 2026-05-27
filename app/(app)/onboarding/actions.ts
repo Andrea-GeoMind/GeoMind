@@ -44,5 +44,5 @@ export async function createSiteOnboardingAction(
     // can trigger it manually from the discovery page.
   }
 
-  redirect(`/sites/${site.id}/discovery`)
+  redirect(`/onboarding?siteId=${site.id}&step=3`)
 }

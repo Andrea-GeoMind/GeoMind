@@ -1,19 +1,31 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { StepProgress } from '@/components/features/onboarding/StepProgress'
 import { WelcomeStep } from '@/components/features/onboarding/WelcomeStep'
 import { AddSiteStep } from '@/components/features/onboarding/AddSiteStep'
+import { OnboardingFlowModal } from '@/components/features/onboarding/OnboardingFlowModal'
 
 export const metadata: Metadata = {
   title: 'Onboarding — GEOMIND',
 }
 
 type Props = {
-  searchParams: Promise<{ step?: string }>
+  searchParams: Promise<{ step?: string; siteId?: string }>
 }
 
 export default async function OnboardingPage({ searchParams }: Props) {
-  const { step: stepParam } = await searchParams
-  const step = (Number(stepParam) || 1) as 1 | 2
+  const { step: stepParam, siteId } = await searchParams
+  const step = (Number(stepParam) || 1) as 1 | 2 | 3
+
+  // Étape 3 = modal plein écran bloquante (crawl → review → analyse → done)
+  if (step === 3) {
+    if (!siteId) redirect('/onboarding?step=2')
+    return (
+      <div className="min-h-screen bg-background">
+        <OnboardingFlowModal siteId={siteId} />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
@@ -26,12 +38,9 @@ export default async function OnboardingPage({ searchParams }: Props) {
       </div>
 
       <div className="w-full max-w-lg space-y-8">
-        {/* Step indicator */}
         <div className="flex justify-center">
           <StepProgress currentStep={step} />
         </div>
-
-        {/* Card */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
           {step === 1 && <WelcomeStep />}
           {step === 2 && <AddSiteStep />}
