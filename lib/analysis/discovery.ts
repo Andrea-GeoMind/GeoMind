@@ -59,7 +59,7 @@ export async function runDiscovery(siteId: string): Promise<DiscoveryResult> {
 
   const { description, keywords, competitors } = discoveryResult.data
 
-  // ── Étape 2 : génération des 20 prompts neutres ───────────────────────────────
+  // ── Étape 2 : génération des 3 prompts neutres ────────────────────────────────
 
   const neutralPromptsResult = await callStructured({
     systemPrompt: NEUTRAL_PROMPTS_SYSTEM_PROMPT,

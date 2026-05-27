@@ -97,21 +97,21 @@ describe('DiscoveryOutputSchema', () => {
 // ─── NeutralPromptsOutputSchema ───────────────────────────────────────────────
 
 describe('NeutralPromptsOutputSchema', () => {
-  const twentyPrompts = Array.from({ length: 20 }, (_, i) => `Question neutre numero ${i + 1} ?`)
+  const threePrompts = Array.from({ length: 3 }, (_, i) => `Question neutre numero ${i + 1} ?`)
 
-  it('accepte exactement 20 prompts', () => {
-    const result = NeutralPromptsOutputSchema.safeParse({ prompts: twentyPrompts })
+  it('accepte exactement 3 prompts', () => {
+    const result = NeutralPromptsOutputSchema.safeParse({ prompts: threePrompts })
     expect(result.success).toBe(true)
   })
 
-  it('rejette moins de 20 prompts', () => {
-    const result = NeutralPromptsOutputSchema.safeParse({ prompts: twentyPrompts.slice(0, 19) })
+  it('rejette moins de 3 prompts', () => {
+    const result = NeutralPromptsOutputSchema.safeParse({ prompts: threePrompts.slice(0, 2) })
     expect(result.success).toBe(false)
   })
 
-  it('rejette plus de 20 prompts', () => {
+  it('rejette plus de 3 prompts', () => {
     const result = NeutralPromptsOutputSchema.safeParse({
-      prompts: [...twentyPrompts, 'Question 21 ?'],
+      prompts: [...threePrompts, 'Question 4 ?'],
     })
     expect(result.success).toBe(false)
   })
