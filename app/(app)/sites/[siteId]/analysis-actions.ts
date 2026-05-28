@@ -17,18 +17,24 @@ export async function runAnalysisAction(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const site = await getSiteById(siteId)
-  if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
+  let site, allowed, analysis
+  try {
+    site = await getSiteById(siteId)
+    if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
 
-  const allowed = await canRunFullAnalysis(user.id)
-  if (!allowed) {
-    return {
-      error:
-        "Limite d'analyses atteinte ce mois-ci pour votre plan. Passez au plan supérieur.",
+    allowed = await canRunFullAnalysis(user.id)
+    if (!allowed) {
+      return {
+        error:
+          "Limite d'analyses atteinte ce mois-ci pour votre plan. Passez au plan supérieur.",
+      }
     }
-  }
 
-  const analysis = await createAnalysis({ siteId, userId: user.id })
+    analysis = await createAnalysis({ siteId, userId: user.id })
+  } catch (err) {
+    console.error('[runAnalysisAction] DB error:', err)
+    return { error: "Une erreur est survenue. Veuillez réessayer." }
+  }
 
   trackEvent(user.id, 'analysis_started', { siteId, analysisId: analysis.id })
 
