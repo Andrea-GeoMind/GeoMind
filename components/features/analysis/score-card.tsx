@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from '@/lib/utils'
 import { getScoreMaturity } from '@/lib/analysis/scoring'
 import { TrendingUp, TrendingDown, Minus, Shield, Wrench, FileText, BarChart2, ArrowRight } from 'lucide-react'
@@ -12,6 +14,8 @@ interface ScoreCardProps {
   trend?: Trend
   className?: string
   onClick?: () => void
+  /** Pass `true` from a Server Component to get hover styles without needing an onClick function. */
+  clickable?: boolean
 }
 
 const PILLAR_LABELS: Record<Pillar, string> = {
@@ -63,11 +67,12 @@ export function ScoreCard({
   trend,
   className,
   onClick,
+  clickable,
 }: ScoreCardProps) {
   const label = PILLAR_LABELS[pillar]
   const sublabel = PILLAR_SUBLABELS[pillar]
   const Icon = PILLAR_ICONS[pillar]
-  const isClickable = typeof onClick === 'function'
+  const isClickable = typeof onClick === 'function' || clickable === true
   const maturity = getScoreMaturity(score)
   const barColor = SCORE_BAR_COLORS[maturity.level] ?? SCORE_BAR_COLORS['beginner']!
   const textColor = SCORE_TEXT_COLORS[maturity.level] ?? SCORE_TEXT_COLORS['beginner']!
@@ -87,7 +92,7 @@ export function ScoreCard({
       tabIndex={isClickable ? 0 : undefined}
       onClick={onClick}
       onKeyDown={
-        isClickable
+        isClickable && onClick
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') onClick()
             }
