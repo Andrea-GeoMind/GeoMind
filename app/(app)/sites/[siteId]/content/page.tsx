@@ -44,8 +44,8 @@ export default async function ContentPage({ params }: Props) {
     }),
   ])
 
-  const isPro = sub?.plan === 'pro' || sub?.plan === 'business'
-  const isBusiness = sub?.plan === 'business'
+  const isPro = sub?.plan === 'pro' || sub?.plan === 'business' || sub?.plan === 'admin'
+  const isBusiness = sub?.plan === 'business' || sub?.plan === 'admin'
 
   if (!latest) {
     return <NoAnalysisState siteId={siteId} />
