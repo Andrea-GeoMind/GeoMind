@@ -198,7 +198,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.authorityScore ?? 0}
                   delta={deltas?.authorityDelta}
                   trend={deltas !== null ? deltaTrend(deltas.authorityDelta) : undefined}
-                  onClick={() => {}}
+                  clickable
                 />
               </Link>
               <Link href={`/sites/${siteId}/technical`} className="contents">
@@ -207,7 +207,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.technicalScore ?? 0}
                   delta={deltas?.technicalDelta}
                   trend={deltas !== null ? deltaTrend(deltas.technicalDelta) : undefined}
-                  onClick={() => {}}
+                  clickable
                 />
               </Link>
               <Link href={`/sites/${siteId}/content` as Route} className="contents">
@@ -216,7 +216,7 @@ export default async function OverviewPage({ params }: Props) {
                   score={currentAnalysis.contentScore ?? 0}
                   delta={deltas?.contentDelta}
                   trend={deltas !== null ? deltaTrend(deltas.contentDelta) : undefined}
-                  onClick={() => {}}
+                  clickable
                 />
               </Link>
             </>
