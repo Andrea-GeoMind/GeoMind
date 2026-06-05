@@ -33,9 +33,9 @@ export default function Sidebar({ userEmail }: Props) {
   const { locked } = useAnalysisLock()
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-card">
+    <aside className="flex h-full w-64 shrink-0 flex-col bg-[#0F172A]">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-5">
+      <div className="flex h-16 items-center border-b border-slate-800 px-5">
         <div
           className={cn(
             'flex items-center gap-2.5',
@@ -44,12 +44,12 @@ export default function Sidebar({ userEmail }: Props) {
           title={locked ? 'Analyse en cours…' : undefined}
         >
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600">
               <span className="text-xs font-black text-white">G</span>
             </div>
-            <span className="text-lg font-extrabold tracking-tight text-foreground">
+            <span className="text-lg font-extrabold tracking-tight text-white">
               Geo
-              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
                 Mind
               </span>
             </span>
@@ -72,13 +72,13 @@ export default function Sidebar({ userEmail }: Props) {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    ? 'bg-indigo-500/15 text-indigo-400'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200',
                   locked && 'opacity-50'
                 )}
               >
                 <Icon
-                  className={cn('h-4 w-4 shrink-0 transition-colors', isActive ? 'text-primary' : '')}
+                  className={cn('h-4 w-4 shrink-0 transition-colors', isActive ? 'text-indigo-400' : '')}
                 />
                 {label}
               </Link>
@@ -88,12 +88,12 @@ export default function Sidebar({ userEmail }: Props) {
       </nav>
 
       {/* User section */}
-      <div className="border-t p-3">
+      <div className="border-t border-slate-800 p-3">
         <div className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-400">
             {initial}
           </div>
-          <p className="min-w-0 truncate text-xs text-muted-foreground">{userEmail}</p>
+          <p className="min-w-0 truncate text-xs text-slate-400">{userEmail}</p>
         </div>
         <form action={signOut}>
           <Button
@@ -101,7 +101,7 @@ export default function Sidebar({ userEmail }: Props) {
             variant="ghost"
             size="sm"
             disabled={locked}
-            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            className="w-full justify-start gap-3 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
             title={locked ? 'Analyse en cours…' : undefined}
           >
             <LogOut className="h-4 w-4 shrink-0" />

@@ -43,7 +43,7 @@ export default async function DashboardPage() {
 
       {siteList.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/30 py-24 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/30 py-24 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
             <Globe size={28} className="text-primary" />
           </div>

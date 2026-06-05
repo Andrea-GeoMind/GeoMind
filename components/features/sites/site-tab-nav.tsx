@@ -11,6 +11,8 @@ const TABS = [
   { label: 'Technique',      segment: 'technical' },
   { label: 'Contenu',        segment: 'content' },
   { label: 'Découverte',     segment: 'discovery' },
+  { label: 'Publishers',     segment: 'publishers' },
+  { label: 'Coach',          segment: 'coach' },
 ]
 
 export function SiteTabNav({ siteId }: { siteId: string }) {
@@ -19,7 +21,7 @@ export function SiteTabNav({ siteId }: { siteId: string }) {
   return (
     <nav
       aria-label="Onglets du site"
-      className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4"
+      className="flex gap-0 overflow-x-auto border-b border-border bg-background px-4 sm:px-6"
     >
       {TABS.map((tab) => {
         const href = `/sites/${siteId}/${tab.segment}` as Route
@@ -29,9 +31,9 @@ export function SiteTabNav({ siteId }: { siteId: string }) {
             key={tab.segment}
             href={href}
             className={cn(
-              'whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+              'whitespace-nowrap border-b-2 px-4 py-3 text-sm transition-colors',
               isActive
-                ? 'border-[--brand-blue-500] text-[--brand-blue-500]'
+                ? 'border-indigo-600 font-semibold text-indigo-600'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             )}
           >

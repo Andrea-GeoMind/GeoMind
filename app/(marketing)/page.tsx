@@ -171,7 +171,7 @@ export default function HomePage() {
             {['ChatGPT', 'Perplexity', 'Google Gemini', 'Claude'].map((name) => (
               <span
                 key={name}
-                className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm"
+                className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:border-indigo-200 hover:text-foreground"
               >
                 {name}
               </span>
@@ -268,7 +268,7 @@ export default function HomePage() {
             ].map(({ icon, title, subtitle, body }) => (
               <div
                 key={title}
-                className="rounded-xl border border-border bg-card p-8 shadow-sm transition-shadow hover:shadow-md"
+                className="rounded-xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:shadow-indigo-100/50 hover:-translate-y-0.5"
               >
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
                   {icon}
@@ -316,7 +316,7 @@ export default function HomePage() {
             </div>
 
             {/* Pro — highlighted */}
-            <div className="relative flex flex-col rounded-xl border border-primary/40 bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100">
+            <div className="relative flex flex-col rounded-xl border border-primary/40 bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100/60">
               <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-xs font-semibold text-white">
                 Populaire
               </span>

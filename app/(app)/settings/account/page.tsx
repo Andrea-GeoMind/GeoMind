@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { DeleteAccountButton } from '@/components/features/settings/delete-account-button'
+import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 export const metadata: Metadata = {
   title: 'Compte — GEOMIND',
@@ -16,20 +17,23 @@ export default async function AccountSettingsPage() {
   if (!user) redirect('/login')
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
+      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
+      <SettingsTabNav />
+
       {/* Email */}
-      <div className="rounded-xl border bg-card shadow-sm p-6">
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
         <p className="text-base font-semibold mb-4">Informations du compte</p>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Adresse e-mail
           </p>
-          <p className="mt-1 text-sm font-medium text-foreground">{user.email}</p>
+          <p className="mt-1.5 text-sm font-medium text-foreground">{user.email}</p>
         </div>
       </div>
 
       {/* Password */}
-      <div className="rounded-xl border bg-card shadow-sm p-6">
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
         <p className="text-base font-semibold mb-1">Mot de passe</p>
         <p className="text-sm text-muted-foreground mb-4">
           Recevez un lien par e-mail pour réinitialiser votre mot de passe.
@@ -43,7 +47,7 @@ export default async function AccountSettingsPage() {
       </div>
 
       {/* Danger zone */}
-      <div className="rounded-xl border border-destructive/30 bg-card shadow-sm p-6">
+      <div className="rounded-xl border border-destructive/30 bg-white shadow-sm p-6">
         <p className="text-base font-semibold text-destructive mb-1">Zone dangereuse</p>
         <p className="text-sm text-muted-foreground mb-4">
           La suppression de votre compte est définitive. Toutes vos données (sites, analyses,
