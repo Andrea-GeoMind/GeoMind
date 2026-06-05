@@ -17,8 +17,11 @@ export default async function LoginPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <Link href="/" className="inline-block">
-          <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-            GeoMind
+          <span className="text-xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+              GEO
+            </span>
+            <span className="text-foreground">MIND</span>
           </span>
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight">Connexion</h1>

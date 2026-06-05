@@ -15,7 +15,7 @@ export function SettingsTabNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="mb-8 flex gap-1 border-b border-border">
+    <nav className="mb-8 inline-flex rounded-xl border border-border bg-muted p-1.5 gap-1">
       {TABS.map((tab) => {
         const isActive = pathname === tab.href
         return (
@@ -23,10 +23,10 @@ export function SettingsTabNav() {
             key={tab.href}
             href={tab.href}
             className={cn(
-              'whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
+              'whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all',
               isActive
-                ? '-mb-px border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {tab.label}

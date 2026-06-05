@@ -46,7 +46,7 @@ export function SiteCard({ site }: Props) {
 
   return (
     <>
-      <Card className="transition-shadow duration-150 hover:shadow-md hover:[box-shadow:var(--shadow-md)]">
+      <Card className="rounded-xl border border-border bg-white shadow-sm transition-shadow duration-150 hover:shadow-md">
         <CardContent className="flex items-center gap-4 p-4">
           {/* Icon */}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/15">
@@ -70,7 +70,7 @@ export function SiteCard({ site }: Props) {
           {/* CTA */}
           <Link
             href={`/sites/${site.id}/overview`}
-            className="group flex shrink-0 items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+            className="group flex shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
           >
             Voir l&apos;analyse
             <ArrowRight className="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5" />

@@ -40,15 +40,15 @@ export default function PricingPage() {
               </Button>
               <ul className="mt-8 flex-1 space-y-4 text-sm">
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">1 site</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">1 analyse à vie</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Score GEO global</span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -91,27 +91,27 @@ export default function PricingPage() {
               </Button>
               <ul className="mt-8 flex-1 space-y-4 text-sm">
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">3 sites</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">4 analyses / mois</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Score GEO global</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Analyse technique</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Analyse contenu</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Coach IA (recommandations)</span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -136,31 +136,31 @@ export default function PricingPage() {
               </Button>
               <ul className="mt-8 flex-1 space-y-4 text-sm">
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">10 sites</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">30 analyses / mois</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Score GEO global</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Analyse technique</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Analyse contenu</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Coach IA + API access</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                   <span className="text-foreground">Support prioritaire</span>
                 </li>
               </ul>
@@ -177,7 +177,7 @@ export default function PricingPage() {
           </h2>
           <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-muted/60">
                 <tr className="border-b border-border">
                   <th className="px-6 py-4 text-left font-medium text-muted-foreground">
                     Fonctionnalité
@@ -192,67 +192,67 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                <tr>
+                <tr className="bg-card">
                   <td className="px-6 py-4 font-medium text-foreground">Sites</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">1</td>
                   <td className="px-6 py-4 text-center font-medium text-foreground">3</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">10</td>
                 </tr>
-                <tr>
+                <tr className="bg-muted/20">
                   <td className="px-6 py-4 font-medium text-foreground">Analyses</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">1 à vie</td>
                   <td className="px-6 py-4 text-center font-medium text-foreground">4 / mois</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">30 / mois</td>
                 </tr>
-                <tr>
+                <tr className="bg-card">
                   <td className="px-6 py-4 font-medium text-foreground">Score GEO global</td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                 </tr>
-                <tr>
+                <tr className="bg-muted/20">
                   <td className="px-6 py-4 font-medium text-foreground">Analyse technique</td>
                   <td className="px-6 py-4 text-center">
                     <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                 </tr>
-                <tr>
+                <tr className="bg-card">
                   <td className="px-6 py-4 font-medium text-foreground">Analyse contenu</td>
                   <td className="px-6 py-4 text-center">
                     <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                 </tr>
-                <tr>
+                <tr className="bg-muted/20">
                   <td className="px-6 py-4 font-medium text-foreground">Analyse autorité</td>
                   <td className="px-6 py-4 text-center">
                     <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                 </tr>
-                <tr>
+                <tr className="bg-card">
                   <td className="px-6 py-4 font-medium text-foreground">
                     Coach IA (recommandations)
                   </td>
@@ -260,13 +260,13 @@ export default function PricingPage() {
                     <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-accent" />
+                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
                   </td>
                 </tr>
-                <tr>
+                <tr className="bg-muted/20">
                   <td className="px-6 py-4 font-medium text-foreground">Support</td>
                   <td className="px-6 py-4 text-center text-muted-foreground">Email</td>
                   <td className="px-6 py-4 text-center font-medium text-foreground">Email</td>

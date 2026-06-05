@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { createCheckoutSession, createPortalSession } from '@/app/actions/stripe'
 import { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans'
+import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 interface PageProps {
   searchParams: Promise<{ success?: string; canceled?: string }>
@@ -30,38 +31,34 @@ export default async function BillingPage({ searchParams }: PageProps) {
     plan === 'business'
       ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
       : plan === 'pro'
-        ? 'bg-primary/10 text-primary'
+        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
         : 'bg-muted text-muted-foreground'
 
   return (
-    <div className="mx-auto max-w-2xl p-6 sm:p-8">
+    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
       {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight">Facturation</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Gérez votre abonnement GeoMind.
-        </p>
-      </div>
+      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
+      <SettingsTabNav />
 
       {/* Banners */}
       {showSuccess && (
-        <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Paiement effectué — votre plan a été mis à jour.
         </div>
       )}
       {showCanceled && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Paiement annulé — aucun changement apporté.
         </div>
       )}
 
       {/* Plan actuel */}
-      <div className="mb-4 rounded-xl border bg-card shadow-sm p-6">
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
         <p className="text-base font-semibold mb-4">Plan actuel</p>
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${planBadgeClass}`}>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${planBadgeClass}`}>
                 {PLAN_LABELS[plan]}
               </span>
               {status === 'active' && plan !== 'free' && (
@@ -106,9 +103,9 @@ export default async function BillingPage({ searchParams }: PageProps) {
             <form action={createPortalSession}>
               <button
                 type="submit"
-                className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
               >
-                Gérer l&apos;abonnement (changer carte, annuler…) →
+                Gérer mon abonnement →
               </button>
             </form>
           </div>
@@ -171,8 +168,8 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`rounded-xl border bg-card shadow-sm p-6 transition-shadow hover:shadow-md ${
-        highlighted ? 'border-primary ring-1 ring-primary/20' : ''
+      className={`rounded-xl border border-border bg-white shadow-sm p-6 transition-shadow hover:shadow-md ${
+        highlighted ? 'ring-1 ring-primary/20' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-1">

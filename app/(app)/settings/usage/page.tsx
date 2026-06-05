@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUsageStats } from '@/lib/quotas'
 import { PLAN_LABELS, PLAN_UPGRADE_URLS } from '@/lib/plans'
 import Link from 'next/link'
+import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 export const metadata: Metadata = {
   title: 'Utilisation — GEOMIND',
@@ -23,24 +24,25 @@ export default async function UsagePage() {
     stats.plan === 'business'
       ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
       : stats.plan === 'pro'
-        ? 'bg-primary/10 text-primary'
+        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
         : 'bg-muted text-muted-foreground'
 
   return (
-    <div className="mx-auto max-w-2xl p-6 sm:p-8">
+    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
       {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold tracking-tight">Utilisation</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Quota consommé ce mois-ci — plan{' '}
-          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${planBadgeClass}`}>
-            {PLAN_LABELS[stats.plan]}
-          </span>
-        </p>
-      </div>
+      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
+      <SettingsTabNav />
+
+      {/* Plan badge subtitle */}
+      <p className="text-sm text-muted-foreground -mt-4">
+        Quota consommé ce mois-ci — plan{' '}
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${planBadgeClass}`}>
+          {PLAN_LABELS[stats.plan]}
+        </span>
+      </p>
 
       {/* Usage cards */}
-      <div className="rounded-xl border bg-card shadow-sm p-6 mb-4">
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
         <p className="text-base font-semibold mb-4">Quotas du mois en cours</p>
         <div className="space-y-6">
           <UsageRow
@@ -61,7 +63,7 @@ export default async function UsagePage() {
 
       {/* Upgrade CTA */}
       {upgradeUrl && (
-        <div className="rounded-xl border bg-card shadow-sm p-6">
+        <div className="rounded-xl border border-border bg-white shadow-sm p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium">Vous atteignez vos limites ?</p>
@@ -97,11 +99,11 @@ function UsageRow({
   const isWarning = pct >= 80
   const isFull = pct >= 100
 
-  const barClass = isFull
+  const barInnerClass = isFull
     ? 'bg-destructive'
     : isWarning
       ? 'bg-amber-400'
-      : 'bg-primary'
+      : 'bg-gradient-to-r from-indigo-500 to-violet-500'
 
   const valueClass = isFull
     ? 'text-destructive'
@@ -122,7 +124,7 @@ function UsageRow({
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className={`h-2 rounded-full transition-all ${barClass}`}
+          className={`h-full rounded-full transition-all ${barInnerClass}`}
           style={{ width: `${pct}%` }}
         />
       </div>
