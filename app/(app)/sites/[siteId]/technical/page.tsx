@@ -72,8 +72,16 @@ export default async function TechnicalPage({ params }: Props) {
   const totalPenalty = issues.reduce((sum, i) => sum + i.penalty, 0)
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
+    <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
+
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold tracking-tight text-foreground">Technique</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Qualité technique de {site.name} pour être lu et compris par les moteurs IA
+        </p>
+      </div>
 
       {/* Error banner */}
       {isError && (
@@ -95,53 +103,47 @@ export default async function TechnicalPage({ params }: Props) {
         </div>
       )}
 
-      {/* Score + KPI row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Score hero */}
-        <section className="col-span-1 overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:col-span-2">
-          <div className="border-b border-border/60 px-6 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Score Technique</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Qualité technique de votre site pour être lu et compris par les IAs
-            </p>
-          </div>
-          <div className="flex items-center justify-center py-8">
+      {/* Score hero — flex row */}
+      <section className="rounded-xl border border-border bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          <div className="flex shrink-0 items-center justify-center">
             {isInProgress ? (
-              <div className="flex flex-col items-center gap-3">
-                <Skeleton className="h-36 w-36 rounded-full" />
-                <Skeleton className="h-3 w-24 rounded-full" />
-              </div>
+              <Skeleton className="h-40 w-40 rounded-full" />
             ) : latest.technicalScore !== null ? (
               <ScoreGauge score={latest.technicalScore} size="lg" />
             ) : (
-              <p className="text-sm text-muted-foreground">Score non disponible</p>
+              <div className="flex h-40 w-40 items-center justify-center rounded-full border border-border bg-muted/30">
+                <p className="text-center text-xs text-muted-foreground">Score non disponible</p>
+              </div>
             )}
           </div>
-        </section>
-
-        {/* Issues count KPI */}
-        <section className="rounded-2xl border border-border bg-card shadow-sm">
-          <div className="border-b border-border/60 px-6 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Points faibles</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">Règles GEO non respectées</p>
+          <div className="flex flex-1 flex-col gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">Score Technique</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Évaluation des critères techniques GEO (accessibilité, structure, schema.org, performance)
+              </p>
+            </div>
+            <div className="flex items-baseline gap-3">
+              {isInProgress ? (
+                <>
+                  <Skeleton className="h-10 w-16 rounded-lg" />
+                  <Skeleton className="h-3 w-28 rounded-full" />
+                </>
+              ) : (
+                <>
+                  <span className="text-4xl font-extrabold text-foreground">{issues.length}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {issues.length === 0
+                      ? 'aucun point faible'
+                      : `point${issues.length > 1 ? 's' : ''} faible${issues.length > 1 ? 's' : ''}${totalPenalty > 0 ? ` · −${totalPenalty} pts` : ''}`}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col justify-center px-6 py-8">
-            {isInProgress ? (
-              <>
-                <Skeleton className="h-10 w-16 rounded-lg" />
-                <Skeleton className="h-3 w-28 rounded-full mt-2" />
-              </>
-            ) : (
-              <>
-                <p className="text-5xl font-extrabold text-foreground">{issues.length}</p>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {totalPenalty > 0 ? `−${totalPenalty} pts de pénalité` : 'Aucune pénalité'}
-                </p>
-              </>
-            )}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Issues list */}
       <section>

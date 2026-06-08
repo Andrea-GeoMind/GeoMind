@@ -87,7 +87,7 @@ export default async function CoachPage({ params }: Props) {
 
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col">
-      <div className="border-b border-border bg-card px-6 py-4">
+      <div className="border-b border-border bg-white px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
             <Sparkles className="h-4 w-4 text-indigo-600" />

@@ -45,7 +45,7 @@ export default async function PublishersPage({ params }: Props) {
 
   if (!latest) {
     return (
-      <div className="mx-auto max-w-sm px-4 py-20 text-center">
+      <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
           <BookOpen className="h-8 w-8 text-primary" />
         </div>
@@ -72,8 +72,16 @@ export default async function PublishersPage({ params }: Props) {
     latest.status === 'success' ? await getPublishersByAnalysisId(latest.id) : []
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
+    <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
+
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-extrabold tracking-tight text-foreground">Publishers</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Sites éditoriaux recommandés pour gagner en visibilité dans les moteurs IA
+        </p>
+      </div>
 
       {/* Error banner */}
       {isError && (
@@ -95,21 +103,14 @@ export default async function PublishersPage({ params }: Props) {
       )}
 
       <section>
-        {/* Section header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-extrabold tracking-tight text-foreground">
-            Publishers recommandés
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            Sites éditoriaux où obtenir de la visibilité pour être cité dans les moteurs IA.
-            Organisés par catégorie avec un angle d&apos;approche concret.
-          </p>
-        </div>
+        <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Recommandés pour {site.name}
+        </h2>
 
         {isInProgress ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-2xl" />
+              <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
           </div>
         ) : latest.status === 'success' ? (
