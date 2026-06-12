@@ -15,6 +15,7 @@ import {
   resetMonthlyCredits,
   topUpMonthlyCredits,
 } from '@/lib/credits'
+import { claimWebhookEvent, releaseWebhookEvent } from '@/lib/db/queries/webhook-events'
 import { CREDIT_PACKS, PLAN_LIMITS, type CreditPackId } from '@/lib/plans'
 import { trackEvent } from '@/lib/posthog'
 
@@ -51,11 +52,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true })
   }
 
+  // Idempotence : Stripe rejoue les événements avec le même id — chaque id
+  // n'est traité qu'une fois (protège le reset de crédits et la synchro plan).
+  const claimed = await claimWebhookEvent(event.id, event.type)
+  if (!claimed) {
+    return NextResponse.json({ received: true, replayed: true })
+  }
+
   try {
     await handleEvent(event)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[stripe-webhook] Error handling ${event.type}:`, message)
+    // Libère le claim pour que le retry Stripe puisse reprocesser l'événement.
+    await releaseWebhookEvent(event.id)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 

@@ -96,6 +96,18 @@ export const subscriptions = pgTable('subscriptions', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── stripe_webhook_events ────────────────────────────────────────────────────
+// Idempotence des webhooks Stripe : un event id (unique chez Stripe, identique
+// lors d'un replay) n'est traité qu'une fois. Le claim est posé AVANT le
+// traitement et libéré en cas d'échec, pour que le retry Stripe reprocesse.
+
+export const stripeWebhookEvents = pgTable('stripe_webhook_events', {
+  /** Event id Stripe (evt_…) — clé primaire naturelle */
+  id: text('id').primaryKey(),
+  type: text('type').notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── credit_balances ──────────────────────────────────────────────────────────
 // Solde de crédits par user (cahier-des-charges §17). Deux compteurs :
 // monthly_credits (alloués par le plan, reset à la date anniversaire de facturation)
