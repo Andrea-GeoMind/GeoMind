@@ -13,7 +13,7 @@ export default function CgvPage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           Conditions Générales de Vente
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : mai 2026</p>
+        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : juin 2026</p>
       </div>
 
       <section className="space-y-3">
@@ -30,15 +30,29 @@ export default function CgvPage() {
         <p className="text-muted-foreground leading-relaxed">GEOMIND propose les abonnements suivants :</p>
         <ul className="list-disc space-y-1.5 pl-5 text-muted-foreground">
           <li>
-            <strong className="text-foreground">Plan Gratuit</strong> — 1 site, 1 analyse à vie, sans frais.
+            <strong className="text-foreground">Plan Gratuit</strong> — sans frais : 1 site, 1
+            analyse complète offerte.
           </li>
           <li>
-            <strong className="text-foreground">Plan Pro</strong> — 49 € HT/mois, 3 sites, 4 analyses/mois.
+            <strong className="text-foreground">Plan Solo</strong> — 19 € HT/mois : 2 sites, 5 000
+            crédits mensuels.
           </li>
           <li>
-            <strong className="text-foreground">Plan Business</strong> — 149 € HT/mois, 10 sites, 30 analyses/mois.
+            <strong className="text-foreground">Plan Pro</strong> — 59 € HT/mois : 5 sites, 20 000
+            crédits mensuels.
+          </li>
+          <li>
+            <strong className="text-foreground">Plan Business</strong> — 149 € HT/mois : 15 sites,
+            80 000 crédits mensuels.
           </li>
         </ul>
+        <p className="text-muted-foreground leading-relaxed">
+          Les fonctionnalités sont mesurées en crédits : à titre indicatif, une analyse complète
+          consomme 400 crédits, un message au Coach IA 10 à 30 crédits, une recommandation complète
+          50 crédits. Les crédits mensuels se renouvellent à chaque période de facturation et ne se
+          reportent pas. Des packs de crédits additionnels (paiement unique, sans expiration)
+          peuvent être proposés. La facturation annuelle bénéficie d&apos;une remise de 20 %.
+        </p>
         <p className="text-muted-foreground leading-relaxed">
           Les tarifs peuvent évoluer ; le Client en est informé par e-mail avec un préavis de 30 jours.
         </p>
