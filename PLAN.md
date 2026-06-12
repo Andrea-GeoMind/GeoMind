@@ -21,15 +21,15 @@
 
 ## VAGUE 0 — ASSAINIR (P0 : vendable, sûr, cohérent)
 
-- [ ] **1. Cohérence pricing partout** — landing alignée sur les 4 plans V2 (19/59/149 €, crédits traduits en "≈ X analyses"), CGV mises à jour, HT affiché. `app/(marketing)/page.tsx`, `legal/cgv/page.tsx` — **S**
-- [ ] **2. Preuve sociale véridique** — si chiffres non réels : retrait des "2 400+ sites / 4,8 Trustpilot" (risque légal). Sinon, sourcer. — **S**
-- [ ] **3. Plan gratuit = 1 audit à vie** — adapter `lib/plans.ts`/crédits free (plus de reset mensuel à 500), copy landing/pricing alignée, surveillance dégradée préparée pour vague 1. — **M**
-- [ ] **4. RLS sur les 13 tables manquantes** — migration SQL policies `auth.uid()`. — **M**
-- [ ] **5. Isolation anti-injection des contenus crawlés** — balises `<donnees_site>` dans les prompts discovery/recommendations. — **S**
-- [ ] **6. Idempotence webhooks Stripe** — sur tous les événements subscription (table `processed_webhooks`). — **M**
-- [ ] **7. SEO/GEO de geomind.fr** — `app/robots.ts`, `app/sitemap.ts`, JSON-LD FAQPage + Organization, Open Graph + Twitter Card + metadataBase, metas sur /pricing, retrait de `/design` du public. — **M**
-- [ ] **8. Erreurs visibles dans l'onboarding** — timeout 45 s crawl / 5 min analyse, fin des `catch` silencieux, bannière erreur + bouton réessayer. — **M**
-- [ ] **9. Honnêteté méthodologique** — disclaimer mesure ("tests via API, tendance > score du jour") + transparence échantillonnage ("X pages analysées sur Y détectées"). — **S**
+- [x] **1. Cohérence pricing partout** — landing alignée sur les 4 plans V2 (19/59/149 €, crédits traduits en "≈ X analyses"), CGV mises à jour, HT affiché. `app/(marketing)/page.tsx`, `legal/cgv/page.tsx` — **S**
+- [x] **2. Preuve sociale véridique** — si chiffres non réels : retrait des "2 400+ sites / 4,8 Trustpilot" (risque légal). Sinon, sourcer. — **S**
+- [x] **3. Plan gratuit = 1 audit à vie** — adapter `lib/plans.ts`/crédits free (plus de reset mensuel à 500), copy landing/pricing alignée, surveillance dégradée préparée pour vague 1. — **M**
+- [x] **4. RLS sur les 13 tables manquantes** — migration SQL policies `auth.uid()`. — **M**
+- [x] **5. Isolation anti-injection des contenus crawlés** — balises `<donnees_site>` dans les prompts discovery/recommendations. — **S**
+- [x] **6. Idempotence webhooks Stripe** — sur tous les événements subscription (table `processed_webhooks`). — **M**
+- [x] **7. SEO/GEO de geomind.fr** — `app/robots.ts`, `app/sitemap.ts`, JSON-LD FAQPage + Organization, Open Graph + Twitter Card + metadataBase, metas sur /pricing, retrait de `/design` du public. — **M**
+- [x] **8. Erreurs visibles dans l'onboarding** — timeout 45 s crawl / 5 min analyse, fin des `catch` silencieux, bannière erreur + bouton réessayer. — **M**
+- [x] **9. Honnêteté méthodologique** — disclaimer mesure ("tests via API, tendance > score du jour") + transparence échantillonnage ("X pages analysées sur Y détectées"). — **S**
 
 ## VAGUE 1 — FIABILITÉ & RÉCURRENCE (le churn-killer)
 
