@@ -9,6 +9,54 @@ function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
   return Math.floor(PLAN_LIMITS[plan].creditsPerMonth / CREDIT_COSTS.fullAnalysis)
 }
 
+// FAQ de la landing — source unique pour l'affichage ET le balisage
+// Schema.org FAQPage (règle GEO schema-org-faq que le produit audite chez
+// ses clients : les IA reprennent les réponses balisées telles quelles).
+const FAQ_ITEMS = [
+  {
+    q: "Qu'est-ce que la visibilité IA ?",
+    a: "Quand quelqu'un pose une question à ChatGPT ou Perplexity, l'IA cite ses sources. La visibilité IA, c'est être dans ces sources. GEOMIND mesure si votre site est cité, et où vous pouvez progresser.",
+  },
+  {
+    q: "Comment fonctionne l'audit ?",
+    a: "On génère des questions neutres sur votre secteur, on les envoie aux principales IA, on analyse les réponses et on vérifie si votre site est cité. Tout est automatisé.",
+  },
+  {
+    q: 'Combien de temps prend une analyse ?',
+    a: 'En général entre 2 et 5 minutes selon le nombre de mots-clés et de moteurs IA.',
+  },
+  {
+    q: 'Est-ce que ça marche pour les petits sites ?',
+    a: "Oui, c'est même là qu'on peut le plus vous aider. Les grands groupes ont des équipes SEO/GEO. Les indépendants et PME, non. C'est pour eux qu'on a créé GEOMIND.",
+  },
+  {
+    q: 'Quelle est la différence avec le SEO classique ?',
+    a: 'Le SEO optimise votre position dans Google. Le GEO (Generative Engine Optimization) optimise votre présence dans les réponses des IA. Ce sont deux leviers complémentaires.',
+  },
+  {
+    q: 'Puis-je annuler à tout moment ?',
+    a: "Oui, sans engagement ni frais de résiliation. Vous restez sur le plan gratuit après l'annulation.",
+  },
+  {
+    q: 'Mes données sont-elles sécurisées ?',
+    a: 'Oui. Vos données sont hébergées en Europe (Supabase EU) et ne sont jamais partagées avec des tiers.',
+  },
+  {
+    q: "Je ne suis pas technique, est-ce que je peux l'utiliser ?",
+    a: 'Absolument. GEOMIND est conçu pour les non-experts. Les recommandations sont formulées en langage clair, sans jargon technique.',
+  },
+] as const
+
+const FAQ_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a },
+  })),
+}
+
 /* ─── Mini product preview — rendered in pure Tailwind, no images needed ─── */
 function ProductPreview() {
   return (
@@ -94,7 +142,7 @@ function ProductPreview() {
 
 export default function HomePage() {
   return (
-    <main>
+    <div>
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden px-4 py-20 sm:py-28">
         {/* Background glow */}
@@ -412,45 +460,16 @@ export default function HomePage() {
 
       {/* ── FAQ ───────────────────────────────────────────────────────── */}
       <section className="bg-muted/50 py-24">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+        />
         <div className="mx-auto max-w-3xl px-4">
           <h2 className="mb-12 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             Questions fréquentes
           </h2>
           <div className="divide-y divide-border">
-            {[
-              {
-                q: "Qu'est-ce que la visibilité IA ?",
-                a: "Quand quelqu'un pose une question à ChatGPT ou Perplexity, l'IA cite ses sources. La visibilité IA, c'est être dans ces sources. GEOMIND mesure si votre site est cité, et où vous pouvez progresser.",
-              },
-              {
-                q: "Comment fonctionne l'audit ?",
-                a: "On génère des questions neutres sur votre secteur, on les envoie aux principales IA, on analyse les réponses et on vérifie si votre site est cité. Tout est automatisé.",
-              },
-              {
-                q: "Combien de temps prend une analyse ?",
-                a: "En général entre 2 et 5 minutes selon le nombre de mots-clés et de moteurs IA.",
-              },
-              {
-                q: "Est-ce que ça marche pour les petits sites ?",
-                a: "Oui, c'est même là qu'on peut le plus vous aider. Les grands groupes ont des équipes SEO/GEO. Les indépendants et PME, non. C'est pour eux qu'on a créé GEOMIND.",
-              },
-              {
-                q: "Quelle est la différence avec le SEO classique ?",
-                a: "Le SEO optimise votre position dans Google. Le GEO (Generative Engine Optimization) optimise votre présence dans les réponses des IA. Ce sont deux leviers complémentaires.",
-              },
-              {
-                q: "Puis-je annuler à tout moment ?",
-                a: "Oui, sans engagement ni frais de résiliation. Vous restez sur le plan gratuit après l'annulation.",
-              },
-              {
-                q: "Mes données sont-elles sécurisées ?",
-                a: "Oui. Vos données sont hébergées en Europe (Supabase EU) et ne sont jamais partagées avec des tiers.",
-              },
-              {
-                q: "Je ne suis pas technique, est-ce que je peux l'utiliser ?",
-                a: "Absolument. GEOMIND est conçu pour les non-experts. Les recommandations sont formulées en langage clair, sans jargon technique.",
-              },
-            ].map(({ q, a }) => (
+            {FAQ_ITEMS.map(({ q, a }) => (
               <details key={q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-foreground">
                   {q}
@@ -485,6 +504,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

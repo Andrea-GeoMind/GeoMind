@@ -1,11 +1,19 @@
+import type { Metadata } from 'next'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Check, X } from 'lucide-react'
 import { PricingPlans } from '@/components/features/marketing/pricing-plans'
 
+export const metadata: Metadata = {
+  title: 'Tarifs — Gratuit, Solo 19 €, Pro 59 €, Business 149 €',
+  description:
+    'Des tarifs simples et sans engagement pour auditer votre visibilité dans ChatGPT, Perplexity, Gemini et Claude. 1 analyse complète offerte, sans carte bancaire.',
+  alternates: { canonical: '/pricing' },
+}
+
 export default function PricingPage() {
   return (
-    <main>
+    <div>
       {/* ── Header ───────────────────────────────────────────────────── */}
       <section className="bg-muted/50 py-20 text-center">
         <div className="mx-auto max-w-2xl px-4">
@@ -184,7 +192,7 @@ export default function PricingPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }
 
