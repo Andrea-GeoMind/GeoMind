@@ -10,6 +10,10 @@ import {
   monitorFreeSitesFunction,
   monitorSiteFunction,
 } from '@/lib/inngest/functions/monitor-sites'
+import {
+  monthlyReportCronFunction,
+  monthlyReportSendFunction,
+} from '@/lib/inngest/functions/monthly-report'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -22,5 +26,7 @@ export const { GET, POST, PUT } = serve({
     monitorPaidSitesFunction,
     monitorFreeSitesFunction,
     monitorSiteFunction,
+    monthlyReportCronFunction,
+    monthlyReportSendFunction,
   ],
 })
