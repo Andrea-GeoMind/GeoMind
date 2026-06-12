@@ -20,20 +20,20 @@ describe('CREDIT_COSTS', () => {
     expect(CREDIT_COSTS.coachMessage).toBe(10)
   })
 
-  it('bonus de bienvenue = 1000 crédits (2 analyses + ~40 questions)', () => {
+  it('bonus de bienvenue = 1000 crédits — couvre au moins l’analyse offerte du plan Gratuit', () => {
     expect(WELCOME_BONUS_CREDITS).toBe(1_000)
-    expect(WELCOME_BONUS_CREDITS).toBeGreaterThanOrEqual(2 * CREDIT_COSTS.fullAnalysis)
+    expect(WELCOME_BONUS_CREDITS).toBeGreaterThanOrEqual(CREDIT_COSTS.fullAnalysis)
   })
 })
 
 describe('PLAN_LIMITS — crédits mensuels', () => {
-  it('free = 500 (exactement 1 analyse complète par mois)', () => {
-    expect(PLAN_LIMITS.free.creditsPerMonth).toBe(500)
-    expect(PLAN_LIMITS.free.creditsPerMonth).toBeGreaterThanOrEqual(CREDIT_COSTS.fullAnalysis)
+  it('free = 0 (1 analyse offerte via le bonus de bienvenue, pas de renouvellement)', () => {
+    expect(PLAN_LIMITS.free.creditsPerMonth).toBe(0)
   })
 
   it('les allocations croissent avec le plan', () => {
-    expect(PLAN_LIMITS.pro.creditsPerMonth).toBeGreaterThan(PLAN_LIMITS.free.creditsPerMonth)
+    expect(PLAN_LIMITS.solo.creditsPerMonth).toBeGreaterThan(PLAN_LIMITS.free.creditsPerMonth)
+    expect(PLAN_LIMITS.pro.creditsPerMonth).toBeGreaterThan(PLAN_LIMITS.solo.creditsPerMonth)
     expect(PLAN_LIMITS.business.creditsPerMonth).toBeGreaterThan(PLAN_LIMITS.pro.creditsPerMonth)
   })
 
@@ -59,22 +59,10 @@ describe('CREDIT_PACKS', () => {
 // ─── needsMonthlyReset ────────────────────────────────────────────────────────
 
 describe('needsMonthlyReset', () => {
-  it('free : pas de reset dans le même mois calendaire', () => {
-    const last = new Date('2026-06-01T10:00:00Z')
+  it('free : jamais de reset (pas d’allocation mensuelle, bonus de bienvenue uniquement)', () => {
+    const last = new Date('2025-12-15T10:00:00Z')
     const now = new Date('2026-06-28T10:00:00Z')
     expect(needsMonthlyReset(last, 'free', now)).toBe(false)
-  })
-
-  it('free : reset au changement de mois', () => {
-    const last = new Date('2026-05-31T23:00:00Z')
-    const now = new Date('2026-06-01T01:00:00Z')
-    expect(needsMonthlyReset(last, 'free', now)).toBe(true)
-  })
-
-  it('free : reset au changement d’année (déc → jan)', () => {
-    const last = new Date('2025-12-15T10:00:00Z')
-    const now = new Date('2026-01-02T10:00:00Z')
-    expect(needsMonthlyReset(last, 'free', now)).toBe(true)
   })
 
   it('pro : pas de reset lazy avant 32 jours (le webhook Stripe gère)', () => {

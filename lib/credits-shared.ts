@@ -6,7 +6,7 @@
  * (soldes, consommation atomique) vit dans lib/credits.ts qui ré-exporte ce module.
  */
 
-import type { Plan } from '@/lib/plans'
+import { PLAN_LIMITS, type Plan } from '@/lib/plans'
 
 // ─── Coûts par opération ──────────────────────────────────────────────────────
 
@@ -38,17 +38,13 @@ const PAID_PLAN_RESET_FALLBACK_MS = 32 * 24 * 60 * 60 * 1000
 
 /**
  * Le solde mensuel doit-il être réinitialisé ?
- * Free : au changement de mois calendaire (UTC) — vérifié en lazy, pas de cron.
+ * Plans sans allocation mensuelle (free) : jamais — leur valeur est le bonus de
+ * bienvenue, sans renouvellement.
  * Plans payants : le webhook Stripe reset à la date anniversaire ; ici uniquement
  * un filet de sécurité à 32 jours si le webhook a été manqué.
  */
 export function needsMonthlyReset(lastResetAt: Date, plan: Plan, now: Date): boolean {
-  if (plan === 'free') {
-    return (
-      lastResetAt.getUTCFullYear() !== now.getUTCFullYear() ||
-      lastResetAt.getUTCMonth() !== now.getUTCMonth()
-    )
-  }
+  if (PLAN_LIMITS[plan].creditsPerMonth === 0) return false
   return now.getTime() - lastResetAt.getTime() > PAID_PLAN_RESET_FALLBACK_MS
 }
 

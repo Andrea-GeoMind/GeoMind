@@ -9,6 +9,8 @@ import { subscriptions } from '@/lib/db/schema'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
+import { countFirecrawlPagesBySiteId } from '@/lib/db/queries/firecrawl-pages'
+import { PageSamplingNote } from '@/components/features/analysis/methodology-note'
 import { ScoreGauge } from '@/components/charts/score-gauge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { IssuesList } from '@/components/features/technical/issues-list'
@@ -57,10 +59,13 @@ export default async function TechnicalPage({ params }: Props) {
   const isInProgress = latest.status === 'pending' || latest.status === 'running'
   const isError = latest.status === 'error'
 
-  const rawIssues =
+  const [rawIssues, pagesDetected] = await Promise.all([
     latest.status === 'success'
-      ? await getTechnicalIssuesByAnalysisId(latest.id)
-      : []
+      ? getTechnicalIssuesByAnalysisId(latest.id)
+      : Promise.resolve([]),
+    countFirecrawlPagesBySiteId(siteId),
+  ])
+  const pagesAnalyzed = Math.min(features.pageAnalysisLimit, pagesDetected)
 
   const issues: TechnicalIssueRow[] = rawIssues.map((r) => ({
     id: r.id,
@@ -108,6 +113,11 @@ export default async function TechnicalPage({ params }: Props) {
           <RefreshCw size={15} className="shrink-0 animate-spin" />
           Analyse en cours — la page se met à jour automatiquement…
         </div>
+      )}
+
+      {/* Transparence d'échantillonnage (PLAN item 9) */}
+      {!isInProgress && latest.status === 'success' && (
+        <PageSamplingNote pagesAnalyzed={pagesAnalyzed} pagesDetected={pagesDetected} />
       )}
 
       {/* Score hero — flex row */}

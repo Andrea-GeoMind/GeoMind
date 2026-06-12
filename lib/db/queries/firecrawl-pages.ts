@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm'
+import { count, desc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { firecrawlPages } from '@/lib/db/schema'
 
@@ -29,6 +29,15 @@ export async function upsertFirecrawlPages(pages: FirecrawlPageInsert[]) {
 
 export async function getFirecrawlPagesBySiteId(siteId: string) {
   return db.select().from(firecrawlPages).where(eq(firecrawlPages.siteId, siteId))
+}
+
+/** Nombre de pages crawlées pour un site — transparence d'échantillonnage. */
+export async function countFirecrawlPagesBySiteId(siteId: string): Promise<number> {
+  const [row] = await db
+    .select({ value: count() })
+    .from(firecrawlPages)
+    .where(eq(firecrawlPages.siteId, siteId))
+  return row?.value ?? 0
 }
 
 export async function deleteFirecrawlPagesBySiteId(siteId: string) {
