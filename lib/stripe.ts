@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { env } from '@/lib/env'
+import type { CreditPackId } from '@/lib/plans'
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: '2026-04-22.dahlia',
@@ -10,6 +11,13 @@ export const STRIPE_PRICE_IDS = {
   pro: env.STRIPE_PRO_PRICE_ID,
   business: env.STRIPE_BUSINESS_PRICE_ID,
 } as const
+
+/** Price IDs des packs de crédits — undefined tant que les produits Stripe n'existent pas */
+export const CREDIT_PACK_PRICE_IDS: Record<CreditPackId, string | undefined> = {
+  starter: env.STRIPE_PACK_STARTER_PRICE_ID,
+  growth: env.STRIPE_PACK_GROWTH_PRICE_ID,
+  power: env.STRIPE_PACK_POWER_PRICE_ID,
+}
 
 export type StripePlan = keyof typeof STRIPE_PRICE_IDS
 

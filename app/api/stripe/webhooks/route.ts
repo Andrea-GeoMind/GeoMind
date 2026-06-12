@@ -8,11 +8,18 @@ import {
   cancelSubscription,
   getSubscriptionByStripeCustomerId,
 } from '@/lib/db/queries/subscriptions'
+import {
+  addPurchasedCredits,
+  hasPackTransactionForSession,
+  resetMonthlyCredits,
+} from '@/lib/credits'
+import { CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
 import { trackEvent } from '@/lib/posthog'
 
 export const dynamic = 'force-dynamic'
 
 const HANDLED_EVENTS = new Set([
+  'checkout.session.completed',
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
@@ -55,6 +62,14 @@ export async function POST(req: Request) {
 
 async function handleEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session
+      if (session.metadata?.type === 'credit_pack') {
+        await handleCreditPackPurchase(session)
+      }
+      break
+    }
+
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
@@ -79,6 +94,12 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
         const subId = typeof subRef === 'string' ? subRef : subRef.id
         const sub = await stripe.subscriptions.retrieve(subId)
         await syncSubscription(sub)
+        // Reset des crédits mensuels à la date anniversaire de facturation (§17.4)
+        const userId = sub.metadata?.userId
+        if (userId) {
+          const priceId = sub.items.data[0]?.price.id ?? ''
+          await resetMonthlyCredits(userId, planFromPriceId(priceId))
+        }
       }
       break
     }
@@ -94,6 +115,36 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
       break
     }
   }
+}
+
+/**
+ * Crédite un pack acheté (§17.3). Idempotent : Stripe peut rejouer le webhook,
+ * la session n'est créditée qu'une fois (vérif sur sessionId en DB).
+ */
+async function handleCreditPackPurchase(session: Stripe.Checkout.Session): Promise<void> {
+  const userId = session.metadata?.userId
+  const packId = session.metadata?.packId as CreditPackId | undefined
+
+  if (!userId || !packId || !(packId in CREDIT_PACKS)) {
+    console.error('[stripe-webhook] credit_pack: metadata invalide', session.id)
+    return
+  }
+
+  if (await hasPackTransactionForSession(session.id)) {
+    return // webhook rejoué — déjà crédité
+  }
+
+  const pack = CREDIT_PACKS[packId]
+  await addPurchasedCredits(userId, pack.credits, 'pack_purchase', {
+    packId,
+    sessionId: session.id,
+  })
+
+  trackEvent(userId, 'credit_pack_purchased', {
+    packId,
+    credits: pack.credits,
+    priceEur: pack.priceEur,
+  })
 }
 
 async function syncSubscription(

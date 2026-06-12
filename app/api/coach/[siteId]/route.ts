@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
-import { canSendCoachMessage } from '@/lib/quotas'
+import { CREDIT_COSTS, consumeCredits, refundCredits } from '@/lib/credits'
 import { insertCoachMessage, getCoachMessages } from '@/lib/db/queries/coach'
 import { buildCoachContext } from '@/lib/analysis/coach-context'
 import { buildCoachSystemPrompt } from '@/lib/ai/prompts/coach'
@@ -35,10 +35,15 @@ export async function POST(
     return NextResponse.json({ error: 'Site introuvable' }, { status: 404 })
   }
 
-  const allowed = await canSendCoachMessage(user.id)
-  if (!allowed) {
+  // Décompte avant l'appel LLM — remboursé si OpenRouter échoue.
+  const consumed = await consumeCredits(user.id, CREDIT_COSTS.coachMessage, 'coach_message', {
+    siteId,
+  })
+  if (!consumed.ok) {
     return NextResponse.json(
-      { error: 'Quota atteint. Passez au plan Pro pour continuer.' },
+      {
+        error: `Crédits insuffisants (solde : ${consumed.balance.total}). Rechargez vos crédits pour continuer à discuter avec le coach.`,
+      },
       { status: 429 }
     )
   }
@@ -104,6 +109,7 @@ export async function POST(
 
         if (!orResponse.ok) {
           const errText = await orResponse.text()
+          await refundCredits(user.id, CREDIT_COSTS.coachMessage, { siteId, step: 'openrouter' })
           controller.error(new Error(`OpenRouter ${orResponse.status}: ${errText}`))
           return
         }
@@ -140,6 +146,8 @@ export async function POST(
           }
         }
       } catch (err) {
+        // Stream interrompu côté serveur → aucun décompte (§17.4)
+        await refundCredits(user.id, CREDIT_COSTS.coachMessage, { siteId, step: 'stream' })
         controller.error(err)
         return
       }

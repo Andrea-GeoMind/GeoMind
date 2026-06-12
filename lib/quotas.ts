@@ -1,10 +1,23 @@
+/**
+ * lib/quotas.ts
+ *
+ * Vérifications serveur des limites par plan (règle métier 2 : jamais de
+ * confiance au client). Depuis TKT-CREDITS, les opérations coûteuses (analyses,
+ * coach) sont gouvernées par le solde de crédits (lib/credits.ts) — seul le
+ * nombre de sites reste une limite fixe par plan.
+ */
+
 import { count, eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { sites } from '@/lib/db/schema'
 import { PLAN_LIMITS, type Plan } from '@/lib/plans'
-import { countAllAnalyses, countAnalysesThisMonth } from '@/lib/db/queries/analyses'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
-import { countCoachMessagesThisMonth } from '@/lib/db/queries/coach'
+import {
+  CREDIT_COSTS,
+  getUserCredits,
+  hasEnoughCredits,
+  type CreditBalance,
+} from '@/lib/credits'
 
 async function getUserPlan(userId: string): Promise<Plan> {
   const sub = await getSubscriptionByUserId(userId)
@@ -24,28 +37,21 @@ export async function canAddSite(userId: string): Promise<boolean> {
 }
 
 export async function canRunFullAnalysis(userId: string): Promise<boolean> {
-  const plan = await getUserPlan(userId)
-  const limit = PLAN_LIMITS[plan].analyses
-  // Free plan: 1 analyse à vie (lifetime, not monthly)
-  const used = plan === 'free' ? await countAllAnalyses(userId) : await countAnalysesThisMonth(userId)
-  return used < limit
+  return hasEnoughCredits(userId, CREDIT_COSTS.fullAnalysis)
 }
 
 export async function canRunTabAnalysis(userId: string): Promise<boolean> {
-  return canRunFullAnalysis(userId)
+  return hasEnoughCredits(userId, CREDIT_COSTS.authorityOnly)
+}
+
+export async function canSendCoachMessage(userId: string): Promise<boolean> {
+  return hasEnoughCredits(userId, CREDIT_COSTS.coachMessage)
 }
 
 export interface UsageCount {
   used: number
   limit: number
   remaining: number
-}
-
-export async function getRemainingAnalysesThisMonth(userId: string): Promise<UsageCount> {
-  const plan = await getUserPlan(userId)
-  const limit = PLAN_LIMITS[plan].analyses
-  const used = plan === 'free' ? await countAllAnalyses(userId) : await countAnalysesThisMonth(userId)
-  return { used, limit, remaining: Math.max(0, limit - used) }
 }
 
 export async function getSitesUsage(userId: string): Promise<UsageCount> {
@@ -64,32 +70,21 @@ export async function getSitesUsage(userId: string): Promise<UsageCount> {
 export interface UsageStats {
   plan: Plan
   sites: UsageCount
-  analyses: UsageCount
+  credits: CreditBalance
+  /** Allocation mensuelle du plan (Infinity pour admin) */
+  creditsPerMonth: number
 }
 
 export async function getUsageStats(userId: string): Promise<UsageStats> {
   const plan = await getUserPlan(userId)
-  const [sitesUsage, analysesUsage] = await Promise.all([
+  const [sitesUsage, credits] = await Promise.all([
     getSitesUsage(userId),
-    getRemainingAnalysesThisMonth(userId),
+    getUserCredits(userId),
   ])
-  return { plan, sites: sitesUsage, analyses: analysesUsage }
-}
-
-export async function canSendCoachMessage(userId: string): Promise<boolean> {
-  const plan = await getUserPlan(userId)
-  const limit = PLAN_LIMITS[plan].coachMessagesPerMonth
-  if (limit === 0) return false
-  if (limit === Infinity) return true
-  const used = await countCoachMessagesThisMonth(userId)
-  return used < limit
-}
-
-export async function getRemainingCoachMessages(userId: string): Promise<UsageCount> {
-  const plan = await getUserPlan(userId)
-  const limit = PLAN_LIMITS[plan].coachMessagesPerMonth
-  if (limit === 0) return { used: 0, limit: 0, remaining: 0 }
-  if (limit === Infinity) return { used: 0, limit: Infinity, remaining: Infinity }
-  const used = await countCoachMessagesThisMonth(userId)
-  return { used, limit, remaining: Math.max(0, limit - used) }
+  return {
+    plan,
+    sites: sitesUsage,
+    credits,
+    creditsPerMonth: PLAN_LIMITS[plan].creditsPerMonth,
+  }
 }

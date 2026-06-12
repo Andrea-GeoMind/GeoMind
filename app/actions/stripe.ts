@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation'
 // next/navigation redirect is typed for internal routes; Stripe returns external https:// URLs
 const redirectExternal: (url: string) => never = redirect as (url: string) => never
 import { createClient } from '@/lib/supabase/server'
-import { stripe, STRIPE_PRICE_IDS, type StripePlan } from '@/lib/stripe'
+import { stripe, STRIPE_PRICE_IDS, CREDIT_PACK_PRICE_IDS, type StripePlan } from '@/lib/stripe'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
+import { CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
 import { env } from '@/lib/env'
 import { trackEvent } from '@/lib/posthog'
 
@@ -39,6 +40,48 @@ export async function createCheckoutSession(plan: StripePlan): Promise<void> {
   if (!session.url) throw new Error('Stripe session URL manquante')
 
   trackEvent(user.id, 'plan_upgrade_started', { plan })
+  redirectExternal(session.url)
+}
+
+/**
+ * Checkout one-shot pour un pack de crédits (§17.3). Les crédits sont ajoutés
+ * par le webhook checkout.session.completed — jamais ici (source de vérité Stripe).
+ */
+export async function createCreditPackCheckout(packId: CreditPackId): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login')
+
+  const priceId = CREDIT_PACK_PRICE_IDS[packId]
+  if (!priceId) {
+    throw new Error(
+      `Pack "${packId}" indisponible : STRIPE_PACK_${packId.toUpperCase()}_PRICE_ID non configuré`
+    )
+  }
+
+  const subscription = await getSubscriptionByUserId(user.id)
+  const stripeCustomerId = subscription?.stripeCustomerId ?? undefined
+
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    customer: stripeCustomerId,
+    customer_email: stripeCustomerId ? undefined : user.email,
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${APP_URL}/settings/billing?pack_success=1`,
+    cancel_url: `${APP_URL}/settings/billing?canceled=1`,
+    metadata: { userId: user.id, type: 'credit_pack', packId },
+  })
+
+  if (!session.url) throw new Error('Stripe session URL manquante')
+
+  trackEvent(user.id, 'credit_pack_checkout_started', {
+    packId,
+    credits: CREDIT_PACKS[packId].credits,
+  })
   redirectExternal(session.url)
 }
 

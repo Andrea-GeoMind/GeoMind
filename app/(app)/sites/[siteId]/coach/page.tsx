@@ -5,8 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
 import { getCoachMessages } from '@/lib/db/queries/coach'
-import { getRemainingCoachMessages } from '@/lib/quotas'
-import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
+import { CREDIT_COSTS, getUserCredits } from '@/lib/credits'
 import { CoachPanel } from '@/components/features/coach/coach-panel'
 import { Button } from '@/components/ui/button'
 
@@ -25,29 +24,6 @@ export default async function CoachPage({ params }: Props) {
 
   const site = await getSiteById(siteId)
   if (!site || site.userId !== user.id) notFound()
-
-  const subscription = await getSubscriptionByUserId(user.id)
-  const plan = subscription?.plan ?? 'free'
-
-  if (plan === 'free') {
-    return (
-      <div className="flex flex-col items-center justify-center gap-6 px-6 py-24 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-          <Sparkles className="h-7 w-7 text-indigo-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-extrabold tracking-tight">Coach IA — Plan Pro requis</h2>
-          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Le Coach IA analyse vos scores et vous guide avec des conseils personnalisés. Disponible
-            à partir du plan Pro.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/pricing">Voir les plans</Link>
-        </Button>
-      </div>
-    )
-  }
 
   const successfulAnalyses = await getLatestSuccessfulAnalyses(siteId, 1)
   const latestAnalysis = successfulAnalyses[0] ?? null
@@ -72,12 +48,15 @@ export default async function CoachPage({ params }: Props) {
     )
   }
 
-  const [messages, quota] = await Promise.all([
+  const [messages, credits] = await Promise.all([
     getCoachMessages(siteId, latestAnalysis.id),
-    getRemainingCoachMessages(user.id),
+    getUserCredits(user.id),
   ])
 
-  const remainingMessages = quota.remaining === Infinity ? null : quota.remaining
+  // Nombre de messages restants estimé depuis le solde de crédits (TKT-CREDITS)
+  const remainingMessages = Number.isFinite(credits.total)
+    ? Math.floor(credits.total / CREDIT_COSTS.coachMessage)
+    : null
 
   const initialMessages = messages.map((m) => ({
     id: m.id,

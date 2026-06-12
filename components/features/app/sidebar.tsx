@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Globe, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Globe, Settings, LogOut, Coins } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Route } from 'next'
 import { cn } from '@/lib/utils'
@@ -25,9 +25,11 @@ const NAV_ITEMS: NavItem[] = [
 
 type Props = {
   userEmail: string
+  /** Solde de crédits formaté côté serveur — null si non disponible */
+  credits?: { amount: string; usage: string } | null
 }
 
-export default function Sidebar({ userEmail }: Props) {
+export default function Sidebar({ userEmail, credits }: Props) {
   const pathname = usePathname()
   const initial = userEmail.charAt(0).toUpperCase()
   const { locked } = useAnalysisLock()
@@ -89,6 +91,20 @@ export default function Sidebar({ userEmail }: Props) {
 
       {/* User section */}
       <div className="border-t border-slate-800 p-3">
+        {credits && (
+          <div className={cn(locked && 'pointer-events-none opacity-50')}>
+            <Link
+              href="/settings/usage"
+              title={credits.usage}
+              className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
+            >
+              <Coins className="h-4 w-4 shrink-0 text-amber-400" />
+              <span className="truncate">
+                {credits.amount} crédits
+              </span>
+            </Link>
+          </div>
+        )}
         <div className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-400">
             {initial}

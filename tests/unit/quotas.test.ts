@@ -4,32 +4,37 @@ vi.mock('@/lib/db/queries/subscriptions', () => ({
   getSubscriptionByUserId: vi.fn(),
 }))
 
-vi.mock('@/lib/db/queries/analyses', () => ({
-  countAnalysesThisMonth: vi.fn(),
-  countAllAnalyses: vi.fn(),
-}))
-
 vi.mock('@/lib/db/client', () => ({
   db: {
     select: vi.fn(),
   },
 }))
 
+// Mock de la partie serveur des crédits — les helpers purs restent réels
+vi.mock('@/lib/credits', async () => {
+  const shared = await import('@/lib/credits-shared')
+  return {
+    ...shared,
+    getUserCredits: vi.fn(),
+    hasEnoughCredits: vi.fn(),
+  }
+})
+
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
-import { countAnalysesThisMonth, countAllAnalyses } from '@/lib/db/queries/analyses'
 import { db } from '@/lib/db/client'
+import { getUserCredits, hasEnoughCredits, CREDIT_COSTS } from '@/lib/credits'
 import {
   canAddSite,
   canRunFullAnalysis,
   canRunTabAnalysis,
-  getRemainingAnalysesThisMonth,
+  canSendCoachMessage,
   getSitesUsage,
   getUsageStats,
 } from '@/lib/quotas'
 
 const mockSub = vi.mocked(getSubscriptionByUserId)
-const mockAnalysesThisMonth = vi.mocked(countAnalysesThisMonth)
-const mockAllAnalyses = vi.mocked(countAllAnalyses)
+const mockGetUserCredits = vi.mocked(getUserCredits)
+const mockHasEnough = vi.mocked(hasEnoughCredits)
 const mockDb = vi.mocked(db)
 
 function mockSiteCount(n: number) {
@@ -79,120 +84,86 @@ describe('canAddSite', () => {
   })
 })
 
-// ─── canRunFullAnalysis ───────────────────────────────────────────────────────
+// ─── canRunFullAnalysis / canRunTabAnalysis / canSendCoachMessage ─────────────
+// Depuis TKT-CREDITS, ces checks délèguent au solde de crédits.
 
 describe('canRunFullAnalysis', () => {
-  it('autorise si sous la limite à vie (free : 1)', async () => {
-    mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAllAnalyses.mockResolvedValue(0)
+  it('délègue à hasEnoughCredits avec le coût analyse complète', async () => {
+    mockHasEnough.mockResolvedValue(true)
     expect(await canRunFullAnalysis('user-1')).toBe(true)
+    expect(mockHasEnough).toHaveBeenCalledWith('user-1', CREDIT_COSTS.fullAnalysis)
   })
 
-  it('refuse si à la limite à vie (free : 1)', async () => {
-    mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAllAnalyses.mockResolvedValue(1)
-    expect(await canRunFullAnalysis('user-1')).toBe(false)
-  })
-
-  it('autorise plan business sous la limite (30)', async () => {
-    mockSub.mockResolvedValue({ plan: 'business' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(29)
-    expect(await canRunFullAnalysis('user-1')).toBe(true)
-  })
-
-  it('refuse plan business à la limite (30)', async () => {
-    mockSub.mockResolvedValue({ plan: 'business' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(30)
+  it('refuse si le solde est insuffisant', async () => {
+    mockHasEnough.mockResolvedValue(false)
     expect(await canRunFullAnalysis('user-1')).toBe(false)
   })
 })
-
-// ─── canRunTabAnalysis ────────────────────────────────────────────────────────
 
 describe('canRunTabAnalysis', () => {
-  it('même comportement que canRunFullAnalysis — autorise si sous la limite', async () => {
-    mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(3)
+  it('délègue à hasEnoughCredits avec le coût autorité seule', async () => {
+    mockHasEnough.mockResolvedValue(true)
     expect(await canRunTabAnalysis('user-1')).toBe(true)
-  })
-
-  it('même comportement que canRunFullAnalysis — refuse à la limite', async () => {
-    mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(4)
-    expect(await canRunTabAnalysis('user-1')).toBe(false)
+    expect(mockHasEnough).toHaveBeenCalledWith('user-1', CREDIT_COSTS.authorityOnly)
   })
 })
 
-// ─── getRemainingAnalysesThisMonth ────────────────────────────────────────────
-
-describe('getRemainingAnalysesThisMonth', () => {
-  it('retourne used/limit/remaining corrects pour free avec 0 analyse', async () => {
-    mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAllAnalyses.mockResolvedValue(0)
-    const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 0, limit: 1, remaining: 1 })
+describe('canSendCoachMessage', () => {
+  it('délègue à hasEnoughCredits avec le coût message coach', async () => {
+    mockHasEnough.mockResolvedValue(true)
+    expect(await canSendCoachMessage('user-1')).toBe(true)
+    expect(mockHasEnough).toHaveBeenCalledWith('user-1', CREDIT_COSTS.coachMessage)
   })
 
-  it('remaining vaut 0 quand la limite est atteinte (free)', async () => {
-    mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAllAnalyses.mockResolvedValue(1)
-    const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 1, limit: 1, remaining: 0 })
-  })
-
-  it('remaining ne peut pas être négatif', async () => {
-    mockSub.mockResolvedValue({ plan: 'free' } as never)
-    mockAllAnalyses.mockResolvedValue(10)
-    const { remaining } = await getRemainingAnalysesThisMonth('user-1')
-    expect(remaining).toBe(0)
-  })
-
-  it('calcule correctement pour plan pro (4 analyses)', async () => {
-    mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(2)
-    const result = await getRemainingAnalysesThisMonth('user-1')
-    expect(result).toEqual({ used: 2, limit: 4, remaining: 2 })
+  it('refuse si le solde est insuffisant (free à 0 crédit)', async () => {
+    mockHasEnough.mockResolvedValue(false)
+    expect(await canSendCoachMessage('user-1')).toBe(false)
   })
 })
 
 // ─── getSitesUsage ────────────────────────────────────────────────────────────
 
 describe('getSitesUsage', () => {
-  it('retourne used/limit/remaining corrects', async () => {
-    mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(2)
-    const result = await getSitesUsage('user-1')
-    expect(result).toEqual({ used: 2, limit: 3, remaining: 1 })
-  })
-
-  it('remaining vaut 0 à la limite', async () => {
+  it('retourne used/limit/remaining pour un plan free', async () => {
     mockSub.mockResolvedValue({ plan: 'free' } as never)
     mockSiteCount(1)
-    const result = await getSitesUsage('user-1')
-    expect(result).toEqual({ used: 1, limit: 1, remaining: 0 })
+    expect(await getSitesUsage('user-1')).toEqual({ used: 1, limit: 1, remaining: 0 })
+  })
+
+  it('retourne remaining correct pour un plan business', async () => {
+    mockSub.mockResolvedValue({ plan: 'business' } as never)
+    mockSiteCount(4)
+    expect(await getSitesUsage('user-1')).toEqual({ used: 4, limit: 10, remaining: 6 })
   })
 })
 
 // ─── getUsageStats ────────────────────────────────────────────────────────────
 
 describe('getUsageStats', () => {
-  it('retourne plan + sites + analyses agrégés', async () => {
+  it('agrège plan, sites, crédits et allocation mensuelle', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockAnalysesThisMonth.mockResolvedValue(2)
-    mockSiteCount(1)
+    mockSiteCount(2)
+    mockGetUserCredits.mockResolvedValue({ monthly: 15_000, purchased: 500, total: 15_500 })
+
     const stats = await getUsageStats('user-1')
+
     expect(stats.plan).toBe('pro')
-    expect(stats.sites).toEqual({ used: 1, limit: 3, remaining: 2 })
-    expect(stats.analyses).toEqual({ used: 2, limit: 4, remaining: 2 })
+    expect(stats.sites).toEqual({ used: 2, limit: 3, remaining: 1 })
+    expect(stats.credits).toEqual({ monthly: 15_000, purchased: 500, total: 15_500 })
+    expect(stats.creditsPerMonth).toBe(20_000)
   })
 
-  it('utilise free par défaut si pas de subscription', async () => {
-    mockSub.mockResolvedValue(null)
-    mockAllAnalyses.mockResolvedValue(0)
+  it('expose une allocation infinie pour le plan admin', async () => {
+    mockSub.mockResolvedValue({ plan: 'admin' } as never)
     mockSiteCount(0)
+    mockGetUserCredits.mockResolvedValue({
+      monthly: Infinity,
+      purchased: Infinity,
+      total: Infinity,
+    })
+
     const stats = await getUsageStats('user-1')
-    expect(stats.plan).toBe('free')
-    expect(stats.sites.limit).toBe(1)
-    expect(stats.analyses.limit).toBe(1)
+    expect(stats.creditsPerMonth).toBe(Infinity)
+    expect(stats.credits.total).toBe(Infinity)
   })
 })
