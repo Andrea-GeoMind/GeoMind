@@ -49,7 +49,6 @@ import { checkUrlTooLong } from './rules/url-too-long'
 import { checkNoBreadcrumbSchema } from './rules/no-breadcrumb-schema'
 import { checkNoAuthorSchema } from './rules/no-author-schema'
 import { checkNoHowToSchema } from './rules/no-how-to-schema'
-import { checkSemanticHtml5Missing } from './rules/semantic-html5-missing'
 
 export type { TechnicalIssue, FirecrawlPage } from './types'
 
@@ -87,7 +86,6 @@ const PAGE_RULES: TechnicalPageRuleFn[] = [
   checkNoBreadcrumbSchema,
   checkNoAuthorSchema,
   checkNoHowToSchema,
-  checkSemanticHtml5Missing,
 ]
 
 export interface TechnicalAnalysisInput {
