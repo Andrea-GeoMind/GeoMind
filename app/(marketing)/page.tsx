@@ -448,6 +448,7 @@ export default function HomePage() {
               {
                 name: 'Pro',
                 forWho: 'Pour les TPE/PME qui veulent agir',
+                trialNote: '7 jours d’essai gratuit, annulable à tout moment',
                 price: PLAN_PRICES.pro.monthly,
                 features: [
                   `${PLAN_LIMITS.pro.sites} sites`,
@@ -455,7 +456,7 @@ export default function HomePage() {
                   'Recommandations complètes (IA avancée)',
                   'Export PDF · Historique 1 an',
                 ],
-                cta: 'Essayer Pro',
+                cta: 'Essayer Pro — 7 jours offerts',
                 highlighted: true,
               },
               {

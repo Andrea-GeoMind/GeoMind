@@ -15,7 +15,7 @@ import { ClearMemoryButton } from '@/components/features/coach/clear-memory-butt
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'GEO — GEOMIND',
+  title: 'Coach — GEOMIND',
 }
 
 const PILLAR_LABELS: Record<'authority' | 'technical' | 'content', string> = {
@@ -88,7 +88,10 @@ export default async function CoachPage({ params }: Props) {
       latestAnalysis.technicalScore ?? 0,
       latestAnalysis.contentScore ?? 0
     ).pillar
-    welcomeMessage = `Salut ! J'ai épluché l'analyse de **${site.name}**. Ton score global est de **${latestAnalysis.globalScore ?? 0}/100** — ton point faible, c'est le pilier **${PILLAR_LABELS[weakestPillar]}**. Bonne nouvelle : j'ai un plan. On attaque ?`
+    welcomeMessage =
+      latestAnalysis.globalScore !== null
+        ? `Salut ! J'ai épluché l'analyse de **${site.name}**. Ton score global est de **${latestAnalysis.globalScore}/100** — ton point faible, c'est le pilier **${PILLAR_LABELS[weakestPillar]}**. Bonne nouvelle : j'ai un plan. On attaque ?`
+        : `Salut ! L'analyse de **${site.name}** est en cours de finalisation — je te dis tout dès que les scores tombent. En attendant, pose-moi tes questions !`
   }
 
   const suggestions = getSuggestions('coach', {
@@ -118,7 +121,7 @@ export default async function CoachPage({ params }: Props) {
             <p className="text-xs text-muted-foreground">
               GEO se souviendra de vos conversations avec le plan Solo —{' '}
               <Link
-                href="/pricing"
+                href="/settings/billing"
                 className="font-semibold text-primary underline underline-offset-2"
               >
                 voir les plans

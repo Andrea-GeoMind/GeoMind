@@ -30,7 +30,7 @@ function buildLlmsTxt(params: {
     lines.push('## Pages principales')
     lines.push('')
     for (const p of validPages) {
-      lines.push(`- [${p.label || p.url}](${p.url})`)
+      lines.push(`- [${(p.label || p.url).replace(/[\[\]]/g, '')}](${p.url.replace(/[()]/g, '')})`)
     }
     lines.push('')
   }

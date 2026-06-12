@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { Loader2, Zap, Coins } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -77,8 +78,14 @@ export function RunAnalysisButton({ siteId, siteName }: Props) {
         </p>
         {insufficient && (
           <p className="text-sm text-destructive">
-            Solde insuffisant ({formatCreditsAmount(preview.balance ?? 0)} crédits). Rechargez
-            depuis la page Abonnement.
+            Solde insuffisant ({formatCreditsAmount(preview.balance ?? 0)} crédits sur{' '}
+            {preview.cost} nécessaires).{' '}
+            <Link
+              href="/settings/billing"
+              className="font-semibold underline underline-offset-2"
+            >
+              Passer à un plan supérieur ou acheter un pack de crédits →
+            </Link>
           </p>
         )}
         <div className="flex gap-2">
