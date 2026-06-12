@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUsageStats } from '@/lib/quotas'
 import { formatCreditsAmount, formatCreditsAsUsage } from '@/lib/credits-shared'
 import Sidebar from '@/components/features/app/sidebar'
+import { MobileSidebar } from '@/components/features/app/mobile-sidebar'
 import { AnalysisLockProvider } from '@/components/features/analysis/analysis-lock-provider'
 import { LowCreditsBanner } from '@/components/features/credits/low-credits-banner'
 import { CoachProvider } from '@/components/features/coach/coach-provider'
@@ -41,8 +42,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AnalysisLockProvider>
       <CoachProvider>
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar userEmail={user.email ?? ''} credits={credits} />
+        <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
+          {/* Mobile : barre supérieure + drawer (PLAN item 19) */}
+          <MobileSidebar>
+            <Sidebar userEmail={user.email ?? ''} credits={credits} />
+          </MobileSidebar>
+          {/* Desktop : sidebar fixe */}
+          <div className="hidden lg:block">
+            <Sidebar userEmail={user.email ?? ''} credits={credits} />
+          </div>
           <main className="flex-1 overflow-y-auto">
             {showLowCreditsBanner && (
               <LowCreditsBanner

@@ -22,6 +22,7 @@ const baseCtx: CoachContext = {
   comparison: null,
   memorySummary: null,
   focusedIssue: null,
+  actionPlan: null,
 }
 
 describe('buildCoachSystemPrompt (GEO v2)', () => {
