@@ -1,6 +1,13 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { BarChart2, Search, Lightbulb, CheckCircle2, ArrowRight, Shield, Wrench, FileText, TrendingUp, Zap } from 'lucide-react'
+import { PLAN_PRICES, PLAN_LIMITS } from '@/lib/plans'
+import { CREDIT_COSTS } from '@/lib/credits-shared'
+
+/** Nombre d'analyses complètes couvertes par l'allocation mensuelle d'un plan. */
+function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
+  return Math.floor(PLAN_LIMITS[plan].creditsPerMonth / CREDIT_COSTS.fullAnalysis)
+}
 
 /* ─── Mini product preview — rendered in pure Tailwind, no images needed ─── */
 function ProductPreview() {
@@ -130,25 +137,28 @@ export default function HomePage() {
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
-                  <span className="text-xs text-muted-foreground">Sans carte bancaire · 60 secondes</span>
+                  <span className="text-xs text-muted-foreground">
+                    Sans carte bancaire · Premiers résultats en quelques minutes
+                  </span>
                 </div>
                 <Button size="lg" variant="outline" asChild className="rounded-lg">
                   <Link href="/pricing">Voir les tarifs</Link>
                 </Button>
               </div>
 
-              {/* Social proof */}
+              {/* Social proof — uniquement des faits vérifiables */}
               <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                 <span>
-                  <strong className="text-foreground">2&nbsp;400+</strong> sites analysés
+                  <strong className="text-foreground">4 IA</strong> interrogées à chaque audit
                 </span>
                 <span className="text-border">·</span>
                 <span>
-                  <strong className="text-foreground">4 IA</strong> testées
+                  <strong className="text-foreground">1 analyse offerte</strong>, sans carte
+                  bancaire
                 </span>
                 <span className="text-border">·</span>
                 <span>
-                  <strong className="text-foreground">4,8/5</strong> sur Trustpilot
+                  Données hébergées <strong className="text-foreground">en Europe</strong>
                 </span>
               </div>
             </div>
@@ -187,7 +197,7 @@ export default function HomePage() {
             Comment ça marche
           </p>
           <h2 className="mb-16 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Trois étapes, soixante secondes.
+            Trois étapes, quelques minutes.
           </h2>
 
           <div className="relative grid gap-8 md:grid-cols-3">
@@ -294,75 +304,109 @@ export default function HomePage() {
           <p className="mx-auto mb-14 max-w-xl text-center text-muted-foreground">
             Commencez gratuitement. Passez au Pro quand vous êtes prêt.
           </p>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Gratuit */}
-            <div className="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
-              <h3 className="text-lg font-bold text-foreground">Gratuit</h3>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-foreground">0 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['1 site', '1 analyse à vie', 'Score GEO global'].map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[--score-good-500]" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button asChild variant="outline" className="mt-8 rounded-lg">
-                <Link href="/signup">Commencer gratuitement</Link>
-              </Button>
-            </div>
-
-            {/* Pro — highlighted */}
-            <div className="relative flex flex-col rounded-xl border border-primary/40 bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100/60">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-xs font-semibold text-white">
-                Populaire
-              </span>
-              <h3 className="text-lg font-bold text-foreground">Pro</h3>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-foreground">49 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['3 sites', '4 analyses / mois', 'Analyse complète', 'Coach IA'].map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[--score-good-500]" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                asChild
-                className="mt-8 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity"
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                name: 'Gratuit',
+                forWho: 'Pour découvrir',
+                price: 0,
+                features: [
+                  '1 site',
+                  '1 analyse complète offerte',
+                  'Score GEO + points faibles essentiels',
+                  'Coach IA',
+                ],
+                cta: 'Commencer gratuitement',
+                highlighted: false,
+              },
+              {
+                name: 'Solo',
+                forWho: 'Pour les indépendants',
+                price: PLAN_PRICES.solo.monthly,
+                features: [
+                  `${PLAN_LIMITS.solo.sites} sites`,
+                  `Jusqu'à ${analysesPerMonth('solo')} analyses / mois`,
+                  'Analyse page par page (5 pages)',
+                  'Coach IA avec mémoire',
+                ],
+                cta: 'Essayer Solo',
+                highlighted: false,
+              },
+              {
+                name: 'Pro',
+                forWho: 'Pour les TPE/PME qui veulent agir',
+                price: PLAN_PRICES.pro.monthly,
+                features: [
+                  `${PLAN_LIMITS.pro.sites} sites`,
+                  `Jusqu'à ${analysesPerMonth('pro')} analyses / mois`,
+                  'Recommandations complètes (IA avancée)',
+                  'Export PDF · Historique 1 an',
+                ],
+                cta: 'Essayer Pro',
+                highlighted: true,
+              },
+              {
+                name: 'Business',
+                forWho: 'Pour les agences & multi-sites',
+                price: PLAN_PRICES.business.monthly,
+                features: [
+                  `${PLAN_LIMITS.business.sites} sites`,
+                  `Jusqu'à ${analysesPerMonth('business')} analyses / mois`,
+                  'Export PDF white-label',
+                  'Historique illimité · Support prioritaire',
+                ],
+                cta: 'Essayer Business',
+                highlighted: false,
+              },
+            ].map(({ name, forWho, price, features, cta, highlighted }) => (
+              <div
+                key={name}
+                className={
+                  highlighted
+                    ? 'relative flex flex-col rounded-xl border border-primary/40 bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100/60'
+                    : 'flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm'
+                }
               >
-                <Link href="/signup">Essayer Pro</Link>
-              </Button>
-            </div>
-
-            {/* Business */}
-            <div className="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
-              <h3 className="text-lg font-bold text-foreground">Business</h3>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-foreground">149 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                {['10 sites', '30 analyses / mois', 'Coach IA version complète', 'Support prioritaire'].map(
-                  (f) => (
+                {highlighted && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-xs font-semibold text-white">
+                    Populaire
+                  </span>
+                )}
+                <h3 className="text-lg font-bold text-foreground">{name}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">{forWho}</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-foreground">{price}&nbsp;€</span>
+                  <span className="text-sm text-muted-foreground">HT/mois</span>
+                </div>
+                <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
+                  {features.map((f) => (
                     <li key={f} className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-[--score-good-500]" />
                       {f}
                     </li>
-                  ),
-                )}
-              </ul>
-              <Button asChild variant="outline" className="mt-8 rounded-lg">
-                <Link href="mailto:contact@geomind.fr">Contacter</Link>
-              </Button>
-            </div>
+                  ))}
+                </ul>
+                <Button
+                  asChild
+                  variant={highlighted ? 'default' : 'outline'}
+                  className={
+                    highlighted
+                      ? 'mt-8 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity'
+                      : 'mt-8 rounded-lg'
+                  }
+                >
+                  <Link href={price === 0 ? '/signup' : '/pricing'}>{cta}</Link>
+                </Button>
+              </div>
+            ))}
           </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            1 analyse complète = 400 crédits. Chaque plan inclut des crédits mensuels, utilisables
+            librement entre analyses et questions au Coach IA.{' '}
+            <Link href="/pricing" className="underline hover:text-foreground">
+              Voir le détail des plans
+            </Link>
+          </p>
         </div>
       </section>
 

@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           </div>
           <h2 className="mt-5 text-xl font-bold">Analysez votre premier site</h2>
           <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-            En 60 secondes, découvrez si ChatGPT, Perplexity, Gemini et Claude vous citent —
+            En quelques minutes, découvrez si ChatGPT, Perplexity, Gemini et Claude vous citent —
             et ce que vous pouvez faire pour y apparaître.
           </p>
           <Button
