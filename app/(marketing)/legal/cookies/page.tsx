@@ -14,7 +14,7 @@ export default function CookiesPage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           Politique de cookies
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : mai 2026</p>
+        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : juin 2026</p>
       </div>
 
       <section className="space-y-3">

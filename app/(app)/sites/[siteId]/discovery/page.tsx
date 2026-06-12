@@ -73,7 +73,7 @@ export default async function DiscoveryPage({ params }: Props) {
             <p className="font-extrabold tracking-tight text-foreground">Découverte en cours…</p>
             <p className="text-sm leading-relaxed text-muted-foreground">
               GeoMind crawle votre site et génère votre profil GEO : description, mots-clés,
-              concurrents et prompts de test. Cette étape prend 30 à 60 secondes.
+              concurrents et prompts de test. Cette étape prend 20 à 40 secondes.
             </p>
           </div>
           <LaunchDiscoveryButton siteId={siteId} />

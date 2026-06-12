@@ -44,6 +44,13 @@ export function ExpressAudit() {
   async function run(e: React.FormEvent) {
     e.preventDefault()
     if (!url.trim() || status === 'loading') return
+    // Validation basique côté client : un domaine a au moins un point.
+    // L'API revalide strictement (anti-SSRF) — ici on évite juste un aller-retour.
+    if (!url.includes('.') || url.trim().includes(' ')) {
+      setError('Entrez l\'adresse de votre site — exemple : monentreprise.fr')
+      setStatus('error')
+      return
+    }
     setStatus('loading')
     setError(null)
     setResult(null)

@@ -66,7 +66,7 @@ export default function PricingPage() {
               <tbody className="divide-y divide-border">
                 <ComparisonRow
                   label="Crédits / mois"
-                  values={['1 000 offerts (à vie)', '5 000', '20 000', '80 000']}
+                  values={['1 000 offerts, sans renouvellement', '5 000', '20 000', '80 000']}
                 />
                 <ComparisonRow label="Sites" values={['1', '2', '5', '15']} striped />
                 <ComparisonRow
