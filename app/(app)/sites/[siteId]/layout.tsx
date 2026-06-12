@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Globe, ChevronLeft, ExternalLink } from 'lucide-react'
+import { Globe, ChevronLeft, ExternalLink, FileDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
@@ -81,6 +81,14 @@ export default async function SiteLayout({ children, params }: Props) {
               <ExternalLink className="h-3 w-3 shrink-0" />
             </a>
           </div>
+          {/* Export PDF (PLAN item 24) — la page gère le gate par plan */}
+          <Link
+            href={`/sites/${siteId}/report`}
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Rapport PDF</span>
+          </Link>
         </div>
       </div>
 
