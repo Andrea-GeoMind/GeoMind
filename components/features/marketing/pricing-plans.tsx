@@ -6,7 +6,11 @@ import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PLAN_LIMITS, PLAN_PRICES, type BillingPeriod } from '@/lib/plans'
-import { formatCreditsAmount, formatCreditsAsUsage } from '@/lib/credits-shared'
+import {
+  WELCOME_BONUS_CREDITS,
+  formatCreditsAmount,
+  formatCreditsAsUsage,
+} from '@/lib/credits-shared'
 
 interface PlanCardData {
   name: string
@@ -28,7 +32,7 @@ const PLANS: PlanCardData[] = [
     credits: PLAN_LIMITS.free.creditsPerMonth,
     features: [
       '1 site',
-      '1 analyse complète par mois',
+      '1 analyse complète offerte',
       'Coach IA GEO (selon crédits)',
       '3 publishers visibles',
       'Historique 30 jours',
@@ -149,12 +153,25 @@ export function PricingPlans() {
 
               {/* Crédits + équivalence humaine */}
               <div className="mt-4 rounded-lg bg-muted/60 px-3 py-2.5">
-                <p className="text-sm font-semibold text-foreground">
-                  {formatCreditsAmount(plan.credits)} crédits / mois
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {formatCreditsAsUsage(plan.credits)}
-                </p>
+                {plan.credits === 0 ? (
+                  <>
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatCreditsAmount(WELCOME_BONUS_CREDITS)} crédits de bienvenue
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatCreditsAsUsage(WELCOME_BONUS_CREDITS)} — sans renouvellement
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatCreditsAmount(plan.credits)} crédits / mois
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatCreditsAsUsage(plan.credits)}
+                    </p>
+                  </>
+                )}
               </div>
 
               <Button

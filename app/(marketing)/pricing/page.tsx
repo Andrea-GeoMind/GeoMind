@@ -58,12 +58,12 @@ export default function PricingPage() {
               <tbody className="divide-y divide-border">
                 <ComparisonRow
                   label="Crédits / mois"
-                  values={['500', '5 000', '20 000', '80 000']}
+                  values={['1 000 offerts (à vie)', '5 000', '20 000', '80 000']}
                 />
                 <ComparisonRow label="Sites" values={['1', '2', '5', '15']} striped />
                 <ComparisonRow
                   label="Analyses complètes (400 crédits)"
-                  values={['≈ 1 / mois', '≈ 12 / mois', '≈ 50 / mois', '≈ 200 / mois']}
+                  values={['1 offerte', '≈ 12 / mois', '≈ 50 / mois', '≈ 200 / mois']}
                 />
                 <ComparisonRow
                   label="Coach IA GEO"
@@ -122,7 +122,7 @@ export default function PricingPage() {
             {[
               {
                 q: 'Comment fonctionnent les crédits ?',
-                a: "Chaque plan inclut une allocation mensuelle de crédits que vous dépensez librement : une analyse complète coûte 400 crédits, une question au coach IA environ 10. Les crédits du plan se renouvellent à chaque cycle de facturation. Vous voyez toujours le coût avant de lancer une action.",
+                a: "Chaque plan payant inclut une allocation mensuelle de crédits que vous dépensez librement : une analyse complète coûte 400 crédits, une question au coach IA environ 10. Les crédits du plan se renouvellent à chaque cycle de facturation. Le plan Gratuit reçoit 1 000 crédits de bienvenue, sans renouvellement — de quoi faire votre première analyse complète et poser vos questions au coach.",
               },
               {
                 q: 'Que se passe-t-il si j’épuise mes crédits ?',
