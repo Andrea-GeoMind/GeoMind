@@ -15,6 +15,7 @@ import {
   updateAnalysisContentScore,
 } from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
+import { notifyAnalysisComplete } from '@/lib/analysis/alerts'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 
@@ -91,6 +92,11 @@ export const runFullAnalysisFunction = inngest.createFunction(
         contentResult.score
       )
       await step.run('mark-success', () => updateAnalysisScores(analysisId, scores))
+
+      // 8. Email "analyse terminée" (PLAN item 13) — best-effort, jamais bloquant
+      await step.run('notify-complete', () =>
+        notifyAnalysisComplete({ siteId, globalScore: scores.globalScore ?? null })
+      )
 
       return scores
     } catch (err) {

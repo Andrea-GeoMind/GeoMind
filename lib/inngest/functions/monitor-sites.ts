@@ -16,6 +16,7 @@ import { db } from '@/lib/db/client'
 import { sites, subscriptions } from '@/lib/db/schema'
 import { PLAN_LIMITS, computeFrozenSiteIds, type Plan } from '@/lib/plans'
 import { runMonitoringCheck } from '@/lib/analysis/monitoring'
+import { evaluateMonitoringAlerts } from '@/lib/analysis/alerts'
 
 // Taille de l'échantillon par passage : 3 prompts × 4 moteurs = 12 mesures
 // hebdo pour les payants ; 2 × 4 = 8 mesures mensuelles pour le gratuit.
@@ -101,9 +102,14 @@ export const monitorSiteFunction = inngest.createFunction(
   },
   async ({ event, step }) => {
     const { siteId, promptCount } = event.data as { siteId: string; promptCount: number }
+    const runStartedAt = new Date()
     const result = await step.run('run-monitoring-check', () =>
       runMonitoringCheck(siteId, promptCount)
     )
-    return result
+    // Alertes email (PLAN item 13) : première citation / disparition
+    const alert = await step.run('evaluate-alerts', () =>
+      evaluateMonitoringAlerts(siteId, result, runStartedAt)
+    )
+    return { ...result, alert }
   }
 )
