@@ -27,6 +27,12 @@ export default function Footer() {
               À propos
             </Link>
             <Link
+              href="/outils/generateur-llms-txt"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Générateur llms.txt
+            </Link>
+            <Link
               href="/legal/cgv"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
