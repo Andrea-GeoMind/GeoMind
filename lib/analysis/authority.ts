@@ -7,6 +7,7 @@ import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
 import { getAnalysisById } from '@/lib/db/queries/analyses'
 import { insertAuthorityResult } from '@/lib/db/queries/authority-results'
 import { insertAuthoritySources } from '@/lib/db/queries/authority-sources'
+import { insertCitationChecks } from '@/lib/db/queries/citation-checks'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { extractDomain } from '@/lib/ai/parse'
 import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
@@ -153,6 +154,21 @@ export async function runAuthorityAnalysis(
     }))
 
     await insertAuthoritySources(sourcesWithClientFlag)
+
+    // Série temporelle (PLAN item 11) : chaque appel devient un point de
+    // mesure daté — la matière première des tendances et des alertes.
+    const clientIndex = sourcesWithClientFlag.findIndex((s) => s.isClientDomain)
+    await insertCitationChecks([
+      {
+        siteId: analysis.siteId,
+        promptId: task.promptId,
+        analysisId,
+        engine: task.engine.name,
+        mode: 'forced',
+        cited: clientIndex >= 0,
+        position: clientIndex >= 0 ? clientIndex + 1 : null,
+      },
+    ])
 
     successfulCalls++
     totalCostUsd += response.cost_usd
