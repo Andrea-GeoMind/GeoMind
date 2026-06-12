@@ -19,8 +19,11 @@ export const DiscoveryOutputSchema = z.object({
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>
 
+// PLAN item 10 : 10 prompts pour la fiabilité statistique du score d'autorité.
+// Tolérance ±2 : les LLMs ratent parfois le compte exact, 8 prompts valides
+// valent mieux qu'un retry de plus.
 export const NeutralPromptsOutputSchema = z.object({
-  prompts: z.array(z.string().min(10)).length(3),
+  prompts: z.array(z.string().min(10)).min(8).max(12),
 })
 
 export type NeutralPromptsOutput = z.infer<typeof NeutralPromptsOutputSchema>

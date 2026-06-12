@@ -66,12 +66,14 @@ export async function getRecentCitationChecks(siteId: string, limit = 100) {
 }
 
 /**
- * Taux de citation (mode forcé) sur une fenêtre glissante — la « moyenne 30
- * jours » qui amortit la variance naturelle des LLMs.
+ * Taux de citation sur une fenêtre glissante — la « moyenne 30 jours » qui
+ * amortit la variance naturelle des LLMs. Mode 'forced' pour le score
+ * comparable, 'spontaneous' pour la citation naturelle (échantillon).
  */
 export async function getRollingCitationRate(
   siteId: string,
-  days = 30
+  days = 30,
+  mode: 'forced' | 'spontaneous' = 'forced'
 ): Promise<{ total: number; cited: number; rate: number | null }> {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
   const [row] = await db
@@ -83,7 +85,7 @@ export async function getRollingCitationRate(
     .where(
       and(
         eq(citationChecks.siteId, siteId),
-        eq(citationChecks.mode, 'forced'),
+        eq(citationChecks.mode, mode),
         gte(citationChecks.checkedAt, since)
       )
     )

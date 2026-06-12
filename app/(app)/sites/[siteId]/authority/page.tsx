@@ -16,6 +16,7 @@ import { OverviewPolling } from '@/components/features/overview/overview-polling
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { AuthorityMethodologyNote } from '@/components/features/analysis/methodology-note'
+import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
 
 export const metadata: Metadata = {
   title: 'Autorité — GEOMIND',
@@ -83,6 +84,12 @@ export default async function AuthorityPage({ params }: Props) {
   const crossTableRows = buildCrossTable(mappedResults)
   const clientDomain = extractDomain(site.url)
 
+  // Moyenne glissante 30 j (amortit la variance LLM) + citation spontanée
+  const [rolling, spontaneous] = await Promise.all([
+    getRollingCitationRate(siteId, 30, 'forced'),
+    getRollingCitationRate(siteId, 30, 'spontaneous'),
+  ])
+
   return (
     <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
@@ -139,6 +146,28 @@ export default async function AuthorityPage({ params }: Props) {
                 {latest.authorityScore}
                 <span className="ml-1 text-base font-medium text-muted-foreground">/100</span>
               </p>
+            )}
+            {!isInProgress && (rolling.rate !== null || spontaneous.rate !== null) && (
+              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                {rolling.rate !== null && (
+                  <span>
+                    Moyenne 30 jours :{' '}
+                    <strong className="text-foreground">{rolling.rate}%</strong>{' '}
+                    <span className="text-muted-foreground/70">
+                      ({rolling.cited}/{rolling.total} mesures)
+                    </span>
+                  </span>
+                )}
+                {spontaneous.rate !== null && (
+                  <span>
+                    Citation spontanée (questions brutes, échantillon) :{' '}
+                    <strong className="text-foreground">{spontaneous.rate}%</strong>{' '}
+                    <span className="text-muted-foreground/70">
+                      ({spontaneous.cited}/{spontaneous.total})
+                    </span>
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>

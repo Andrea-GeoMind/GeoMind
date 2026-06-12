@@ -18,6 +18,14 @@ import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
 
 const MAX_CONCURRENCY = 8
 
+// PLAN item 10 — double mesure :
+// - mode « forcé » (tous les prompts) : suffixe « liste ≥10 acteurs » → réponses
+//   exploitables et comparables, alimente le score et le tableau de citations ;
+// - mode « spontané » (échantillon) : le prompt brut, tel qu'un vrai client le
+//   poserait → mesure la citation naturelle, sans artifice. Plus coûteux et plus
+//   bruité, donc limité à un échantillon, stocké en citation_checks uniquement.
+const SPONTANEOUS_SAMPLE_SIZE = 3
+
 // ─── Pool de concurrence simple (sans dépendance externe) ─────────────────────
 
 async function runWithConcurrency<T>(
@@ -43,7 +51,10 @@ async function runWithConcurrency<T>(
 
 export interface AuthorityAnalysisResult {
   totalCalls: number
+  /** Appels réussis en mode forcé — dénominateur du score d'autorité */
   successfulCalls: number
+  /** Appels réussis en mode spontané (échantillon, série temporelle seulement) */
+  spontaneousSuccessfulCalls: number
   totalCostUsd: number
   citationsFound: number
   clientCitationsFound: number
@@ -65,7 +76,14 @@ export async function runAuthorityAnalysis(
   const neutralPrompts = allPrompts.filter((p) => p.isNeutral)
 
   if (neutralPrompts.length === 0) {
-    return { totalCalls: 0, successfulCalls: 0, totalCostUsd: 0, citationsFound: 0, clientCitationsFound: 0 }
+    return {
+      totalCalls: 0,
+      successfulCalls: 0,
+      spontaneousSuccessfulCalls: 0,
+      totalCostUsd: 0,
+      citationsFound: 0,
+      clientCitationsFound: 0,
+    }
   }
 
   const engines: IAEngine[] = [
@@ -85,9 +103,11 @@ export async function runAuthorityAnalysis(
     perplexity: 'sonar',
   }
 
-  // Estimation coût avant batch (règle §10 CLAUDE.md)
+  const spontaneousPrompts = neutralPrompts.slice(0, SPONTANEOUS_SAMPLE_SIZE)
+
+  // Estimation coût avant batch (règle §10 CLAUDE.md) — forcé + spontané
   logEstimatedBatchCost(
-    neutralPrompts.flatMap(() =>
+    [...neutralPrompts, ...spontaneousPrompts].flatMap(() =>
       engines.map((e) => ({
         model: ENGINE_MODELS[e.name] ?? 'openai/gpt-4o-mini',
         estimatedInputTokens: 200,
@@ -101,8 +121,14 @@ export async function runAuthorityAnalysis(
   const CITATION_SUFFIX =
     "\n\nIMPORTANT : ta réponse doit impérativement lister au moins 10 acteurs différents (entreprises, outils ou prestataires), chacun accompagné de son site web officiel (URL complète)."
 
-  // Construction des tâches : 1 tâche = 1 prompt × 1 IA
-  type Task = { promptId: string; promptText: string; promptIsNeutral: boolean; engine: IAEngine }
+  // Construction des tâches : 1 tâche = 1 prompt × 1 IA × 1 mode
+  type Task = {
+    promptId: string
+    promptText: string
+    promptIsNeutral: boolean
+    engine: IAEngine
+    mode: 'forced' | 'spontaneous'
+  }
   const tasks: Task[] = []
   for (const prompt of neutralPrompts) {
     for (const engine of engines) {
@@ -111,11 +137,24 @@ export async function runAuthorityAnalysis(
         promptText: prompt.text + CITATION_SUFFIX,
         promptIsNeutral: prompt.isNeutral,
         engine,
+        mode: 'forced',
+      })
+    }
+  }
+  for (const prompt of spontaneousPrompts) {
+    for (const engine of engines) {
+      tasks.push({
+        promptId: prompt.id,
+        promptText: prompt.text, // brut, sans suffixe — la vraie question client
+        promptIsNeutral: prompt.isNeutral,
+        engine,
+        mode: 'spontaneous',
       })
     }
   }
 
   let successfulCalls = 0
+  let spontaneousSuccessfulCalls = 0
   let totalCostUsd = 0
   let citationsFound = 0
   let clientCitationsFound = 0
@@ -133,47 +172,56 @@ export async function runAuthorityAnalysis(
       return
     }
 
-    const result = await insertAuthorityResult({
-      analysisId,
-      promptId: task.promptId,
-      engine: task.engine.name,
-      answer: response.answer,
-      promptIsNeutral: task.promptIsNeutral,
-      partialResponse: response.partial_response,
-      tokensInput: response.tokens_input,
-      tokensOutput: response.tokens_output,
-      costUsd: response.cost_usd,
-    })
+    const clientIndex = response.sources.findIndex((src) => src.domain === clientDomain)
 
-    const sourcesWithClientFlag = response.sources.map((src) => ({
-      authorityResultId: result.id,
-      url: src.url,
-      title: src.title,
-      domain: src.domain,
-      isClientDomain: src.domain === clientDomain,
-    }))
+    // Le mode forcé alimente le score et le tableau de citations (UI) ;
+    // le mode spontané n'alimente que la série temporelle (citation_checks).
+    if (task.mode === 'forced') {
+      const result = await insertAuthorityResult({
+        analysisId,
+        promptId: task.promptId,
+        engine: task.engine.name,
+        answer: response.answer,
+        promptIsNeutral: task.promptIsNeutral,
+        partialResponse: response.partial_response,
+        tokensInput: response.tokens_input,
+        tokensOutput: response.tokens_output,
+        costUsd: response.cost_usd,
+      })
 
-    await insertAuthoritySources(sourcesWithClientFlag)
+      const sourcesWithClientFlag = response.sources.map((src) => ({
+        authorityResultId: result.id,
+        url: src.url,
+        title: src.title,
+        domain: src.domain,
+        isClientDomain: src.domain === clientDomain,
+      }))
+
+      await insertAuthoritySources(sourcesWithClientFlag)
+      citationsFound += response.sources.length
+      clientCitationsFound += sourcesWithClientFlag.filter((s) => s.isClientDomain).length
+    }
 
     // Série temporelle (PLAN item 11) : chaque appel devient un point de
     // mesure daté — la matière première des tendances et des alertes.
-    const clientIndex = sourcesWithClientFlag.findIndex((s) => s.isClientDomain)
     await insertCitationChecks([
       {
         siteId: analysis.siteId,
         promptId: task.promptId,
         analysisId,
         engine: task.engine.name,
-        mode: 'forced',
+        mode: task.mode,
         cited: clientIndex >= 0,
         position: clientIndex >= 0 ? clientIndex + 1 : null,
       },
     ])
 
-    successfulCalls++
+    if (task.mode === 'forced') {
+      successfulCalls++
+    } else {
+      spontaneousSuccessfulCalls++
+    }
     totalCostUsd += response.cost_usd
-    citationsFound += response.sources.length
-    clientCitationsFound += sourcesWithClientFlag.filter((s) => s.isClientDomain).length
   })
 
   await runWithConcurrency(runnableTasks, MAX_CONCURRENCY)
@@ -181,6 +229,7 @@ export async function runAuthorityAnalysis(
   return {
     totalCalls: tasks.length,
     successfulCalls,
+    spontaneousSuccessfulCalls,
     totalCostUsd: Math.round(totalCostUsd * 1_000_000) / 1_000_000,
     citationsFound,
     clientCitationsFound,
