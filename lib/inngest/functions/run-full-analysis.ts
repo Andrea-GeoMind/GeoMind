@@ -16,6 +16,9 @@ import {
 } from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { notifyAnalysisComplete } from '@/lib/analysis/alerts'
+import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
+import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
+import { reconcileActionStates } from '@/lib/db/queries/action-states'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 
@@ -92,6 +95,19 @@ export const runFullAnalysisFunction = inngest.createFunction(
         contentResult.score
       )
       await step.run('mark-success', () => updateAnalysisScores(analysisId, scores))
+
+      // 7bis. Vérification automatique du Plan d'action (PLAN item 16) :
+      // les actions déclarées corrigées dont la règle a disparu passent à « vérifié »
+      await step.run('reconcile-action-plan', async () => {
+        const [tech, cont] = await Promise.all([
+          getTechnicalIssuesByAnalysisId(analysisId),
+          getContentIssuesByAnalysisId(analysisId),
+        ])
+        const keys = new Set(
+          [...tech, ...cont].map((i) => `${i.ruleKey}::${i.pageUrl ?? ''}`)
+        )
+        return reconcileActionStates(siteId, keys)
+      })
 
       // 8. Email "analyse terminée" (PLAN item 13) — best-effort, jamais bloquant
       await step.run('notify-complete', () =>

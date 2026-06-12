@@ -39,6 +39,8 @@ export interface CoachContext {
   topIssues: CoachIssueSummary[]
   priorityPillar: 'authority' | 'technical' | 'content' | null
   lastAnalysisAt: Date | null
+  /** État du Plan d'action (PLAN item 16) — GEO suit les corrections du client */
+  actionPlan: { todo: number; done: number; verified: number } | null
   /** Diff N vs N-1 — GEO célèbre les progrès au premier message (§16.5.E) */
   comparison: CoachComparison | null
   /** Résumé mémoire des conversations précédentes (§16.8) — null si plan sans mémoire */
@@ -117,6 +119,12 @@ export function buildCoachSystemPrompt(ctx: CoachContext): string {
 
   if (ctx.priorityPillar) {
     data.push(`Pilier prioritaire : ${PILLAR_LABELS[ctx.priorityPillar]}`)
+  }
+
+  if (ctx.actionPlan && ctx.actionPlan.todo + ctx.actionPlan.done + ctx.actionPlan.verified > 0) {
+    data.push(
+      `Plan d'action du client : ${ctx.actionPlan.todo} à faire · ${ctx.actionPlan.done} déclarées corrigées (en attente de vérification à la prochaine analyse) · ${ctx.actionPlan.verified} vérifiées. S'il a des actions "déclarées corrigées", encourage-le à relancer une analyse pour les faire vérifier. S'il a des actions vérifiées, félicite-le.`
+    )
   }
 
   if (ctx.comparison) {

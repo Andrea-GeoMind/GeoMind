@@ -331,6 +331,34 @@ export const citationChecks = pgTable(
   ]
 )
 
+// ─── action_states ────────────────────────────────────────────────────────────
+// État durable du Plan d'action (PLAN item 16). Les issues sont recréées à
+// chaque analyse ; l'état « j'ai corrigé / vérifié » doit survivre, donc il est
+// clé par (site, règle, page). pageUrl = '' pour les règles site-scope.
+// Cycle : todo → done (déclaré corrigé) → verified (la règle a disparu de
+// l'analyse suivante — vérification automatique).
+
+export const actionStatusEnum = pgEnum('action_status', ['todo', 'done', 'verified'])
+
+export const actionStates = pgTable(
+  'action_states',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    ruleKey: text('rule_key').notNull(),
+    /** '' pour les issues site-scope, sinon l'URL de la page concernée */
+    pageUrl: text('page_url').notNull().default(''),
+    source: text('source', { enum: ['technical', 'content'] }).notNull(),
+    status: actionStatusEnum('status').notNull().default('todo'),
+    markedDoneAt: timestamp('marked_done_at', { withTimezone: true }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('action_states_site_rule_page_unique').on(t.siteId, t.ruleKey, t.pageUrl)]
+)
+
 // ─── technical_issues ─────────────────────────────────────────────────────────
 // Issues GEO détectées par l'analyse technique. 1 record = 1 règle violée.
 
