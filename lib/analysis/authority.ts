@@ -18,6 +18,12 @@ import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
 
 const MAX_CONCURRENCY = 8
 
+// Suffixe ajouté à chaque prompt en mode « forcé » au moment de l'envoi aux
+// LLMs. Force un format liste avec URLs, sans modifier le prompt stocké en DB
+// (qui reste neutre). Partagé avec la surveillance (lib/analysis/monitoring.ts).
+export const CITATION_SUFFIX =
+  "\n\nIMPORTANT : ta réponse doit impérativement lister au moins 10 acteurs différents (entreprises, outils ou prestataires), chacun accompagné de son site web officiel (URL complète)."
+
 // PLAN item 10 — double mesure :
 // - mode « forcé » (tous les prompts) : suffixe « liste ≥10 acteurs » → réponses
 //   exploitables et comparables, alimente le score et le tableau de citations ;
@@ -115,11 +121,6 @@ export async function runAuthorityAnalysis(
       }))
     )
   )
-
-  // Suffixe ajouté à chaque prompt au moment de l'envoi aux LLMs.
-  // Force un format liste avec URLs, sans modifier le prompt stocké en DB (qui reste neutre).
-  const CITATION_SUFFIX =
-    "\n\nIMPORTANT : ta réponse doit impérativement lister au moins 10 acteurs différents (entreprises, outils ou prestataires), chacun accompagné de son site web officiel (URL complète)."
 
   // Construction des tâches : 1 tâche = 1 prompt × 1 IA × 1 mode
   type Task = {
