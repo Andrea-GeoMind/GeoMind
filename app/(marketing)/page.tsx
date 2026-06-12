@@ -1,8 +1,9 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { BarChart2, Search, Lightbulb, CheckCircle2, ArrowRight, Shield, Wrench, FileText, TrendingUp, Zap } from 'lucide-react'
+import { BarChart2, Search, Lightbulb, CheckCircle2, Shield, Wrench, FileText, TrendingUp, Zap } from 'lucide-react'
 import { PLAN_PRICES, PLAN_LIMITS } from '@/lib/plans'
 import { CREDIT_COSTS } from '@/lib/credits-shared'
+import { ExpressAudit } from '@/components/features/marketing/express-audit'
 
 /** Nombre d'analyses complètes couvertes par l'allocation mensuelle d'un plan. */
 function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
@@ -180,26 +181,25 @@ export default function HomePage() {
                 Claude) et vous donne un plan d&apos;action concret.
               </p>
 
-              {/* CTAs */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex flex-col gap-1.5">
-                  <Button
-                    size="lg"
-                    asChild
-                    className="gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-8 text-white shadow-lg shadow-indigo-200/60 hover:opacity-90 transition-opacity"
+              {/* Audit express sans inscription (PLAN item 20) — l'outil EST le hero */}
+              <div className="mt-8">
+                <ExpressAudit />
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Envie d&apos;aller directement à l&apos;audit complet ?{' '}
+                  <Link
+                    href="/signup"
+                    className="font-medium text-primary underline underline-offset-4"
                   >
-                    <Link href="/signup">
-                      Analyser mon site — gratuit
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <span className="text-xs text-muted-foreground">
-                    Sans carte bancaire · Premiers résultats en quelques minutes
-                  </span>
-                </div>
-                <Button size="lg" variant="outline" asChild className="rounded-lg">
-                  <Link href="/pricing">Voir les tarifs</Link>
-                </Button>
+                    Créer un compte gratuit
+                  </Link>{' '}
+                  ·{' '}
+                  <Link
+                    href="/pricing"
+                    className="font-medium text-primary underline underline-offset-4"
+                  >
+                    Voir les tarifs
+                  </Link>
+                </p>
               </div>
 
               {/* Social proof — uniquement des faits vérifiables */}
