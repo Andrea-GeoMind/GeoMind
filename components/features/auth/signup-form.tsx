@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signUp } from '@/app/(auth)/actions'
+import { GoogleSignInButton, AuthDivider } from '@/components/features/auth/google-sign-in-button'
 
 const signUpSchema = z
   .object({
@@ -43,7 +44,10 @@ export function SignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="space-y-4">
+      <GoogleSignInButton label="S'inscrire avec Google" />
+      <AuthDivider />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -90,6 +94,7 @@ export function SignupForm() {
         {isPending ? 'Création du compte...' : 'Créer mon compte'}
       </Button>
 
-    </form>
+      </form>
+    </div>
   )
 }
