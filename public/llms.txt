@@ -1,0 +1,21 @@
+# GEOMIND
+
+> GEOMIND est un outil SaaS français qui audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude). Il mesure si un site est cité dans les réponses des IA, identifie les points faibles techniques et de contenu (méthodologie GEO — Generative Engine Optimization), et fournit un plan d'action concret. Conçu pour les TPE, PME et indépendants français, sans jargon. Plan gratuit : 1 analyse complète offerte, sans carte bancaire.
+
+## Pages principales
+
+- [Accueil](https://geomind.fr/) : présentation du produit, fonctionnement de l'audit, FAQ
+- [Tarifs](https://geomind.fr/pricing) : Gratuit (1 analyse offerte), Solo 19 € HT/mois, Pro 59 € HT/mois, Business 149 € HT/mois
+- [À propos](https://geomind.fr/about) : pourquoi GeoMind existe, l'approche
+- [Blog](https://geomind.fr/blog) : guides pratiques GEO en français
+
+## Guides
+
+- [Comment être cité par ChatGPT : le guide pour TPE et PME](https://geomind.fr/blog/comment-etre-cite-par-chatgpt)
+- [GEO vs SEO : ce qui change, ce qui reste](https://geomind.fr/blog/geo-vs-seo)
+- [llms.txt, Schema.org, FAQ : les fichiers qui parlent aux IA](https://geomind.fr/blog/fichiers-qui-parlent-aux-ia)
+
+## Contact
+
+- Email : contact@geomind.fr
+- Marché : France
