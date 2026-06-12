@@ -6,6 +6,9 @@ import { formatCreditsAmount, formatCreditsAsUsage } from '@/lib/credits-shared'
 import Sidebar from '@/components/features/app/sidebar'
 import { AnalysisLockProvider } from '@/components/features/analysis/analysis-lock-provider'
 import { LowCreditsBanner } from '@/components/features/credits/low-credits-banner'
+import { CoachProvider } from '@/components/features/coach/coach-provider'
+import { CoachFloatingButton } from '@/components/features/coach/coach-floating-button'
+import { CoachFloatingPanel } from '@/components/features/coach/coach-floating-panel'
 
 const LOW_CREDIT_BANNER_RATIO = 0.2
 
@@ -37,18 +40,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <AnalysisLockProvider>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar userEmail={user.email ?? ''} credits={credits} />
-        <main className="flex-1 overflow-y-auto">
-          {showLowCreditsBanner && (
-            <LowCreditsBanner
-              monthlyRemaining={stats.credits.monthly}
-              allowance={stats.creditsPerMonth}
-            />
-          )}
-          {children}
-        </main>
-      </div>
+      <CoachProvider>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar userEmail={user.email ?? ''} credits={credits} />
+          <main className="flex-1 overflow-y-auto">
+            {showLowCreditsBanner && (
+              <LowCreditsBanner
+                monthlyRemaining={stats.credits.monthly}
+                allowance={stats.creditsPerMonth}
+              />
+            )}
+            {children}
+          </main>
+        </div>
+        <CoachFloatingButton creditsBadge={credits?.amount ?? null} />
+        <CoachFloatingPanel />
+      </CoachProvider>
     </AnalysisLockProvider>
   )
 }
