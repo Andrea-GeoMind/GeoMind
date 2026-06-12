@@ -10,7 +10,7 @@ export function WelcomeStep() {
     {
       icon: Globe,
       title: 'Renseignez votre site web',
-      description: 'URL, langue et marché cible en 30 secondes',
+      description: 'URL, langue et marché cible — moins d’une minute',
     },
     {
       icon: BarChart3,
@@ -41,7 +41,7 @@ export function WelcomeStep() {
         </h1>
         <p className="mx-auto max-w-sm text-sm text-muted-foreground leading-relaxed">
           Découvrez si votre site est cité par les IA et obtenez un plan d&apos;action
-          concret pour améliorer votre visibilité GEO.
+          concret pour améliorer votre visibilité dans les IA.
         </p>
       </div>
 

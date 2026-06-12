@@ -43,6 +43,7 @@ export default async function TrendsPage({ params }: Props) {
   // Analyses réussies, de la plus ancienne à la plus récente
   const successful = allAnalyses
     .filter((a) => a.status === 'success' && a.globalScore !== null)
+    .slice()
     .reverse()
 
   const scoreLabels = successful.map((a) => formatDay(a.createdAt))

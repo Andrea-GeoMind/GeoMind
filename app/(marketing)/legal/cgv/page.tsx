@@ -59,6 +59,18 @@ export default function CgvPage() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="text-base font-semibold text-foreground">2 bis. Essai gratuit</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Le plan Pro inclut une période d&apos;essai gratuite de 7 jours, réservée à la première
+          souscription payante d&apos;un compte. Une carte bancaire est requise à la souscription ;
+          aucun prélèvement n&apos;est effectué pendant l&apos;essai. Sauf annulation avant la fin
+          de la période d&apos;essai (depuis Paramètres → Facturation), l&apos;abonnement démarre
+          automatiquement au tarif en vigueur. L&apos;annulation pendant l&apos;essai est sans
+          frais et prend effet immédiatement.
+        </p>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">3. Commande et souscription</h2>
         <p className="text-muted-foreground leading-relaxed">
           La souscription est effectuée en ligne via geomind.fr. Le contrat est conclu dès validation
