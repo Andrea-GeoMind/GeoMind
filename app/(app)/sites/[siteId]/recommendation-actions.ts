@@ -13,6 +13,7 @@ import {
   buildCompleteRecommendationUserMessage,
 } from '@/lib/ai/prompts/recommendations'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
+import { CREDIT_COSTS, consumeCredits, refundCredits } from '@/lib/credits'
 
 const COMPLETE_MODEL = 'anthropic/claude-sonnet-4-6'
 const EST_INPUT_TOKENS = 400
@@ -28,12 +29,12 @@ export async function generateCompleteRecommendation(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Verify Business plan
+  // Verify Business plan (admin = accès illimité)
   const sub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, user.id),
     columns: { plan: true },
   })
-  if (sub?.plan !== 'business') {
+  if (sub?.plan !== 'business' && sub?.plan !== 'admin') {
     return { error: 'La version complète est réservée au plan Business.' }
   }
 
@@ -60,9 +61,23 @@ export async function generateCompleteRecommendation(
   })
   if (!analysis || analysis.userId !== user.id) return { error: 'Accès refusé.' }
 
-  // Return cached 'complete' variant if it exists
+  // Return cached 'complete' variant if it exists (gratuit : pas de re-génération)
   const existing = await getRecommendationByIssueId(issueId, 'complete')
   if (existing) return { content: existing.content }
+
+  // Décompte crédits avant l'appel Sonnet (§17) — remboursé si la génération échoue.
+  // Plan admin : consumeCredits est un no-op.
+  const consumed = await consumeCredits(
+    user.id,
+    CREDIT_COSTS.completeRecommendation,
+    'recommendation',
+    { issueId, issueType }
+  )
+  if (!consumed.ok) {
+    return {
+      error: `Crédits insuffisants : la version complète coûte ${CREDIT_COSTS.completeRecommendation} crédits (solde : ${consumed.balance.total}).`,
+    }
+  }
 
   // Generate via Sonnet
   logEstimatedBatchCost([
@@ -98,6 +113,7 @@ export async function generateCompleteRecommendation(
     return { content: data.content }
   } catch (err) {
     console.error('[generateCompleteRecommendation] error:', err)
+    await refundCredits(user.id, CREDIT_COSTS.completeRecommendation, { issueId, issueType })
     return { error: 'Erreur lors de la génération. Veuillez réessayer.' }
   }
 }
