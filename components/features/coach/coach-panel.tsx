@@ -1,21 +1,33 @@
 'use client'
 
-import { useState, useRef, useEffect, type FormEvent } from 'react'
-import { Send, Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import Link from 'next/link'
+import { Send, Loader2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CoachMessage } from '@/components/features/coach/coach-message'
+import { GeoAvatar } from '@/components/features/coach/geo-avatar'
+import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
+import {
+  useCoachChat,
+  useStickToBottom,
+  type CoachChatMessage,
+} from '@/components/features/coach/use-coach-chat'
+import type { CoachFocusedIssue } from '@/components/features/coach/coach-provider'
 
-interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
+const MAX_INPUT_CHARS = 2_000
 
 interface CoachPanelProps {
   siteId: string
-  analysisId: string
-  initialMessages: ChatMessage[]
+  analysisId: string | null
+  initialMessages: CoachChatMessage[]
   remainingMessages: number | null
+  /** Chips contextuelles (§16.6) affichées sous l'input tant que la conversation n'a pas démarré */
+  suggestions?: string[]
+  /** Message d'accueil de GEO — affiché côté UI uniquement, jamais persisté */
+  welcomeMessage?: string
+  /** Issue pré-injectée (« Demander à GEO », §16.5.C) — envoyée automatiquement une fois */
+  focusedIssue?: CoachFocusedIssue | null
+  onFocusedIssueConsumed?: () => void
 }
 
 export function CoachPanel({
@@ -23,108 +35,101 @@ export function CoachPanel({
   analysisId,
   initialMessages,
   remainingMessages,
+  suggestions = [],
+  welcomeMessage,
+  focusedIssue = null,
+  onFocusedIssueConsumed,
 }: CoachPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
+  const { messages, isStreaming, streamingId, error, sendMessage, retry, userMessageCount } =
+    useCoachChat({ siteId, analysisId, initialMessages })
   const [input, setInput] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const streamingIdRef = useRef<string | null>(null)
+  const { containerRef, handleScroll } = useStickToBottom(messages)
+  const consumedIssueRef = useRef<CoachFocusedIssue | null>(null)
 
+  // Ouverture depuis une issue : premier message user envoyé automatiquement (§16.5.C)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    if (!focusedIssue || consumedIssueRef.current === focusedIssue) return
+    consumedIssueRef.current = focusedIssue
+    void sendMessage(`Aide-moi à corriger : ${focusedIssue.title}`, focusedIssue)
+    onFocusedIssueConsumed?.()
+  }, [focusedIssue, sendMessage, onFocusedIssueConsumed])
+
+  // Re-focus de l'input à la fin du stream
+  useEffect(() => {
+    if (!isStreaming) inputRef.current?.focus()
+  }, [isStreaming])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
-
     setInput('')
-    setError(null)
+    await sendMessage(trimmed)
+  }
 
-    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: 'user', content: trimmed }
-    const assistantId = `a-${Date.now() + 1}`
-    streamingIdRef.current = assistantId
-    const assistantMsg: ChatMessage = { id: assistantId, role: 'assistant', content: '' }
-
-    setMessages((prev) => [...prev, userMsg, assistantMsg])
-    setIsStreaming(true)
-
-    try {
-      const response = await fetch(`/api/coach/${siteId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: trimmed, analysisId }),
-      })
-
-      if (!response.ok) {
-        const errData = (await response.json().catch(() => ({ error: 'Erreur inconnue' }))) as {
-          error: string
-        }
-        throw new Error(errData.error)
-      }
-
-      const reader = response.body!.getReader()
-      const decoder = new TextDecoder()
-      let accumulated = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const delta = decoder.decode(value, { stream: true })
-        accumulated += delta
-        setMessages((prev) =>
-          prev.map((m) => (m.id === assistantId ? { ...m, content: accumulated } : m))
-        )
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Une erreur est survenue. Réessayez.'
-      setError(msg)
-      setMessages((prev) => prev.filter((m) => m.id !== assistantId))
-    } finally {
-      setIsStreaming(false)
-      streamingIdRef.current = null
-      inputRef.current?.focus()
-    }
+  function handleSuggestion(suggestion: string) {
+    if (isStreaming) return
+    captureCoachEvent('coach_suggestion_clicked', { suggestion })
+    void sendMessage(suggestion)
   }
 
   const isDisabled = isStreaming || (remainingMessages !== null && remainingMessages <= 0)
+  const showSuggestions = suggestions.length > 0 && userMessageCount === 0 && !isStreaming
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        {messages.length === 0 && (
+    <div className="flex h-full min-h-0 flex-col">
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-4 py-6"
+        aria-live="polite"
+      >
+        {messages.length === 0 && !welcomeMessage && (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-              <span className="text-2xl">🎯</span>
-            </div>
-            <p className="text-sm font-medium">Posez une question sur votre visibilité IA</p>
-            <p className="max-w-xs text-xs text-muted-foreground">
-              Le coach connaît vos scores, vos problèmes détectés et peut vous guider vers les
-              meilleures actions.
+            <GeoAvatar size="lg" />
+            <p className="text-sm font-medium">
+              Salut, moi c&apos;est GEO 👋 Je connais ton site et ses analyses par cœur.
             </p>
+            <p className="max-w-xs text-xs text-muted-foreground">Dis-moi ce qui t&apos;amène !</p>
           </div>
         )}
 
         <div className="flex flex-col gap-4">
+          {messages.length === 0 && welcomeMessage && (
+            <CoachMessage role="assistant" content={welcomeMessage} />
+          )}
           {messages.map((m) => (
             <CoachMessage
               key={m.id}
               role={m.role}
               content={m.content}
-              isStreaming={isStreaming && m.id === streamingIdRef.current}
+              isStreaming={isStreaming && m.id === streamingId}
             />
           ))}
         </div>
-
-        <div ref={bottomRef} />
       </div>
 
       {error && (
-        <div className="mx-4 mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
+        <div className="mx-4 mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <span className="min-w-0 flex-1">{error.message}</span>
+          {error.kind === 'credits' ? (
+            <Link
+              href="/settings/billing"
+              className="shrink-0 font-semibold underline underline-offset-2"
+            >
+              Recharger
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void retry()}
+              className="inline-flex shrink-0 items-center gap-1 font-semibold underline underline-offset-2"
+            >
+              <RotateCcw size={11} />
+              Réessayer
+            </button>
+          )}
         </div>
       )}
 
@@ -135,42 +140,58 @@ export function CoachPanel({
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="border-t border-border bg-card px-4 py-3">
-        <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                void handleSubmit(e as unknown as FormEvent)
+      <div className="border-t border-border bg-card px-4 py-3">
+        {showSuggestions && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {suggestions.slice(0, 3).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => handleSuggestion(s)}
+                className="rounded-full border border-primary/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:border-primary/40 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={inputRef}
+              value={input}
+              maxLength={MAX_INPUT_CHARS}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  void handleSubmit(e as unknown as FormEvent)
+                }
+              }}
+              placeholder={
+                isDisabled && remainingMessages === 0
+                  ? 'Plus de crédits — recharge pour continuer'
+                  : 'Pose ta question… (Entrée pour envoyer)'
               }
-            }}
-            placeholder={
-              isDisabled && remainingMessages === 0
-                ? 'Quota atteint — passez au plan Pro'
-                : 'Posez votre question… (Entrée pour envoyer)'
-            }
-            disabled={isDisabled}
-            rows={1}
-            className="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-            style={{ maxHeight: '120px', overflowY: 'auto' }}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={isDisabled || !input.trim()}
-            className="h-9 w-9 shrink-0 rounded-xl"
-          >
-            {isStreaming ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Send size={16} />
-            )}
-          </Button>
-        </div>
-      </form>
+              disabled={isDisabled}
+              rows={1}
+              aria-label="Votre message pour GEO"
+              className="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              style={{ maxHeight: '120px', overflowY: 'auto' }}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={isDisabled || !input.trim()}
+              className="h-9 w-9 shrink-0 rounded-xl"
+              aria-label="Envoyer"
+            >
+              {isStreaming ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

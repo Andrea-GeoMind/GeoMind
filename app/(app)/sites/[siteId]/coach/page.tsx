@@ -1,13 +1,28 @@
+import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
-import { getCoachMessages } from '@/lib/db/queries/coach'
+import { getRecentCoachMessages } from '@/lib/db/queries/coach'
+import { canUseCoachMemory } from '@/lib/quotas'
 import { CREDIT_COSTS, getUserCredits } from '@/lib/credits'
+import { getPriorityAction } from '@/lib/analysis/scoring'
+import { getSuggestions } from '@/lib/ai/coach-suggestions'
 import { CoachPanel } from '@/components/features/coach/coach-panel'
+import { GeoAvatar } from '@/components/features/coach/geo-avatar'
+import { ClearMemoryButton } from '@/components/features/coach/clear-memory-button'
 import { Button } from '@/components/ui/button'
+
+export const metadata: Metadata = {
+  title: 'GEO — GEOMIND',
+}
+
+const PILLAR_LABELS: Record<'authority' | 'technical' | 'content', string> = {
+  authority: 'Autorité',
+  technical: 'Technique',
+  content: 'Contenu',
+}
 
 type Props = {
   params: Promise<{ siteId: string }>
@@ -31,14 +46,12 @@ export default async function CoachPage({ params }: Props) {
   if (!latestAnalysis) {
     return (
       <div className="flex flex-col items-center justify-center gap-6 px-6 py-24 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-          <Sparkles className="h-7 w-7 text-indigo-600" />
-        </div>
+        <GeoAvatar size="lg" />
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight">Lancez une analyse d&apos;abord</h2>
+          <h2 className="text-xl font-extrabold tracking-tight">Lance une analyse d&apos;abord</h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Le Coach IA a besoin des données d&apos;une analyse pour vous conseiller. Lancez votre
-            première analyse depuis la Vue d&apos;ensemble.
+            GEO a besoin des données d&apos;une analyse pour te conseiller. Lance ta première
+            analyse depuis la Vue d&apos;ensemble.
           </p>
         </div>
         <Button variant="outline" asChild>
@@ -48,35 +61,70 @@ export default async function CoachPage({ params }: Props) {
     )
   }
 
-  const [messages, credits] = await Promise.all([
-    getCoachMessages(siteId, latestAnalysis.id),
+  const [memoryEnabled, credits] = await Promise.all([
+    canUseCoachMemory(user.id),
     getUserCredits(user.id),
   ])
+
+  // Mémoire de GEO (§16.8) : historique rechargé uniquement avec le gate plan
+  const history = memoryEnabled ? await getRecentCoachMessages(user.id, siteId, 20) : []
+
+  const initialMessages = history.map((m) => ({
+    id: m.id,
+    role: m.role as 'user' | 'assistant',
+    content: m.content,
+  }))
 
   // Nombre de messages restants estimé depuis le solde de crédits (TKT-CREDITS)
   const remainingMessages = Number.isFinite(credits.total)
     ? Math.floor(credits.total / CREDIT_COSTS.coachMessage)
     : null
 
-  const initialMessages = messages.map((m) => ({
-    id: m.id,
-    role: m.role as 'user' | 'assistant',
-    content: m.content,
-  }))
+  // Accueil contextualisé (§16.5.B) — rendu statique côté UI, jamais persisté
+  let welcomeMessage: string | undefined
+  if (initialMessages.length === 0) {
+    const weakestPillar = getPriorityAction(
+      latestAnalysis.authorityScore ?? 0,
+      latestAnalysis.technicalScore ?? 0,
+      latestAnalysis.contentScore ?? 0
+    ).pillar
+    welcomeMessage = `Salut ! J'ai épluché l'analyse de **${site.name}**. Ton score global est de **${latestAnalysis.globalScore ?? 0}/100** — ton point faible, c'est le pilier **${PILLAR_LABELS[weakestPillar]}**. Bonne nouvelle : j'ai un plan. On attaque ?`
+  }
+
+  const suggestions = getSuggestions('coach', {
+    hasAnalysis: true,
+    globalScore: latestAnalysis.globalScore,
+    issueCount: 0,
+    cited: null,
+  })
 
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col">
       <div className="border-b border-border bg-white px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-            <Sparkles className="h-4 w-4 text-indigo-600" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <GeoAvatar size="md" />
+            <div>
+              <h2 className="text-sm font-bold">GEO</h2>
+              <p className="text-xs text-muted-foreground">
+                Ton assistant pour la visibilité de {site.name} dans les IA
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-bold">Coach IA</h2>
+
+          {memoryEnabled ? (
+            <ClearMemoryButton siteId={siteId} />
+          ) : (
             <p className="text-xs text-muted-foreground">
-              Posez vos questions sur la visibilité de {site.name} dans les IAs
+              GEO se souviendra de vos conversations avec le plan Solo —{' '}
+              <Link
+                href="/pricing"
+                className="font-semibold text-primary underline underline-offset-2"
+              >
+                voir les plans
+              </Link>
             </p>
-          </div>
+          )}
         </div>
       </div>
 
@@ -85,6 +133,8 @@ export default async function CoachPage({ params }: Props) {
         analysisId={latestAnalysis.id}
         initialMessages={initialMessages}
         remainingMessages={remainingMessages}
+        suggestions={suggestions}
+        welcomeMessage={welcomeMessage}
       />
     </div>
   )

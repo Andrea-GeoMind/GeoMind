@@ -3,9 +3,10 @@ import { notFound, redirect } from 'next/navigation'
 import { Globe, ChevronLeft, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
-import { getLatestAnalysis } from '@/lib/db/queries/analyses'
+import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
 import { SiteTabs } from '@/components/features/sites/site-tabs'
 import { AnalysisLockInit } from '@/components/features/analysis/analysis-lock-init'
+import { CoachSiteBinding } from '@/components/features/coach/coach-site-binding'
 
 type Props = {
   children: React.ReactNode
@@ -21,14 +22,17 @@ export default async function SiteLayout({ children, params }: Props) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [site, latestAnalysis] = await Promise.all([
+  const [site, latestAnalysis, successfulAnalyses] = await Promise.all([
     getSiteById(siteId),
     getLatestAnalysis(siteId),
+    getLatestSuccessfulAnalyses(siteId, 1),
   ])
   if (!site || site.userId !== user.id) notFound()
 
   const isInProgress =
     latestAnalysis?.status === 'pending' || latestAnalysis?.status === 'running'
+
+  const latestSuccess = successfulAnalyses[0] ?? null
 
   return (
     <div className="flex flex-col">
@@ -39,6 +43,15 @@ export default async function SiteLayout({ children, params }: Props) {
           siteName={site.name}
         />
       )}
+
+      {/* Enregistre le site courant pour GEO (bouton flottant + chips, §16.5) */}
+      <CoachSiteBinding
+        siteId={siteId}
+        hasAnalysis={latestSuccess !== null}
+        globalScore={latestSuccess?.globalScore ?? null}
+        technicalScore={latestSuccess?.technicalScore ?? null}
+        contentScore={latestSuccess?.contentScore ?? null}
+      />
 
       {/* Site header */}
       <div className="border-b border-border bg-card px-6 py-4">

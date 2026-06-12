@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
+import { CoachAutoOpen } from '@/components/features/coach/coach-auto-open'
 
 export const metadata: Metadata = {
   title: "Vue d'ensemble — GEOMIND",
@@ -109,6 +110,13 @@ export default async function OverviewPage({ params }: Props) {
   return (
     <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
+
+      {/* Auto-ouverture unique de GEO après la première analyse (§16.5.D) */}
+      <CoachAutoOpen
+        siteId={siteId}
+        introSeen={site.coachIntroSeen}
+        analysisSuccess={latest.status === 'success'}
+      />
 
       {/* Méthodologie enrichie (§18.3) */}
       {methodologyChanged && deltas !== null && (

@@ -3,7 +3,8 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Shield, Wrench, FileText, BookOpen } from 'lucide-react'
+import { LayoutDashboard, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
+import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
 
 const TABS = [
   { label: "Vue d'ensemble", segment: 'overview',   icon: LayoutDashboard },
@@ -11,6 +12,7 @@ const TABS = [
   { label: 'Technique',      segment: 'technical',  icon: Wrench },
   { label: 'Contenu',        segment: 'content',    icon: FileText },
   { label: 'Publishers',     segment: 'publishers', icon: BookOpen },
+  { label: 'GEO',            segment: 'coach',      icon: Sparkles },
 ]
 
 type Props = {
@@ -33,6 +35,11 @@ export function SiteTabs({ siteId }: Props) {
           <Link
             key={tab.segment}
             href={href as Route}
+            onClick={
+              tab.segment === 'coach' && !isActive
+                ? () => captureCoachEvent('coach_opened', { source: 'tab' })
+                : undefined
+            }
             className={[
               'relative inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-150',
               isActive
