@@ -10,6 +10,7 @@ import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { getCompetitorsBySiteId } from '@/lib/db/queries/competitors'
 import { getCoachMemory } from '@/lib/db/queries/coach'
+import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
 import { getPriorityAction } from '@/lib/analysis/scoring'
 import { canUseCoachMemory } from '@/lib/quotas'
 import type { CoachContext, CoachComparison, CoachIssueSummary } from '@/lib/ai/prompts/coach'
@@ -40,6 +41,14 @@ export async function buildCoachContext(
 
   const memory = memoryAllowed ? await getCoachMemory(options.userId, siteId) : null
 
+  // État du Plan d'action (PLAN item 16) — GEO suit les corrections en cours
+  const actionStatesList = await getActionStatesBySiteId(siteId)
+  const actionPlan = {
+    todo: actionStatesList.filter((s) => s.status === 'todo').length,
+    done: actionStatesList.filter((s) => s.status === 'done').length,
+    verified: actionStatesList.filter((s) => s.status === 'verified').length,
+  }
+
   const base = {
     siteName: site.name,
     siteUrl: site.url,
@@ -49,6 +58,7 @@ export async function buildCoachContext(
     competitors: competitors.map((c) => c.name ?? c.url),
     memorySummary: memory?.memorySummary ?? null,
     focusedIssue: options.focusedIssue ?? null,
+    actionPlan,
   }
 
   if (!latest) {

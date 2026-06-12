@@ -3,16 +3,19 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
+import { LayoutDashboard, TrendingUp, ListTodo, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
 import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
 
 const TABS = [
-  { label: "Vue d'ensemble", segment: 'overview',   icon: LayoutDashboard },
-  { label: 'Autorité',       segment: 'authority',  icon: Shield },
-  { label: 'Technique',      segment: 'technical',  icon: Wrench },
-  { label: 'Contenu',        segment: 'content',    icon: FileText },
-  { label: 'Publishers',     segment: 'publishers', icon: BookOpen },
-  { label: 'GEO',            segment: 'coach',      icon: Sparkles },
+  { label: "Vue d'ensemble", segment: 'overview',    icon: LayoutDashboard },
+  { label: 'Plan d’action',  segment: 'action-plan', icon: ListTodo },
+  { label: 'Suivi',          segment: 'trends',      icon: TrendingUp },
+  { label: 'Autorité',       segment: 'authority',   icon: Shield },
+  { label: 'Technique',      segment: 'technical',   icon: Wrench },
+  { label: 'Contenu',        segment: 'content',     icon: FileText },
+  { label: 'Publishers',     segment: 'publishers',  icon: BookOpen },
+  // « Coach » plutôt que « GEO » : plus clair pour un non-initié (PLAN item 18)
+  { label: 'Coach',          segment: 'coach',       icon: Sparkles },
 ]
 
 type Props = {

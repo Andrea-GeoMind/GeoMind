@@ -5,6 +5,15 @@ import { runDiscoveryFunction } from '@/lib/inngest/functions/run-discovery'
 import { runAuthorityAnalysisFunction } from '@/lib/inngest/functions/run-authority-analysis'
 import { runFullAnalysisFunction } from '@/lib/inngest/functions/run-full-analysis'
 import { compressCoachMemoryFunction } from '@/lib/inngest/functions/compress-coach-memory'
+import {
+  monitorPaidSitesFunction,
+  monitorFreeSitesFunction,
+  monitorSiteFunction,
+} from '@/lib/inngest/functions/monitor-sites'
+import {
+  monthlyReportCronFunction,
+  monthlyReportSendFunction,
+} from '@/lib/inngest/functions/monthly-report'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -14,5 +23,10 @@ export const { GET, POST, PUT } = serve({
     runAuthorityAnalysisFunction,
     runFullAnalysisFunction,
     compressCoachMemoryFunction,
+    monitorPaidSitesFunction,
+    monitorFreeSitesFunction,
+    monitorSiteFunction,
+    monthlyReportCronFunction,
+    monthlyReportSendFunction,
   ],
 })

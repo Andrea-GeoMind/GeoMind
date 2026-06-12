@@ -19,8 +19,32 @@ export const DiscoveryOutputSchema = z.object({
 
 export type DiscoveryOutput = z.infer<typeof DiscoveryOutputSchema>
 
+// Validation runtime des réponses moteurs IA (PLAN item 17, règle CLAUDE.md §8) :
+// une réponse malformée d'un connecteur ne doit jamais se propager en DB en
+// silence — elle est rejetée et l'appel compté comme échoué.
+export const IAResponseSchema = z.object({
+  engine: z.enum(['chatgpt', 'claude', 'gemini', 'perplexity']),
+  prompt: z.string(),
+  answer: z.string(),
+  sources: z.array(
+    z.object({
+      url: z.string().min(1),
+      domain: z.string().min(1),
+      title: z.string().nullable(),
+    })
+  ),
+  partial_response: z.boolean(),
+  tokens_input: z.number().int().min(0),
+  tokens_output: z.number().int().min(0),
+  cost_usd: z.number().min(0),
+  raw: z.unknown().optional(),
+})
+
+// PLAN item 10 : 10 prompts pour la fiabilité statistique du score d'autorité.
+// Tolérance ±2 : les LLMs ratent parfois le compte exact, 8 prompts valides
+// valent mieux qu'un retry de plus.
 export const NeutralPromptsOutputSchema = z.object({
-  prompts: z.array(z.string().min(10)).length(3),
+  prompts: z.array(z.string().min(10)).min(8).max(12),
 })
 
 export type NeutralPromptsOutput = z.infer<typeof NeutralPromptsOutputSchema>

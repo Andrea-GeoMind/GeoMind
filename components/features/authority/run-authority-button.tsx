@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { RefreshCw, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { runAnalysisAction } from '@/app/(app)/sites/[siteId]/analysis-actions'
+import { CREDIT_COSTS } from '@/lib/credits-shared'
 
 interface RunAuthorityButtonProps {
   siteId: string
@@ -48,7 +49,7 @@ export function RunAuthorityButton({ siteId }: RunAuthorityButtonProps) {
         className="shrink-0 gap-2"
       >
         <RefreshCw size={13} className={isPending ? 'animate-spin' : ''} />
-        {isPending ? 'Lancement…' : 'Relancer'}
+        {isPending ? 'Lancement…' : `Relancer (${CREDIT_COSTS.fullAnalysis} crédits)`}
       </Button>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

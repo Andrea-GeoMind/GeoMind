@@ -10,6 +10,7 @@ import {
   integer,
   numeric,
   unique,
+  index,
 } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 
@@ -75,6 +76,8 @@ export const profiles = pgTable('profiles', {
   email: text('email').notNull(),
   fullName: text('full_name'),
   avatarUrl: text('avatar_url'),
+  // Alertes email (citations, baisses de visibilité, analyses terminées) — PLAN item 13
+  emailNotifications: boolean('email_notifications').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -288,6 +291,73 @@ export const authoritySources = pgTable('authority_sources', {
   isClientDomain: boolean('is_client_domain').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+// ─── citation_checks ──────────────────────────────────────────────────────────
+// Série temporelle de la visibilité (PLAN item 11) : 1 ligne = « le prompt P,
+// posé au moteur M, le jour J, en mode X, a cité (ou non) le site ».
+// C'est la donnée brute dont les analyses ne sont qu'une agrégation — fondation
+// du suivi dans le temps, des alertes, des tendances et du futur Pixel.
+
+export const citationCheckModeEnum = pgEnum('citation_check_mode', [
+  // Prompt envoyé tel quel — mesure la citation spontanée (la vraie visibilité)
+  'spontaneous',
+  // Prompt + suffixe « liste ≥10 acteurs avec URLs » — mesure la présence
+  // dans un classement forcé (signal secondaire, plus stable mais artificiel)
+  'forced',
+])
+
+export const citationChecks = pgTable(
+  'citation_checks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    promptId: uuid('prompt_id')
+      .notNull()
+      .references(() => prompts.id, { onDelete: 'cascade' }),
+    // Nullable : un check peut venir d'une surveillance planifiée, hors analyse
+    analysisId: uuid('analysis_id').references(() => analyses.id, { onDelete: 'set null' }),
+    engine: iaEngineEnum('engine').notNull(),
+    mode: citationCheckModeEnum('mode').notNull().default('forced'),
+    cited: boolean('cited').notNull(),
+    // Position dans la liste de sources si cité (1 = première source), null sinon
+    position: integer('position'),
+    checkedAt: timestamp('checked_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('citation_checks_site_checked_idx').on(t.siteId, t.checkedAt),
+    index('citation_checks_prompt_engine_idx').on(t.promptId, t.engine),
+  ]
+)
+
+// ─── action_states ────────────────────────────────────────────────────────────
+// État durable du Plan d'action (PLAN item 16). Les issues sont recréées à
+// chaque analyse ; l'état « j'ai corrigé / vérifié » doit survivre, donc il est
+// clé par (site, règle, page). pageUrl = '' pour les règles site-scope.
+// Cycle : todo → done (déclaré corrigé) → verified (la règle a disparu de
+// l'analyse suivante — vérification automatique).
+
+export const actionStatusEnum = pgEnum('action_status', ['todo', 'done', 'verified'])
+
+export const actionStates = pgTable(
+  'action_states',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    ruleKey: text('rule_key').notNull(),
+    /** '' pour les issues site-scope, sinon l'URL de la page concernée */
+    pageUrl: text('page_url').notNull().default(''),
+    source: text('source', { enum: ['technical', 'content'] }).notNull(),
+    status: actionStatusEnum('status').notNull().default('todo'),
+    markedDoneAt: timestamp('marked_done_at', { withTimezone: true }),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('action_states_site_rule_page_unique').on(t.siteId, t.ruleKey, t.pageUrl)]
+)
 
 // ─── technical_issues ─────────────────────────────────────────────────────────
 // Issues GEO détectées par l'analyse technique. 1 record = 1 règle violée.
@@ -577,4 +647,13 @@ export const coachMessagesRelations = relations(coachMessages, ({ one }) => ({
     references: [analyses.id],
   }),
   profile: one(profiles, { fields: [coachMessages.userId], references: [profiles.id] }),
+}))
+
+export const citationChecksRelations = relations(citationChecks, ({ one }) => ({
+  site: one(sites, { fields: [citationChecks.siteId], references: [sites.id] }),
+  prompt: one(prompts, { fields: [citationChecks.promptId], references: [prompts.id] }),
+  analysis: one(analyses, {
+    fields: [citationChecks.analysisId],
+    references: [analyses.id],
+  }),
 }))

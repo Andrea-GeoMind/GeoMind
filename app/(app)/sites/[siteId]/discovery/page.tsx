@@ -55,10 +55,10 @@ export default async function DiscoveryPage({ params }: Props) {
         <Info size={15} className="mt-0.5 shrink-0 text-primary" />
         <p className="text-sm leading-relaxed text-foreground/80">
           <span className="font-semibold text-foreground">
-            Plus vos prompts sont neutres, plus l&apos;analyse GEO est fiable.
+            Posez les questions comme vos clients les poseraient — sans citer votre nom.
           </span>{' '}
-          Les prompts mentionnant votre domaine ou marque sont exclus du calcul — ils orienteraient
-          les IAs vers votre site spécifiquement, biaisant le score.
+          Si une question mentionne votre marque, c&apos;est normal que les IA vous trouvent :
+          elle ne compte pas dans le score.
         </p>
       </div>
 

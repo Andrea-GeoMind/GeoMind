@@ -18,6 +18,9 @@ vi.mock('@/lib/db/queries/authority-results', () => ({
 vi.mock('@/lib/db/queries/authority-sources', () => ({
   insertAuthoritySources: vi.fn(),
 }))
+vi.mock('@/lib/db/queries/citation-checks', () => ({
+  insertCitationChecks: vi.fn(),
+}))
 vi.mock('@/lib/ai/cost', () => ({
   logEstimatedBatchCost: vi.fn(),
 }))
@@ -138,8 +141,10 @@ describe('runAuthorityAnalysis', () => {
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    expect(result.totalCalls).toBe(4)
-    expect(result.successfulCalls).toBe(4)
+    // 1 prompt × 4 IAs × 2 modes (forcé + spontané, prompt dans l'échantillon)
+    expect(result.totalCalls).toBe(8)
+    expect(result.successfulCalls).toBe(4) // forcés uniquement (dénominateur du score)
+    expect(result.spontaneousSuccessfulCalls).toBe(4)
   })
 
   it('détecte le domaine client dans les sources', async () => {
@@ -185,8 +190,8 @@ describe('runAuthorityAnalysis', () => {
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    expect(result.totalCalls).toBe(4)
-    // 3 IAs OK, 1 en erreur
+    expect(result.totalCalls).toBe(8) // 4 forcés + 4 spontanés
+    // 3 IAs OK, 1 en erreur — en mode forcé
     expect(result.successfulCalls).toBe(3)
   })
 
@@ -204,8 +209,8 @@ describe('runAuthorityAnalysis', () => {
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    // Seulement le prompt neutre → 4 appels (1 prompt × 4 IAs)
-    expect(result.totalCalls).toBe(4)
+    // Seulement le prompt neutre → 8 appels (1 prompt × 4 IAs × 2 modes)
+    expect(result.totalCalls).toBe(8)
   })
 
   it('lève une erreur si l analyse est introuvable', async () => {

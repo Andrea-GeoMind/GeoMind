@@ -2,6 +2,7 @@
 
 import { ChevronRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { explainJargon } from '@/lib/analysis/glossary'
 import { useCoach } from '@/components/features/coach/coach-provider'
 import { IssueSeverityBadge } from '@/components/features/technical/issue-severity-badge'
 import { displaySeverity, type DbIssueSeverity } from '@/components/features/technical/issue-card'
@@ -53,6 +54,11 @@ export function ContentIssueCard({ issue, onClick }: ContentIssueCardProps) {
       <div className="min-w-0 flex-1 space-y-1">
         <p className="truncate text-sm font-semibold text-foreground">{issue.title}</p>
         <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{issue.description}</p>
+        {explainJargon(issue.title) && (
+          <p className="text-[11px] leading-relaxed text-indigo-600/90">
+            💡 {explainJargon(issue.title)}
+          </p>
+        )}
         <button
           type="button"
           onClick={(e) => {

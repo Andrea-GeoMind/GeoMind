@@ -97,23 +97,26 @@ describe('DiscoveryOutputSchema', () => {
 // ─── NeutralPromptsOutputSchema ───────────────────────────────────────────────
 
 describe('NeutralPromptsOutputSchema', () => {
-  const threePrompts = Array.from({ length: 3 }, (_, i) => `Question neutre numero ${i + 1} ?`)
+  const makePrompts = (n: number) =>
+    Array.from({ length: n }, (_, i) => `Question neutre numero ${i + 1} ?`)
 
-  it('accepte exactement 3 prompts', () => {
-    const result = NeutralPromptsOutputSchema.safeParse({ prompts: threePrompts })
+  it('accepte 10 prompts (cible PLAN item 10)', () => {
+    const result = NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(10) })
     expect(result.success).toBe(true)
   })
 
-  it('rejette moins de 3 prompts', () => {
-    const result = NeutralPromptsOutputSchema.safeParse({ prompts: threePrompts.slice(0, 2) })
-    expect(result.success).toBe(false)
+  it('tolère 8 à 12 prompts (les LLMs ratent parfois le compte exact)', () => {
+    expect(NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(8) }).success).toBe(true)
+    expect(NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(12) }).success).toBe(true)
   })
 
-  it('rejette plus de 3 prompts', () => {
-    const result = NeutralPromptsOutputSchema.safeParse({
-      prompts: [...threePrompts, 'Question 4 ?'],
-    })
-    expect(result.success).toBe(false)
+  it('rejette moins de 8 prompts (fiabilité statistique insuffisante)', () => {
+    expect(NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(3) }).success).toBe(false)
+    expect(NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(7) }).success).toBe(false)
+  })
+
+  it('rejette plus de 12 prompts (coût non maîtrisé)', () => {
+    expect(NeutralPromptsOutputSchema.safeParse({ prompts: makePrompts(13) }).success).toBe(false)
   })
 })
 
