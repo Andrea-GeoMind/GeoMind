@@ -53,7 +53,7 @@ test.describe('Scénario E — Quotas Free', () => {
     await page.goto('/pricing')
     // Free plan should show limits
     await expect(page.getByText(/gratuit|free/i).first()).toBeVisible()
-    await expect(page.getByText('49 €', { exact: true })).toBeVisible()
+    await expect(page.getByText('59 €', { exact: true })).toBeVisible()
     await expect(page.getByText('149 €', { exact: true })).toBeVisible()
   })
 
