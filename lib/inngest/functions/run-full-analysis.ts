@@ -16,6 +16,7 @@ import {
 } from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { notifyAnalysisComplete } from '@/lib/analysis/alerts'
+import { humanizeAnalysisError } from '@/lib/analysis/errors'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { reconcileActionStates } from '@/lib/db/queries/action-states'
@@ -117,7 +118,11 @@ export const runFullAnalysisFunction = inngest.createFunction(
       return scores
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      await step.run('mark-error', () => updateAnalysisStatus(analysisId, 'error', message))
+      // Message humanisé pour l'UI (PLAN item 17) — le brut part dans les logs
+      console.error(`[run-full-analysis] ${analysisId}:`, message)
+      await step.run('mark-error', () =>
+        updateAnalysisStatus(analysisId, 'error', humanizeAnalysisError(message))
+      )
       // Échec technique → remboursement automatique des crédits décomptés au lancement (§17.4)
       if (userId) {
         await step.run('refund-credits', () =>
