@@ -16,15 +16,17 @@ import {
 } from '@/lib/db/queries/analyses'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
+import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 
 const DEFAULT_MAX_PAGES = 20
 
 export const runFullAnalysisFunction = inngest.createFunction(
   { id: 'run-full-analysis', triggers: [{ event: 'analysis.full.requested' }] },
   async ({ event, step }) => {
-    const { analysisId, siteId } = event.data as {
+    const { analysisId, siteId, userId } = event.data as {
       analysisId: string
       siteId: string
+      userId?: string
     }
 
     await step.run('mark-running', () => updateAnalysisStatus(analysisId, 'running'))
@@ -94,6 +96,12 @@ export const runFullAnalysisFunction = inngest.createFunction(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       await step.run('mark-error', () => updateAnalysisStatus(analysisId, 'error', message))
+      // Échec technique → remboursement automatique des crédits décomptés au lancement (§17.4)
+      if (userId) {
+        await step.run('refund-credits', () =>
+          refundCredits(userId, CREDIT_COSTS.fullAnalysis, { siteId, analysisId })
+        )
+      }
       throw err
     }
   }

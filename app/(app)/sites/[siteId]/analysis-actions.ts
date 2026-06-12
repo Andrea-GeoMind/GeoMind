@@ -3,10 +3,39 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
-import { createAnalysis } from '@/lib/db/queries/analyses'
-import { canRunFullAnalysis } from '@/lib/quotas'
+import { createAnalysis, updateAnalysisStatus } from '@/lib/db/queries/analyses'
+import { CREDIT_COSTS, consumeCredits, refundCredits, getUserCredits } from '@/lib/credits'
 import { inngest } from '@/lib/inngest/client'
 import { trackEvent } from '@/lib/posthog'
+
+/**
+ * Aperçu du coût avant lancement (§17.6 : confirmation avant dépense ≥ 100 crédits).
+ * balanceAfter = null si solde illimité (admin).
+ */
+export async function getAnalysisCostPreviewAction(): Promise<
+  { error: string } | { cost: number; balance: number | null; balanceAfter: number | null }
+> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  try {
+    const credits = await getUserCredits(user.id)
+    if (!Number.isFinite(credits.total)) {
+      return { cost: CREDIT_COSTS.fullAnalysis, balance: null, balanceAfter: null }
+    }
+    return {
+      cost: CREDIT_COSTS.fullAnalysis,
+      balance: credits.total,
+      balanceAfter: credits.total - CREDIT_COSTS.fullAnalysis,
+    }
+  } catch (err) {
+    console.error('[getAnalysisCostPreviewAction] DB error:', err)
+    return { error: 'Une erreur est survenue. Veuillez réessayer.' }
+  }
+}
 
 export async function runAnalysisAction(
   siteId: string
@@ -17,23 +46,33 @@ export async function runAnalysisAction(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  let site, allowed, analysis
+  let site
   try {
     site = await getSiteById(siteId)
-    if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
+  } catch (err) {
+    console.error('[runAnalysisAction] DB error:', err)
+    return { error: 'Une erreur est survenue. Veuillez réessayer.' }
+  }
+  if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
 
-    allowed = await canRunFullAnalysis(user.id)
-    if (!allowed) {
-      return {
-        error:
-          "Limite d'analyses atteinte ce mois-ci pour votre plan. Passez au plan supérieur.",
-      }
+  // Décompte au lancement (§17.4) — remboursé automatiquement si l'analyse
+  // échoue techniquement (ici ou dans run-full-analysis).
+  const consumed = await consumeCredits(user.id, CREDIT_COSTS.fullAnalysis, 'analysis', {
+    siteId,
+  })
+  if (!consumed.ok) {
+    return {
+      error: `Crédits insuffisants : une analyse complète coûte ${CREDIT_COSTS.fullAnalysis} crédits (solde : ${consumed.balance.total}). Rechargez vos crédits ou passez à un plan supérieur.`,
     }
+  }
 
+  let analysis
+  try {
     analysis = await createAnalysis({ siteId, userId: user.id })
   } catch (err) {
     console.error('[runAnalysisAction] DB error:', err)
-    return { error: "Une erreur est survenue. Veuillez réessayer." }
+    await refundCredits(user.id, CREDIT_COSTS.fullAnalysis, { siteId, step: 'createAnalysis' })
+    return { error: 'Une erreur est survenue. Veuillez réessayer.' }
   }
 
   trackEvent(user.id, 'analysis_started', { siteId, analysisId: analysis.id })
@@ -45,6 +84,14 @@ export async function runAnalysisAction(
     })
   } catch (err) {
     console.error('[Inngest] Failed to send analysis event:', err)
+    await Promise.all([
+      refundCredits(user.id, CREDIT_COSTS.fullAnalysis, {
+        siteId,
+        analysisId: analysis.id,
+        step: 'inngest.send',
+      }),
+      updateAnalysisStatus(analysis.id, 'error', 'Échec du lancement du job'),
+    ])
     return {
       error: "Une erreur est survenue lors du lancement de l'analyse. Veuillez réessayer.",
     }

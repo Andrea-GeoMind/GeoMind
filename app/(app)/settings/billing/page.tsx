@@ -1,12 +1,22 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
-import { createCheckoutSession, createPortalSession } from '@/app/actions/stripe'
-import { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans'
+import { getUserCredits } from '@/lib/credits'
+import {
+  formatCreditsAmount,
+  formatCreditsAsUsage,
+} from '@/lib/credits-shared'
+import {
+  createCheckoutSession,
+  createPortalSession,
+  createCreditPackCheckout,
+} from '@/app/actions/stripe'
+import { PLAN_LABELS, PLAN_LIMITS, CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
+import { CREDIT_PACK_PRICE_IDS } from '@/lib/stripe'
 import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 interface PageProps {
-  searchParams: Promise<{ success?: string; canceled?: string }>
+  searchParams: Promise<{ success?: string; canceled?: string; pack_success?: string }>
 }
 
 export default async function BillingPage({ searchParams }: PageProps) {
@@ -17,15 +27,20 @@ export default async function BillingPage({ searchParams }: PageProps) {
 
   if (!user) redirect('/login')
 
-  const subscription = await getSubscriptionByUserId(user.id)
+  const [subscription, credits] = await Promise.all([
+    getSubscriptionByUserId(user.id),
+    getUserCredits(user.id),
+  ])
   const plan = subscription?.plan ?? 'free'
   const status = subscription?.status ?? 'active'
   const currentPeriodEnd = subscription?.currentPeriodEnd
   const hasStripe = !!subscription?.stripeCustomerId
+  const creditsPerMonth = PLAN_LIMITS[plan].creditsPerMonth
 
   const params = await searchParams
   const showSuccess = params.success === '1'
   const showCanceled = params.canceled === '1'
+  const showPackSuccess = params.pack_success === '1'
 
   const planBadgeClass =
     plan === 'business'
@@ -33,6 +48,11 @@ export default async function BillingPage({ searchParams }: PageProps) {
       : plan === 'pro'
         ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white'
         : 'bg-muted text-muted-foreground'
+
+  const monthlyPct =
+    Number.isFinite(creditsPerMonth) && creditsPerMonth > 0
+      ? Math.min(100, Math.round((credits.monthly / creditsPerMonth) * 100))
+      : null
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
@@ -44,6 +64,11 @@ export default async function BillingPage({ searchParams }: PageProps) {
       {showSuccess && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Paiement effectué — votre plan a été mis à jour.
+        </div>
+      )}
+      {showPackSuccess && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          Pack acheté — vos crédits ont été ajoutés à votre compte.
         </div>
       )}
       {showCanceled && (
@@ -79,9 +104,7 @@ export default async function BillingPage({ searchParams }: PageProps) {
             </div>
             <p className="text-sm text-muted-foreground">
               {PLAN_LIMITS[plan].sites} site{PLAN_LIMITS[plan].sites > 1 ? 's' : ''} ·{' '}
-              {plan === 'free'
-                ? `${PLAN_LIMITS[plan].analyses} analyse à vie`
-                : `${PLAN_LIMITS[plan].analyses} analyses / mois`}
+              {formatCreditsAmount(creditsPerMonth)} crédits / mois
             </p>
           </div>
           {currentPeriodEnd && (
@@ -112,22 +135,97 @@ export default async function BillingPage({ searchParams }: PageProps) {
         )}
       </div>
 
+      {/* Crédits */}
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
+        <div className="flex items-baseline justify-between mb-1">
+          <p className="text-base font-semibold">Crédits</p>
+          <p className="text-sm text-muted-foreground">
+            {formatCreditsAsUsage(credits.total)}
+          </p>
+        </div>
+        <p className="text-3xl font-extrabold tracking-tight">
+          {formatCreditsAmount(credits.total)}
+          <span className="text-base font-normal text-muted-foreground"> crédits disponibles</span>
+        </p>
+
+        {monthlyPct !== null && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-1.5 text-xs text-muted-foreground">
+              <span>Allocation mensuelle</span>
+              <span>
+                {formatCreditsAmount(credits.monthly)} / {formatCreditsAmount(creditsPerMonth)}
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all"
+                style={{ width: `${monthlyPct}%` }}
+              />
+            </div>
+            {credits.purchased > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                + {formatCreditsAmount(credits.purchased)} crédits achetés (n&apos;expirent jamais)
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Packs de crédits */}
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6">
+        <p className="text-base font-semibold mb-1">Acheter des crédits</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Besoin d&apos;un coup de pouce ponctuel ? Les crédits achetés n&apos;expirent jamais.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {(Object.keys(CREDIT_PACKS) as CreditPackId[]).map((packId) => {
+            const pack = CREDIT_PACKS[packId]
+            const available = !!CREDIT_PACK_PRICE_IDS[packId]
+            return (
+              <div
+                key={packId}
+                className="rounded-lg border border-border p-4 text-center"
+              >
+                <p className="text-sm font-semibold">{pack.label}</p>
+                <p className="mt-1 text-2xl font-extrabold tracking-tight">
+                  {formatCreditsAmount(pack.credits)}
+                </p>
+                <p className="text-xs text-muted-foreground">crédits</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {formatCreditsAsUsage(pack.credits)}
+                </p>
+                <form action={createCreditPackCheckout.bind(null, packId)} className="mt-3">
+                  <button
+                    type="submit"
+                    disabled={!available}
+                    title={available ? undefined : 'Bientôt disponible'}
+                    className="w-full rounded-lg bg-foreground px-3 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {pack.priceEur} €
+                  </button>
+                </form>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Offres disponibles */}
       {plan === 'free' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <PlanCard
             name="Pro"
             price="49"
-            sites={3}
-            analyses={4}
+            sites={PLAN_LIMITS.pro.sites}
+            creditsPerMonth={PLAN_LIMITS.pro.creditsPerMonth}
             action={createCheckoutSession.bind(null, 'pro')}
             highlighted
           />
           <PlanCard
             name="Business"
             price="149"
-            sites={10}
-            analyses={30}
+            sites={PLAN_LIMITS.business.sites}
+            creditsPerMonth={PLAN_LIMITS.business.creditsPerMonth}
             action={createCheckoutSession.bind(null, 'business')}
           />
         </div>
@@ -138,8 +236,8 @@ export default async function BillingPage({ searchParams }: PageProps) {
           <PlanCard
             name="Business"
             price="149"
-            sites={10}
-            analyses={30}
+            sites={PLAN_LIMITS.business.sites}
+            creditsPerMonth={PLAN_LIMITS.business.creditsPerMonth}
             action={createCheckoutSession.bind(null, 'business')}
             label="Passer Business"
           />
@@ -153,7 +251,7 @@ function PlanCard({
   name,
   price,
   sites,
-  analyses,
+  creditsPerMonth,
   action,
   highlighted = false,
   label,
@@ -161,7 +259,7 @@ function PlanCard({
   name: string
   price: string
   sites: number
-  analyses: number
+  creditsPerMonth: number
   action: () => Promise<void>
   highlighted?: boolean
   label?: string
@@ -190,7 +288,11 @@ function PlanCard({
         </li>
         <li className="flex items-center gap-2">
           <span className="text-emerald-500 font-semibold">✓</span>
-          {analyses} analyses / mois
+          {formatCreditsAmount(creditsPerMonth)} crédits / mois
+        </li>
+        <li className="flex items-center gap-2">
+          <span className="text-emerald-500 font-semibold">✓</span>
+          {formatCreditsAsUsage(creditsPerMonth)}
         </li>
       </ul>
       <form action={action} className="mt-5">

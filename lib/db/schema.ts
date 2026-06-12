@@ -48,6 +48,17 @@ export const contentIssueCategoryEnum = pgEnum('content_issue_category', [
   'coverage',
 ])
 
+export const creditTransactionReasonEnum = pgEnum('credit_transaction_reason', [
+  'welcome_bonus',
+  'monthly_reset',
+  'pack_purchase',
+  'analysis',
+  'coach_message',
+  'recommendation',
+  'refund_failed_analysis',
+  'admin_adjustment',
+])
+
 // ─── profiles ─────────────────────────────────────────────────────────────────
 // Mirror de auth.users — créé automatiquement par trigger SQL.
 
@@ -75,6 +86,40 @@ export const subscriptions = pgTable('subscriptions', {
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── credit_balances ──────────────────────────────────────────────────────────
+// Solde de crédits par user (cahier-des-charges §17). Deux compteurs :
+// monthly_credits (alloués par le plan, reset à la date anniversaire de facturation)
+// et purchased_credits (packs achetés, n'expirent jamais).
+// Consommation : mensuels d'abord, achetés ensuite — atomique via lib/credits.ts.
+
+export const creditBalances = pgTable('credit_balances', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  monthlyCredits: integer('monthly_credits').notNull().default(0),
+  purchasedCredits: integer('purchased_credits').notNull().default(0),
+  lastResetAt: timestamp('last_reset_at', { withTimezone: true }).notNull().defaultNow(),
+  // Alerte "20 % restants" envoyée une seule fois par cycle — remis à null au reset
+  lowCreditAlertedAt: timestamp('low_credit_alerted_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── credit_transactions ──────────────────────────────────────────────────────
+// Journal immuable de tous les mouvements de crédits (amount signé : négatif =
+// consommation, positif = crédit). metadata : siteId, analysisId, packId, sessionId…
+
+export const creditTransactions = pgTable('credit_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  reason: creditTransactionReasonEnum('reason').notNull(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ─── sites ────────────────────────────────────────────────────────────────────
@@ -452,6 +497,20 @@ export const recommendationsRelations = relations(recommendations, ({ one }) => 
   analysis: one(analyses, {
     fields: [recommendations.analysisId],
     references: [analyses.id],
+  }),
+}))
+
+export const creditBalancesRelations = relations(creditBalances, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [creditBalances.userId],
+    references: [profiles.id],
+  }),
+}))
+
+export const creditTransactionsRelations = relations(creditTransactions, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [creditTransactions.userId],
+    references: [profiles.id],
   }),
 }))
 
