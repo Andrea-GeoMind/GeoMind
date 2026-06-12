@@ -29,10 +29,32 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'GEOMIND — Auditez votre visibilité IA',
+  metadataBase: new URL('https://geomind.fr'),
+  title: {
+    default: 'GEOMIND — Êtes-vous cité par ChatGPT ? Auditez votre visibilité IA',
+    template: '%s — GEOMIND',
+  },
   description:
-    'Sachez où vous êtes cité dans les IA. Comprenez pourquoi pas. Améliorez votre visibilité GEO.',
+    'GEOMIND audite la visibilité de votre site dans ChatGPT, Perplexity, Gemini et Claude, et vous donne un plan d’action concret. Pensé pour les TPE/PME, en français.',
   manifest: '/manifest.json',
+  alternates: {
+    canonical: './',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://geomind.fr',
+    siteName: 'GEOMIND',
+    title: 'GEOMIND — Êtes-vous cité par ChatGPT ?',
+    description:
+      'Auditez votre visibilité dans les moteurs IA (ChatGPT, Perplexity, Gemini, Claude) et obtenez un plan d’action concret. 1 analyse offerte, sans carte bancaire.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GEOMIND — Êtes-vous cité par ChatGPT ?',
+    description:
+      'Auditez votre visibilité dans les moteurs IA et obtenez un plan d’action concret. 1 analyse offerte.',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

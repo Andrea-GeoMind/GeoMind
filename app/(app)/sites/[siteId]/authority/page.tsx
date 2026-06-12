@@ -15,6 +15,7 @@ import { RunAuthorityButton } from '@/components/features/authority/run-authorit
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
+import { AuthorityMethodologyNote } from '@/components/features/analysis/methodology-note'
 
 export const metadata: Metadata = {
   title: 'Autorité — GEOMIND',
@@ -142,6 +143,9 @@ export default async function AuthorityPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Note méthodologique — variance des LLMs assumée */}
+      {!isInProgress && latest.status === 'success' && <AuthorityMethodologyNote />}
 
       {/* Citations bar chart */}
       {isInProgress ? (

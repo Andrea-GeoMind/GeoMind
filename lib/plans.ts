@@ -7,7 +7,10 @@
  */
 
 export const PLAN_LIMITS = {
-  free:     { sites: 1,        creditsPerMonth: 500 },
+  // Gratuit : pas d'allocation mensuelle — la valeur du plan est le bonus de
+  // bienvenue (WELCOME_BONUS_CREDITS, crédités à vie), qui couvre l'analyse
+  // complète offerte. Politique « 1 analyse offerte », pas « 1 par mois ».
+  free:     { sites: 1,        creditsPerMonth: 0 },
   solo:     { sites: 2,        creditsPerMonth: 5_000 },
   pro:      { sites: 5,        creditsPerMonth: 20_000 },
   business: { sites: 15,       creditsPerMonth: 80_000 },
