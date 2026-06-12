@@ -33,16 +33,16 @@
 
 ## VAGUE 1 — FIABILITÉ & RÉCURRENCE (le churn-killer)
 
-- [ ] **10. Refonte de la mesure d'autorité** — 10-15 prompts neutres, double mesure (réponse spontanée pondérée fort + classement forcé en signal secondaire), répétition des appels, score affiché en moyenne/fourchette. — **L**
-- [ ] **11. Modèle de données série temporelle** — table `citation_checks` (prompt × moteur × date × résultat) ; les analyses deviennent des agrégations. Fondation du suivi, des alertes, du Pixel. — **M**
-- [ ] **12. Surveillance automatique récurrente** — réanalyse planifiée (Inngest cron) selon le plan : mensuelle (free, score seul) / hebdo (payants). — **M**
-- [ ] **13. Alertes email** — "vous venez d'être cité", "score en baisse", "analyse terminée" (Resend, préférences par user). — **M**
-- [ ] **14. Onglet Suivi** — courbes des 4 scores + citations par moteur dans le temps, timeline annotée des actions. — **M**
-- [ ] **15. Rapport mensuel automatique par email** — synthèse simple : score, tendance, 3 actions du mois. — **M**
-- [ ] **16. Onglet Plan d'action** — kanban À faire/Fait/Vérifié, tri par ROI, bouton "J'ai corrigé" → revérification auto de la règle (re-crawl ciblé) → "✅ +3 pts", progression gamifiée, état connu du coach. — **L**
-- [ ] **17. Durcissement technique** — validation Zod des réponses moteurs, réservation des crédits avant déclenchement Inngest, messages d'erreur d'analyse contextualisés. — **M**
-- [ ] **18. Vulgarisation UI** — tooltips sur tous les titres d'issues (canonical, Schema.org…), légende du tableau citations, coût en crédits affiché sur chaque action, bandeau Discovery simplifié, onglet "GEO" renommé "Coach". — **M**
-- [ ] **19. Responsive mobile** — sidebar repliable (hamburger), passe complète iPhone SE/iPad. — **M**
+- [x] **10. Refonte de la mesure d'autorité** — 10-15 prompts neutres, double mesure (réponse spontanée pondérée fort + classement forcé en signal secondaire), répétition des appels, score affiché en moyenne/fourchette. — **L**
+- [x] **11. Modèle de données série temporelle** — table `citation_checks` (prompt × moteur × date × résultat) ; les analyses deviennent des agrégations. Fondation du suivi, des alertes, du Pixel. — **M**
+- [x] **12. Surveillance automatique récurrente** — réanalyse planifiée (Inngest cron) selon le plan : mensuelle (free, score seul) / hebdo (payants). — **M**
+- [x] **13. Alertes email** — "vous venez d'être cité", "score en baisse", "analyse terminée" (Resend, préférences par user). — **M**
+- [x] **14. Onglet Suivi** — courbes des 4 scores + citations par moteur dans le temps, timeline annotée des actions. — **M**
+- [x] **15. Rapport mensuel automatique par email** — synthèse simple : score, tendance, 3 actions du mois. — **M**
+- [x] **16. Onglet Plan d'action** — kanban À faire/Fait/Vérifié, tri par ROI, bouton "J'ai corrigé" → revérification auto de la règle (re-crawl ciblé) → "✅ +3 pts", progression gamifiée, état connu du coach. — **L**
+- [x] **17. Durcissement technique** — validation Zod des réponses moteurs, réservation des crédits avant déclenchement Inngest, messages d'erreur d'analyse contextualisés. — **M**
+- [x] **18. Vulgarisation UI** — tooltips sur tous les titres d'issues (canonical, Schema.org…), légende du tableau citations, coût en crédits affiché sur chaque action, bandeau Discovery simplifié, onglet "GEO" renommé "Coach". — **M**
+- [x] **19. Responsive mobile** — sidebar repliable (hamburger), passe complète iPhone SE/iPad. — **M**
 
 ## VAGUE 2 — ACQUISITION & CONVERSION
 
