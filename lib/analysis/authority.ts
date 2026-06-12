@@ -15,6 +15,7 @@ import { ClaudeConnector } from '@/lib/ai/connectors/claude'
 import { GeminiConnector } from '@/lib/ai/connectors/gemini'
 import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
 import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
+import { IAResponseSchema } from '@/lib/ai/schemas'
 
 const MAX_CONCURRENCY = 8
 
@@ -163,7 +164,9 @@ export async function runAuthorityAnalysis(
   const runnableTasks = tasks.map((task) => async () => {
     let response: IAResponse
     try {
-      response = await task.engine.query(task.promptText)
+      const raw = await task.engine.query(task.promptText)
+      // Validation runtime (règle §8) — une réponse malformée = appel échoué
+      response = IAResponseSchema.parse(raw)
     } catch (err) {
       // Log mais ne fait pas échouer l'analyse (règle §10 + §8)
       console.error(

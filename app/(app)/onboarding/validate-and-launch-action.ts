@@ -4,8 +4,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { upsertSiteMetadata } from '@/lib/db/queries/site-metadata'
-import { canRunFullAnalysis } from '@/lib/quotas'
-import { createAnalysis } from '@/lib/db/queries/analyses'
+import { CREDIT_COSTS, consumeCredits, refundCredits } from '@/lib/credits'
+import { createAnalysis, updateAnalysisStatus } from '@/lib/db/queries/analyses'
 import { inngest } from '@/lib/inngest/client'
 import { trackEvent } from '@/lib/posthog'
 import { db } from '@/lib/db/client'
@@ -30,8 +30,18 @@ export async function validateAndLaunchAction(
   const site = await getSiteById(siteId)
   if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
 
-  const allowed = await canRunFullAnalysis(user.id)
-  if (!allowed) return { error: "Limite d'analyses atteinte ce mois-ci." }
+  // Décompte ATOMIQUE au lancement (PLAN item 17) — pas un simple check :
+  // la réservation évite la course entre vérification et consommation, et
+  // l'échec technique est remboursé automatiquement (ici ou dans le job).
+  const consumed = await consumeCredits(user.id, CREDIT_COSTS.fullAnalysis, 'analysis', {
+    siteId,
+    source: 'onboarding',
+  })
+  if (!consumed.ok) {
+    return {
+      error: `Crédits insuffisants : une analyse complète coûte ${CREDIT_COSTS.fullAnalysis} crédits (solde : ${consumed.balance.total}).`,
+    }
+  }
 
   // Sauvegarder les modifications
   await upsertSiteMetadata({
@@ -61,7 +71,15 @@ export async function validateAndLaunchAction(
   }
 
   // Créer l'analyse + émettre l'événement Inngest
-  const analysis = await createAnalysis({ siteId, userId: user.id })
+  let analysis
+  try {
+    analysis = await createAnalysis({ siteId, userId: user.id })
+  } catch (err) {
+    console.error('[validateAndLaunchAction] DB error:', err)
+    await refundCredits(user.id, CREDIT_COSTS.fullAnalysis, { siteId, step: 'createAnalysis' })
+    return { error: 'Une erreur est survenue. Réessayez.' }
+  }
+
   trackEvent(user.id, 'analysis_started', { siteId, analysisId: analysis.id })
 
   try {
@@ -71,6 +89,14 @@ export async function validateAndLaunchAction(
     })
   } catch (err) {
     console.error('[Inngest] Failed to send analysis event:', err)
+    await Promise.all([
+      refundCredits(user.id, CREDIT_COSTS.fullAnalysis, {
+        siteId,
+        analysisId: analysis.id,
+        step: 'inngest.send',
+      }),
+      updateAnalysisStatus(analysis.id, 'error', 'Échec du lancement du job'),
+    ])
     return { error: "Erreur lors du lancement de l'analyse. Réessayez." }
   }
 

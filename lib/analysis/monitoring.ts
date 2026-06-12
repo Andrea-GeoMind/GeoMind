@@ -15,6 +15,7 @@ import { insertCitationChecks } from '@/lib/db/queries/citation-checks'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { extractDomain } from '@/lib/ai/parse'
 import { CITATION_SUFFIX } from '@/lib/analysis/authority'
+import { IAResponseSchema } from '@/lib/ai/schemas'
 import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
 import { ClaudeConnector } from '@/lib/ai/connectors/claude'
 import { GeminiConnector } from '@/lib/ai/connectors/gemini'
@@ -70,7 +71,7 @@ export async function runMonitoringCheck(
   for (const prompt of prompts) {
     for (const engine of engines) {
       try {
-        const response = await engine.query(prompt.text + CITATION_SUFFIX)
+        const response = IAResponseSchema.parse(await engine.query(prompt.text + CITATION_SUFFIX))
         const clientIndex = response.sources.findIndex((s) => s.domain === clientDomain)
         await insertCitationChecks([
           {
