@@ -125,6 +125,17 @@ Tous sprints terminés. TKT-001 à TKT-033 terminés. geomind.fr est en producti
 
 ---
 
+---
+
+## Sprint 7 — V2 produit (post-launch)
+
+- [ ] **TKT-CREDITS** — Système de crédits universel — spec `cahier-des-charges.md` §17 — `credit_balances` + `credit_transactions`, packs Stripe 5€/15€/49€, bonus bienvenue 1000 cr, reset à date anniversaire de facturation, remboursement auto si analyse échoue, badge sidebar + alerte 20% + équivalences humaines
+- [ ] **TKT-PLANS-V2** — Nouveau modèle Gratuit / Solo 19€ / Pro 59€ / Business 149€ (+ annuel -20% : 15/47/119) — spec §17 — feature gates (page analysis, mémoire GEO, full reco, publishers, PDF + white-label Business, support prioritaire), downgrade = sites gelés lecture seule, impayé = 7j de grâce, migration sans grandfathering (Stripe jamais Live) — *dépend de TKT-CREDITS*
+- [ ] **TKT-COACH-V2** — GEO, le coach IA : refonte complète en 4 lots (V2a Cerveau / V2b Corps / V2c Mémoire / V2d Magie) — spec détaillée dans `cahier-des-charges.md` §16 — fix accès Free, bouton flottant global, "Demander à GEO" depuis les issues, mémoire par site, Sonnet + web search + fallback, chips contextuelles, comparaison N vs N-1, décompte crédits réel — *dépend de TKT-CREDITS + TKT-PLANS-V2*
+- [ ] **TKT-RULES-V2** — Règles GEO v2 en 4 lots (V2a Infra / V2b Technique / V2c Contenu / V2d UI) — spec `cahier-des-charges.md` §18 — constat : seulement 10+6 règles actives en V1 (16 désactivées) ; V2 : ~33 techniques + ~26 contenu (réintégration + nouvelles), analyse page par page (Solo 5 / Pro 10), scoring V2 (sévérités + plafonds par catégorie + `rules_version`), niveau « opportunité » avec garantie ≥ 3 par audit, quick wins en tête d'UI — *parallélisable avec TKT-CREDITS*
+
+---
+
 ## Journal d'exécution
 
 | Ticket | Statut | Date | Notes |
