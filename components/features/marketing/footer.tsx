@@ -15,6 +15,24 @@ export default function Footer() {
 
           <nav className="flex flex-wrap justify-center gap-6">
             <Link
+              href="/blog"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Blog
+            </Link>
+            <Link
+              href="/about"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              À propos
+            </Link>
+            <Link
+              href="/outils/generateur-llms-txt"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Générateur llms.txt
+            </Link>
+            <Link
               href="/legal/cgv"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

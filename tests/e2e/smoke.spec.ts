@@ -13,7 +13,7 @@ test.describe('Pages publiques', () => {
 
   test('page pricing', async ({ page }) => {
     await page.goto('/pricing')
-    await expect(page.getByText('49 €', { exact: true })).toBeVisible()
+    await expect(page.getByText('59 €', { exact: true })).toBeVisible()
     await expect(page.getByText('149 €', { exact: true })).toBeVisible()
   })
 

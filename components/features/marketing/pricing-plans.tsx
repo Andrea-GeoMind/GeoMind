@@ -20,6 +20,8 @@ interface PlanCardData {
   credits: number
   features: string[]
   cta: string
+  /** Mention d'essai gratuit affichée sous le CTA (PLAN item 25) */
+  trialNote?: string
   highlighted?: boolean
 }
 
@@ -67,7 +69,8 @@ const PLANS: PlanCardData[] = [
       'Export PDF des rapports',
       'Historique 1 an',
     ],
-    cta: 'Essayer Pro',
+    cta: 'Essayer Pro — 7 jours offerts',
+    trialNote: '7 jours d’essai gratuit, annulable à tout moment',
     highlighted: true,
   },
   {
@@ -185,6 +188,11 @@ export function PricingPlans() {
               >
                 <Link href="/signup">{plan.cta}</Link>
               </Button>
+              {plan.trialNote && (
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  {plan.trialNote}
+                </p>
+              )}
 
               <ul className="mt-6 flex-1 space-y-3 text-sm">
                 {plan.features.map((feature) => (
