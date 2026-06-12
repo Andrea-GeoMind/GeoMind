@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signIn } from '@/app/(auth)/actions'
+import { GoogleSignInButton, AuthDivider } from '@/components/features/auth/google-sign-in-button'
 
 const loginSchema = z.object({
   email: z.string().email('Adresse email invalide'),
@@ -38,7 +39,10 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="space-y-4">
+      <GoogleSignInButton label="Se connecter avec Google" />
+      <AuthDivider />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -77,6 +81,7 @@ export function LoginForm() {
         {isPending ? 'Connexion...' : 'Se connecter'}
       </Button>
 
-    </form>
+      </form>
+    </div>
   )
 }
