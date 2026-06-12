@@ -34,6 +34,14 @@ const FAQ_ITEMS = [
     a: 'Le SEO optimise votre position dans Google. Le GEO (Generative Engine Optimization) optimise votre présence dans les réponses des IA. Ce sont deux leviers complémentaires.',
   },
   {
+    q: 'J\'utilise déjà Semrush / Ahrefs / un consultant SEO, à quoi sert GeoMind ?',
+    a: 'Ces outils mesurent votre position dans Google. GeoMind mesure si vous êtes cité quand quelqu\'un pose sa question à ChatGPT, Perplexity, Gemini ou Claude — ce qu\'aucun outil SEO classique ne fait. Gardez votre SEO, ajoutez le GEO : vos clients utilisent déjà les deux.',
+  },
+  {
+    q: 'Mon score peut-il bouger sans que je change rien ?',
+    a: 'Oui, un peu : les IA ne répondent jamais deux fois exactement pareil. C\'est pour ça que GeoMind suit la tendance sur 30 jours plutôt que le chiffre du jour, et vous alerte seulement quand un vrai changement se produit.',
+  },
+  {
     q: 'Puis-je annuler à tout moment ?',
     a: "Oui, sans engagement ni frais de résiliation. Vous restez sur le plan gratuit après l'annulation.",
   },
@@ -334,6 +342,63 @@ export default function HomePage() {
                 <h3 className="mb-1 text-xl font-bold text-foreground">{title}</h3>
                 <p className="mb-3 text-sm font-semibold text-primary">{subtitle}</p>
                 <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Cas d'usage / personas (PLAN item 21) ─────────────────────── */}
+      <section className="py-24">
+        <div className="mx-auto max-w-6xl px-4">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
+            Pour qui ?
+          </p>
+          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Ça change quoi, concrètement ?
+          </h2>
+          <p className="mx-auto mb-14 max-w-2xl text-center text-muted-foreground">
+            Trois situations types — la vôtre y est sûrement.
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                emoji: '🔧',
+                who: 'Artisan ou commerce local',
+                scenario:
+                  '« Quelqu\'un demande à ChatGPT le meilleur plombier de sa ville. Trois noms sortent — pas le mien. »',
+                outcome:
+                  'GeoMind vous dit si vous sortez dans ces réponses, pourquoi vos concurrents y sont, et quoi corriger en premier (souvent : une fiche bien structurée et des infos lisibles par les IA).',
+              },
+              {
+                emoji: '🏢',
+                who: 'PME avec un site vitrine',
+                scenario:
+                  '« On a investi dans le SEO. Mais nos prospects posent maintenant leurs questions à une IA, et on ne sait même pas si on y existe. »',
+                outcome:
+                  'Vous suivez votre taux de citation mois après mois, recevez une alerte quand il bouge, et votre équipe applique un plan d\'action priorisé — vérifié automatiquement.',
+              },
+              {
+                emoji: '💼',
+                who: 'Freelance ou consultant',
+                scenario:
+                  '« Mes clients me trouvaient par Google. Maintenant ils demandent à ChatGPT "quel consultant pour…" — et je n\'ai aucune idée de ce qu\'il répond. »',
+                outcome:
+                  'Vous voyez les réponses réelles des 4 moteurs sur les questions de votre métier, et le coach vous guide pas à pas, sans jargon, pour y apparaître.',
+              },
+            ].map(({ emoji, who, scenario, outcome }) => (
+              <div
+                key={who}
+                className="flex flex-col rounded-xl border border-border bg-card p-7 shadow-sm"
+              >
+                <div className="mb-3 text-3xl" aria-hidden>
+                  {emoji}
+                </div>
+                <h3 className="mb-3 text-base font-bold text-foreground">{who}</h3>
+                <p className="mb-4 text-sm italic leading-relaxed text-muted-foreground">
+                  {scenario}
+                </p>
+                <p className="mt-auto text-sm leading-relaxed text-foreground/80">{outcome}</p>
               </div>
             ))}
           </div>
