@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, CheckCircle, Rocket, Tag, Users, MessageSquare, X, Plus } from 'lucide-react'
+import { Loader2, CheckCircle, Rocket, Tag, Users, MessageSquare, X, Plus, AlertTriangle } from 'lucide-react'
 import { validateAndLaunchAction } from '@/app/(app)/onboarding/validate-and-launch-action'
+import { launchDiscoveryAction } from '@/app/(app)/sites/[siteId]/discovery/launch-action'
 import type { AnalysisProgressResponse } from '@/app/api/analysis/[analysisId]/progress/route'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -15,7 +16,23 @@ type DiscoveryData = {
   prompts: { id: string; text: string; isNeutral: boolean }[]
 }
 
-type Phase = 'crawling' | 'reviewing' | 'launching' | 'analyzing' | 'done'
+type Phase = 'crawling' | 'reviewing' | 'launching' | 'analyzing' | 'done' | 'failed'
+
+/** Quand un échec est détecté : quoi proposer à l'utilisateur. */
+type Failure = {
+  title: string
+  message: string
+  /** 'discovery' → bouton Réessayer relance la découverte ; 'wait' → continuer d'attendre ; 'overview' → lien vue d'ensemble */
+  kind: 'discovery' | 'analysis-error' | 'analysis-slow'
+}
+
+// La découverte est annoncée à 20-40 s — au-delà de 2 min, quelque chose
+// cloche (site inaccessible, crawl bloqué) : on arrête d'attendre en silence.
+const DISCOVERY_TIMEOUT_S = 120
+// L'analyse est annoncée à 2-4 min — au-delà de 10 min on propose de sortir.
+const ANALYSIS_TIMEOUT_S = 600
+// Au-delà de 4 polls consécutifs en échec (~20 s), on signale la connexion.
+const MAX_POLL_FAILURES = 4
 
 const CRAWL_STEPS = [
   { label: 'Crawl des pages de votre site…', at: 0 },
@@ -55,10 +72,7 @@ function useActiveInterval(cb: () => void, delay: number) {
 
 // ─── Sous-composant : étape Crawl ─────────────────────────────────────────────
 
-function CrawlingPhase() {
-  const [elapsed, setElapsed] = useState(0)
-  useActiveInterval(() => setElapsed((s) => s + 1), 1000)
-
+function CrawlingPhase({ elapsed }: { elapsed: number }) {
   const step = [...CRAWL_STEPS].reverse().find((s) => elapsed >= s.at) ?? CRAWL_STEPS[0]!
   // Plafonne à 90% — les derniers % ne se débloquent que quand le job répond
   const pct = Math.min(Math.round((elapsed / 40) * 90), 90)
@@ -264,7 +278,17 @@ function ReviewingPhase({
 // ─── Sous-composant : étape Analyse ───────────────────────────────────────────
 // Reçoit progress/step du parent (un seul polling, pas de double fetch)
 
-function AnalyzingPhase({ progress, step, elapsed }: { progress: number; step: string; elapsed: number }) {
+function AnalyzingPhase({
+  progress,
+  step,
+  elapsed,
+  connectionUnstable,
+}: {
+  progress: number
+  step: string
+  elapsed: number
+  connectionUnstable: boolean
+}) {
   const minutes = Math.floor(elapsed / 60)
   const secs = elapsed % 60
   const timeStr = minutes > 0 ? `${minutes} min ${String(secs).padStart(2, '0')} s` : `${secs} s`
@@ -298,9 +322,74 @@ function AnalyzingPhase({ progress, step, elapsed }: { progress: number; step: s
           <span className="tabular-nums">{progress}%</span>
         </div>
       </div>
+      {connectionUnstable && (
+        <p className="flex items-center gap-1.5 rounded-lg border border-amber-300/50 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          <AlertTriangle size={12} className="shrink-0" />
+          Connexion instable — on continue d&apos;essayer, vos résultats ne sont pas perdus.
+        </p>
+      )}
       <p className="text-xs text-muted-foreground/50">
         Ne fermez pas cet onglet — vos résultats arrivent.
       </p>
+    </div>
+  )
+}
+
+// ─── Sous-composant : étape Échec ─────────────────────────────────────────────
+
+function FailedPhase({
+  failure,
+  onRetryDiscovery,
+  onKeepWaiting,
+  onGoToOverview,
+  isRetrying,
+}: {
+  failure: Failure
+  onRetryDiscovery: () => void
+  onKeepWaiting: () => void
+  onGoToOverview: () => void
+  isRetrying: boolean
+}) {
+  return (
+    <div className="flex flex-col items-center gap-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 ring-1 ring-amber-500/30">
+        <AlertTriangle className="h-8 w-8 text-amber-600" />
+      </div>
+      <div className="space-y-1.5">
+        <h2 className="text-xl font-bold tracking-tight">{failure.title}</h2>
+        <p className="text-sm text-muted-foreground">{failure.message}</p>
+      </div>
+      <div className="flex w-full flex-col gap-2">
+        {failure.kind === 'discovery' && (
+          <button
+            onClick={onRetryDiscovery}
+            disabled={isRetrying}
+            className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 disabled:opacity-60"
+          >
+            {isRetrying ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 size={14} className="animate-spin" /> Relance…
+              </span>
+            ) : (
+              'Réessayer la découverte'
+            )}
+          </button>
+        )}
+        {failure.kind === 'analysis-slow' && (
+          <button
+            onClick={onKeepWaiting}
+            className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
+          >
+            Continuer d&apos;attendre
+          </button>
+        )}
+        <button
+          onClick={onGoToOverview}
+          className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          Aller à la vue d&apos;ensemble
+        </button>
+      </div>
     </div>
   )
 }
@@ -315,11 +404,15 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
   const [analysisProgress, setAnalysisProgress] = useState(2)
   const [analysisStep, setAnalysisStep] = useState('Démarrage de l\'analyse…')
   const [analysisElapsed, setAnalysisElapsed] = useState(0)
+  const [crawlElapsed, setCrawlElapsed] = useState(0)
+  const [pollFailures, setPollFailures] = useState(0)
+  const [failure, setFailure] = useState<Failure | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Bloquer fermeture de l'onglet
   useEffect(() => {
-    if (phase === 'done') return
+    if (phase === 'done' || phase === 'failed') return
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
@@ -332,12 +425,13 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
       fetch(`/api/site/${siteId}/discovery-status`)
         .then((r) => r.ok ? r.json() : null)
         .then((json) => {
+          setPollFailures(0)
           if (json?.ready) {
             setDiscoveryData(json.data as DiscoveryData)
             setPhase('reviewing')
           }
         })
-        .catch(() => { /* silencieux */ })
+        .catch(() => setPollFailures((n) => n + 1))
     }, [phase, siteId]),
     5000
   )
@@ -349,23 +443,59 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
       fetch(`/api/analysis/${analysisId}/progress`)
         .then((r) => r.ok ? r.json() : null)
         .then((json: AnalysisProgressResponse | null) => {
-          if (!json) return
+          if (!json) {
+            setPollFailures((n) => n + 1)
+            return
+          }
+          setPollFailures(0)
           setAnalysisProgress(json.progress)
           setAnalysisStep(json.step)
           if (json.status === 'success') setPhase('done')
+          if (json.status === 'error') {
+            setFailure({
+              kind: 'analysis-error',
+              title: 'L\'analyse a échoué',
+              message:
+                'Un incident technique a interrompu l\'analyse. Vos crédits ont été remboursés automatiquement — vous pouvez la relancer depuis la vue d\'ensemble.',
+            })
+            setPhase('failed')
+          }
         })
-        .catch(() => { /* silencieux */ })
+        .catch(() => setPollFailures((n) => n + 1))
     }, [phase, analysisId]),
     5000
   )
 
-  // Timer temps écoulé pour la phase analyse (toutes les secondes, pausé si onglet caché)
+  // Timers temps écoulé (pausés quand l'onglet est caché)
   useActiveInterval(
     useCallback(() => {
       if (phase === 'analyzing') setAnalysisElapsed((s) => s + 1)
+      if (phase === 'crawling') setCrawlElapsed((s) => s + 1)
     }, [phase]),
     1000
   )
+
+  // Timeouts : on ne laisse jamais l'utilisateur attendre dans le vide.
+  useEffect(() => {
+    if (phase === 'crawling' && crawlElapsed > DISCOVERY_TIMEOUT_S) {
+      setFailure({
+        kind: 'discovery',
+        title: 'La découverte prend trop de temps',
+        message:
+          'Votre site est peut-être lent, inaccessible, ou bloque les robots. Vérifiez que l\'adresse est correcte et accessible, puis réessayez.',
+      })
+      setPhase('failed')
+    }
+    if (phase === 'analyzing' && analysisElapsed > ANALYSIS_TIMEOUT_S) {
+      setFailure({
+        kind: 'analysis-slow',
+        title: 'L\'analyse prend plus de temps que prévu',
+        message:
+          'Elle continue de tourner en arrière-plan — vous pouvez attendre encore ou consulter la vue d\'ensemble : les résultats s\'y afficheront dès qu\'ils seront prêts.',
+      })
+      setPhase('failed')
+    }
+  }, [phase, crawlElapsed, analysisElapsed])
 
   // Redirect quand done
   useEffect(() => {
@@ -387,6 +517,30 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
     setPhase('analyzing')
   }, [siteId])
 
+  const handleRetryDiscovery = useCallback(async () => {
+    setIsRetrying(true)
+    const result = await launchDiscoveryAction(siteId)
+    setIsRetrying(false)
+    if (result.error) {
+      setFailure((f) => (f ? { ...f, message: result.error! } : f))
+      return
+    }
+    setFailure(null)
+    setCrawlElapsed(0)
+    setPollFailures(0)
+    setPhase('crawling')
+  }, [siteId])
+
+  const handleKeepWaiting = useCallback(() => {
+    setFailure(null)
+    setAnalysisElapsed(0)
+    setPhase('analyzing')
+  }, [])
+
+  const handleGoToOverview = useCallback(() => {
+    router.push(`/sites/${siteId}/overview`)
+  }, [router, siteId])
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="w-full max-w-lg px-4">
@@ -396,7 +550,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
             phase === 'reviewing' ? 'max-h-[90vh] overflow-y-auto p-6 sm:p-8' : 'p-8 sm:p-10',
           ].join(' ')}
         >
-          {phase === 'crawling' && <CrawlingPhase />}
+          {phase === 'crawling' && <CrawlingPhase elapsed={crawlElapsed} />}
 
           {phase === 'reviewing' && discoveryData && (
             <ReviewingPhase data={discoveryData} onValidate={handleValidate} />
@@ -414,6 +568,17 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
               progress={analysisProgress}
               step={analysisStep}
               elapsed={analysisElapsed}
+              connectionUnstable={pollFailures >= MAX_POLL_FAILURES}
+            />
+          )}
+
+          {phase === 'failed' && failure && (
+            <FailedPhase
+              failure={failure}
+              onRetryDiscovery={handleRetryDiscovery}
+              onKeepWaiting={handleKeepWaiting}
+              onGoToOverview={handleGoToOverview}
+              isRetrying={isRetrying}
             />
           )}
 

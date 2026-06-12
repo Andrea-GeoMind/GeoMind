@@ -51,3 +51,7 @@ drizzle/meta/
 .sentryclirc
 .claude/worktrees/
 tests/screenshots/
+
+# serwist — service worker généré par le build
+/public/sw.js
+/public/sw.js.map
