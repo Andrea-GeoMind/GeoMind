@@ -234,8 +234,12 @@ function ReviewingPhase({
       {/* Prompts */}
       <div className="space-y-2">
         <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Rocket size={12} /> Prompts de test (neutres)
+          <Rocket size={12} /> Questions de test pour les IA
         </label>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Les questions que vos clients poseraient à ChatGPT — sans citer votre nom, sinon le
+          test serait biaisé. Modifiez-les librement.
+        </p>
         <div className="space-y-2">
           {promptsList.map((p, i) => (
             <div key={i} className="flex items-start gap-2">

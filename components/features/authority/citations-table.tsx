@@ -25,6 +25,20 @@ export function CitationsTable({ rows, clientDomain }: CitationsTableProps) {
 
   return (
     <>
+      {/* Légende des symboles (PLAN item 18) — un patron ne devine pas */}
+      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <CheckCircle2 className="h-3.5 w-3.5 text-[--score-good-500]" /> Votre site est cité
+        </span>
+        <span className="flex items-center gap-1">
+          <AlertTriangle className="h-3.5 w-3.5 text-[--score-mid-500]" /> Réponse partielle
+          (sources illisibles)
+        </span>
+        <span className="flex items-center gap-1">
+          <XCircle className="h-3.5 w-3.5 text-[--score-bad-500]" /> Non cité
+        </span>
+        <span className="text-muted-foreground/70">Cliquez sur une case pour lire la réponse</span>
+      </div>
       <div className="overflow-x-auto rounded-xl border border-border shadow-sm">
         <table className="w-full min-w-[540px] border-collapse text-sm">
           <thead>
