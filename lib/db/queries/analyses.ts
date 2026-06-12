@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, ne } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
+import { RULES_VERSION } from '@/lib/analysis/geo-rules'
 import { analyses } from '@/lib/db/schema'
 
 export type AnalysisInsert = {
@@ -10,7 +11,11 @@ export type AnalysisInsert = {
 export type AnalysisStatus = 'pending' | 'running' | 'success' | 'error'
 
 export async function createAnalysis(data: AnalysisInsert) {
-  const [row] = await db.insert(analyses).values(data).returning()
+  // rules_version : chaque analyse porte la version de méthodologie qui l'a produite (§18.3)
+  const [row] = await db
+    .insert(analyses)
+    .values({ ...data, rulesVersion: RULES_VERSION })
+    .returning()
   return row
 }
 

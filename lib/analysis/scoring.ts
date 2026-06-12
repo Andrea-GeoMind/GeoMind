@@ -101,13 +101,74 @@ export function computeAuthorityScore(
 
 // Note Technique : 100 − Σ pénalités détectées par les règles GEO techniques.
 // Pénalités en points (ex: 20 pour HTTPS manquant). Résultat clampé à [0, 100].
+// V1 — conservé pour compatibilité ; les runners utilisent computeIssuesScore (V2).
 export function computeTechnicalScore(penalties: number[]): number {
   return clamp(100 - penalties.reduce((sum, p) => sum + p, 0))
 }
 
 // Note Contenu : 100 − Σ pénalités détectées par les règles GEO de contenu.
+// V1 — conservé pour compatibilité ; les runners utilisent computeIssuesScore (V2).
 export function computeContentScore(penalties: number[]): number {
   return clamp(100 - penalties.reduce((sum, p) => sum + p, 0))
+}
+
+// ─── Scoring V2 (cahier-des-charges §18.3) ────────────────────────────────────
+// 1. Pénalité par sévérité (portée par issue.penalty, 0 pour les opportunités)
+// 2. Issues de page : une même règle déclenchée sur plusieurs pages pèse
+//    pénalité × (pages affectées / pages analysées), arrondi au supérieur
+// 3. Plafond de 30 points de pénalité par catégorie
+// Pure et déterministe : mêmes issues → même score.
+
+export interface ScorableIssue {
+  ruleKey: string
+  category: string
+  penalty: number
+  /** null/undefined = issue au niveau site ; sinon issue rattachée à une page */
+  pageUrl?: string | null
+}
+
+const CATEGORY_PENALTY_CAP = 30
+
+export function computeIssuesScore(issues: ScorableIssue[], pagesAnalyzed: number): number {
+  const safePageCount = Math.max(1, pagesAnalyzed)
+
+  // Pénalité par règle : pleine pour les règles site, proportionnelle pour les règles page
+  const siteIssues = issues.filter((i) => !i.pageUrl && i.penalty > 0)
+  const pageIssues = issues.filter((i) => i.pageUrl && i.penalty > 0)
+
+  const penaltiesByCategory = new Map<string, number>()
+  const add = (category: string, penalty: number) => {
+    penaltiesByCategory.set(category, (penaltiesByCategory.get(category) ?? 0) + penalty)
+  }
+
+  for (const issue of siteIssues) {
+    add(issue.category, issue.penalty)
+  }
+
+  // Règles page : groupées par ruleKey — N pages affectées sur M analysées
+  const byRule = new Map<string, { category: string; penalty: number; affected: number }>()
+  for (const issue of pageIssues) {
+    const entry = byRule.get(issue.ruleKey)
+    if (entry) {
+      entry.affected += 1
+    } else {
+      byRule.set(issue.ruleKey, {
+        category: issue.category,
+        penalty: issue.penalty,
+        affected: 1,
+      })
+    }
+  }
+  for (const { category, penalty, affected } of byRule.values()) {
+    add(category, Math.ceil(penalty * (Math.min(affected, safePageCount) / safePageCount)))
+  }
+
+  let total = 0
+  for (const categoryPenalty of penaltiesByCategory.values()) {
+    total += Math.min(CATEGORY_PENALTY_CAP, categoryPenalty)
+  }
+
+  return clamp(100 - total)
 }
 
 // Note GEO globale : moyenne des 3 piliers (Autorité, Technique, Contenu).

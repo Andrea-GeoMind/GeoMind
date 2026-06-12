@@ -48,6 +48,14 @@ export const contentIssueCategoryEnum = pgEnum('content_issue_category', [
   'coverage',
 ])
 
+// Sévérités V2 (§18.3) : major 12 / moderate 6 / minor 3 / opportunity 0 points
+export const issueSeverityEnum = pgEnum('issue_severity', [
+  'major',
+  'moderate',
+  'minor',
+  'opportunity',
+])
+
 export const creditTransactionReasonEnum = pgEnum('credit_transaction_reason', [
   'welcome_bonus',
   'monthly_reset',
@@ -219,6 +227,9 @@ export const analyses = pgTable('analyses', {
     .references(() => profiles.id, { onDelete: 'cascade' }),
   status: analysisStatusEnum('status').notNull().default('pending'),
   errorMessage: text('error_message'),
+  // Version de la méthodologie d'audit (§18.3) — V1 = 1, V2 = 2.
+  // Les comparaisons N vs N-1 affichent un badge quand les versions diffèrent.
+  rulesVersion: integer('rules_version').notNull().default(2),
   globalScore: integer('global_score'),
   authorityScore: integer('authority_score'),
   technicalScore: integer('technical_score'),
@@ -278,6 +289,11 @@ export const technicalIssues = pgTable('technical_issues', {
   description: text('description').notNull(),
   sampleUrls: jsonb('sample_urls').notNull().$type<string[]>().default([]),
   penalty: integer('penalty').notNull(),
+  // V2 (§18) : sévérité, effort/impact (quick wins), page_url (null = issue site)
+  severity: issueSeverityEnum('severity').notNull().default('minor'),
+  effort: integer('effort').notNull().default(2),
+  impact: integer('impact').notNull().default(2),
+  pageUrl: text('page_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -295,6 +311,11 @@ export const contentIssues = pgTable('content_issues', {
   description: text('description').notNull(),
   sampleUrls: jsonb('sample_urls').notNull().$type<string[]>().default([]),
   penalty: integer('penalty').notNull(),
+  // V2 (§18) : sévérité, effort/impact (quick wins), page_url (null = issue site)
+  severity: issueSeverityEnum('severity').notNull().default('minor'),
+  effort: integer('effort').notNull().default(2),
+  impact: integer('impact').notNull().default(2),
+  pageUrl: text('page_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 

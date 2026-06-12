@@ -12,6 +12,10 @@ export interface ContentIssueInsert {
   description: string
   sampleUrls: string[]
   penalty: number
+  severity: 'major' | 'moderate' | 'minor' | 'opportunity'
+  effort: number
+  impact: number
+  pageUrl?: string | null
 }
 
 export async function insertContentIssues(issues: ContentIssueInsert[]) {
