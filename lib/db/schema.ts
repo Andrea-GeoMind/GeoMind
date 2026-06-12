@@ -76,6 +76,8 @@ export const profiles = pgTable('profiles', {
   email: text('email').notNull(),
   fullName: text('full_name'),
   avatarUrl: text('avatar_url'),
+  // Alertes email (citations, baisses de visibilité, analyses terminées) — PLAN item 13
+  emailNotifications: boolean('email_notifications').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

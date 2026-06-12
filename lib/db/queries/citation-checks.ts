@@ -55,6 +55,35 @@ export async function getCitationTrend(
   return rows
 }
 
+/**
+ * Taux de citation sur une fenêtre [since, until[ — utilisé par les alertes
+ * pour comparer « avant ce passage de surveillance » vs « ce passage ».
+ */
+export async function getCitationRateBetween(
+  siteId: string,
+  since: Date,
+  until: Date,
+  mode: 'forced' | 'spontaneous' = 'forced'
+): Promise<{ total: number; cited: number; rate: number | null }> {
+  const [row] = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      cited: sql<number>`count(*) FILTER (WHERE ${citationChecks.cited})::int`,
+    })
+    .from(citationChecks)
+    .where(
+      and(
+        eq(citationChecks.siteId, siteId),
+        eq(citationChecks.mode, mode),
+        gte(citationChecks.checkedAt, since),
+        sql`${citationChecks.checkedAt} < ${until}`
+      )
+    )
+  const total = row?.total ?? 0
+  const cited = row?.cited ?? 0
+  return { total, cited, rate: total > 0 ? Math.round((cited / total) * 100) : null }
+}
+
 /** Derniers checks d'un site (debug / détail). */
 export async function getRecentCitationChecks(siteId: string, limit = 100) {
   return db
