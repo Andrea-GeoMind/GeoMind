@@ -697,6 +697,321 @@
 
 ---
 
+---
+
+## Sprint 7 — V2 produit (post-launch)
+
+### TKT-CREDITS — Système de crédits universel
+
+> **Spec de référence : `cahier-des-charges.md` section 17** — principes, cycle de vie des crédits, pédagogie UX, anti-abus, migration. En cas de doute, la section 17 fait foi.
+
+**Objectif** : remplacer le système de quotas (nb analyses/mois + nb messages coach) par un système de crédits universel consommé par toute opération qui appelle une API externe. Coût variable selon la complexité de l'opération, avec possibilité d'acheter des packs supplémentaires.
+
+**Principe** :
+- 1 crédit ≈ 0,001 € de coût API réel (marge ×2)
+- Crédits mensuels reset à la **date anniversaire de facturation** (webhook Stripe `invoice.payment_succeeded`) ; plan Gratuit : 1er du mois, check lazy à la consommation — pas de cron
+- Pas de report des mensuels non consommés ; les crédits achetés en pack ne périment jamais
+- Priorité de consommation : crédits du plan d'abord, puis crédits achetés
+- **Bonus de bienvenue** : 1 000 crédits one-shot à l'inscription (`reason='welcome_bonus'`)
+- Analyse décomptée au lancement ; si échec technique → remboursement automatique (`reason='refund_failed_analysis'`)
+- Jamais de solde négatif ; plan admin = `Infinity`, aucune transaction
+
+**Coût en crédits par opération** (à définir dans `lib/credits.ts`) :
+
+| Opération | Crédits |
+|-----------|---------|
+| Analyse complète (crawl + 4 IAs × 3 prompts) | 400 |
+| Analyse autorité seule | 150 |
+| Analyse technique seule | 20 |
+| Analyse contenu seule | 20 |
+| Analyse page par page (par page) | 8 |
+| Message Coach IA (modèle Haiku) | 10 |
+| Message Coach IA (modèle Sonnet) | 30 |
+| Génération recommandation complète (Sonnet) | 50 |
+
+**Fichiers** :
+- `lib/credits.ts` : constantes `CREDIT_COSTS` + fonctions `getUserCredits(userId)`, `consumeCredits(userId, amount, reason)`, `refundCredits(userId, amount, reason)`, `hasEnoughCredits(userId, amount)`, `formatCreditsAsUsage(credits)` (traduction humaine « ≈ X analyses ou Y questions à GEO ») — lecture/écriture en DB
+- `lib/db/schema.ts` : table `credit_balances` (userId, monthly_credits, purchased_credits, last_reset_at), table `credit_transactions` (userId, amount, reason, created_at)
+- `drizzle/migrations/` : migration pour les 2 nouvelles tables
+- `lib/plans.ts` : remplacer `analyses` et `coachMessagesPerMonth` par `creditsPerMonth`
+- `lib/quotas.ts` : refactoriser `canRunFullAnalysis`, `canRunTabAnalysis`, `canSendCoachMessage` → délèguent tous à `hasEnoughCredits`
+- `lib/inngest/functions/run-full-analysis.ts` : déduire les crédits via `consumeCredits` au début de chaque sous-étape (si échec = pas de consommation grâce au try/catch existant)
+- `app/api/coach/[siteId]/route.ts` : consommer les crédits avant chaque appel LLM
+- `app/api/stripe/webhooks/route.ts` : gérer `checkout.session.completed` pour les packs de crédits → `consumeCredits` en négatif (rechargement)
+- `lib/stripe.ts` : helper `createCreditPackCheckout(userId, packId)`
+- `app/(app)/settings/billing/page.tsx` : afficher les crédits restants (mensuel + achetés) + bouton "Acheter des crédits"
+- `components/features/credits/CreditPacksModal.tsx` : modal avec 3 packs
+- `components/features/credits/CreditsBadge.tsx` : badge solde dans la sidebar (toutes pages), traduction humaine au survol, lien `/settings/usage`
+- `app/(app)/settings/usage/page.tsx` : refonte — jauge double (mensuels/achetés), historique `credit_transactions`, équivalences humaines, CTA packs
+- Alerte 20 % : bannière in-app + email Resend quand le solde mensuel passe sous 20 % (flag `low_credit_alerted_at`, une fois par cycle) — template dans `lib/email/templates/`
+- Confirmation avant dépense ≥ 100 crédits : coût + solde résultant affichés avant l'action (RunAnalysisButton notamment)
+
+**Packs de crédits** (produits Stripe à créer) :
+
+| Pack | Crédits | Prix |
+|------|---------|------|
+| Starter | 500 crédits | 5 € |
+| Growth | 2 000 crédits | 15 € |
+| Power | 8 000 crédits | 49 € |
+
+**Critères** :
+- `getUserCredits(userId)` retourne `{ monthly: number, purchased: number, total: number }`
+- `consumeCredits` échoue proprement si solde insuffisant (pas de solde négatif)
+- Un achat Stripe de pack crédite instantanément le compte via webhook
+- Les crédits mensuels se réinitialisent à la date anniversaire de facturation (webhook Stripe) ; plan Gratuit au 1er du mois en lazy
+- Un nouveau compte reçoit 1 000 crédits de bienvenue (visible dans `credit_transactions`)
+- Une analyse qui échoue techniquement est remboursée automatiquement
+- Le badge solde est visible dans la sidebar sur toutes les pages, avec traduction humaine au survol
+- L'alerte 20 % se déclenche une seule fois par cycle (in-app + email)
+- Page billing affiche la jauge de crédits restants
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
+### TKT-PLANS-V2 — Nouveau modèle de plans + feature gates
+
+> **Spec de référence : `cahier-des-charges.md` section 17** — grille complète, changements de plan (upgrade/downgrade/annulation/impayé), positionnement du Gratuit, migration. En cas de doute, la section 17 fait foi.
+
+**Objectif** : refonte du business model. 4 plans (Gratuit / Solo / Pro / Business) avec des crédits mensuels différents ET des fonctionnalités débloquées selon le plan. Facturation mensuelle ET annuelle (-20 %). Mise à jour Stripe, UI pricing, et tous les paywalls existants.
+
+**Dépendance** : TKT-CREDITS doit être terminé avant ce ticket.
+
+**Nouveau modèle de plans** :
+
+| | Gratuit | Solo | Pro | Business |
+|--|---------|------|-----|----------|
+| Prix mensuel | 0 € | 19 €/mois | 59 €/mois | 149 €/mois |
+| Prix annuel (-20 %, /mois) | — | 15 € | 47 € | 119 € |
+| Sites | 1 | 2 | 5 | 15 |
+| Crédits/mois | 500 | 5 000 | 20 000 | 80 000 |
+| Analyse page par page | ❌ | ✅ 5 pages max | ✅ 10 pages max | ✅ 10 pages max |
+| Mémoire Coach IA | ❌ | ✅ | ✅ | ✅ |
+| Recommandations complètes (Sonnet) | ❌ | ❌ | ✅ | ✅ |
+| Publishers complets (15) | ❌ (3 seulement) | ✅ | ✅ | ✅ |
+| Export PDF rapport | ❌ | ❌ | ✅ | ✅ white-label (logo client) |
+| Historique analyses | 30 j | 90 j | 365 j | illimité |
+| Support | Standard | Standard | Standard | Prioritaire (< 24 h) |
+| Achat crédits à la carte | ✅ | ✅ | ✅ | ✅ |
+
+**Fichiers** :
+- `lib/plans.ts` : refactoriser `PLAN_LIMITS` avec les nouvelles valeurs + nouvelle constante `PLAN_FEATURES` (feature flags par plan : `pageAnalysis`, `coachMemory`, `fullRecommendations`, `publishersFull`, `pdfExport`, `historyDays`)
+- `lib/quotas.ts` : ajouter `canUsePageAnalysis(userId)`, `canUseCoachMemory(userId)`, `canUseFullRecommendations(userId)`, `getPageAnalysisLimit(userId)`
+- `app/(marketing)/pricing/page.tsx` : refonte complète — toggle Mensuel/Annuel, badge « Le plus populaire » sur Pro, grille avec équivalences humaines des crédits, FAQ crédits
+- `app/(app)/settings/billing/page.tsx` : mettre à jour les plans affichés (mensuel + annuel)
+- Gestion des changements de plan (cf. §17.5) : upgrade immédiat avec complément de crédits, downgrade en fin de période, sites excédentaires gelés en **lecture seule** (jamais supprimés, l'utilisateur choisit lesquels restent actifs), impayé = 7 j de grâce puis gel au niveau Gratuit
+- `lib/db/queries/sites.ts` : statut `frozen` sur les sites excédentaires + UI de sélection des sites actifs après downgrade
+- Stripe dashboard (manuel) : 6 Price IDs (3 plans × mensuel/annuel) + 3 produits packs → env vars ; migration des comptes test DB (`pro`→Pro, `business`→Business, soldes initialisés + bonus bienvenue rétroactif) — aucun client payant réel (Stripe jamais Live), pas de grandfathering
+- Tous les paywalls existants (recommandations complètes, publishers, coach) : mettre à jour les vérifications pour utiliser `PLAN_FEATURES`
+- `app/(app)/sites/[siteId]/authority/page.tsx`, `technical/page.tsx`, `content/page.tsx` : ajouter paywall export PDF (bouton désactivé + tooltip si plan < Pro)
+
+**Critères** :
+- La page `/pricing` affiche les 4 plans avec toggle Mensuel/Annuel et équivalences humaines des crédits
+- Un user Gratuit ne peut pas activer la mémoire de GEO → teaser avec lien upgrade
+- Un user Pro peut générer les recommandations complètes et exporter en PDF
+- Stripe Checkout fonctionne pour les 6 prix (3 plans × 2 périodicités, test cards)
+- Un downgrade Pro → Solo gèle les sites excédentaires en lecture seule sans perte de données
+- Un upgrade Solo → Pro complète immédiatement les crédits mensuels de la différence
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
+### TKT-COACH-V2 — GEO, le coach IA (refonte complète)
+
+> **Spec de référence : `cahier-des-charges.md` section 16** — identité et voix (exemples calibrés), budget tokens, messages d'accueil exacts, matrice complète des chips, formule de décompte crédits, sécurité/anti-injection, cas limites, observabilité. Le présent ticket est le résumé opérationnel ; en cas de doute, la section 16 fait foi.
+
+**Objectif** : refonte complète du Coach IA. Corriger le bug d'accès (plan Gratuit bloqué), créer un assistant IA nommé **GEO** — ludique, pédagogique, expert GEO — accessible partout dans l'app via un bouton flottant ET dans un onglet dédié par site. GEO aide le client à corriger ses points faibles le plus vite possible, avec accès aux données du site + capacité de recherche web.
+
+**Dépendances** : TKT-CREDITS + TKT-PLANS-V2 doivent être terminés.
+
+**Phasage** (4 sous-lots livrables séquentiellement, détail en section 16.13 du cahier des charges) :
+1. **V2a — Cerveau** : API route (Sonnet + fallback Haiku, web search, crédits réels, system prompt v2, anti-injection, rate limit 30 msg/h)
+2. **V2b — Corps** : UI complète (provider, flottant, avatar, chips, Markdown+copier, états, bouton "Demander à GEO", mobile)
+3. **V2c — Mémoire** : table + compression + rechargement + gate plan + comparaison N vs N-1
+4. **V2d — Magie** : auto-ouverture 1re analyse, badge pulse, messages d'accueil, PostHog, QA
+
+---
+
+#### Identité de GEO
+
+- **Nom** : GEO (l'assistant GeoMind)
+- **Personnalité** : ludique, direct, pédagogique — jamais de jargon SEO non expliqué, il parle comme un coach humain qui connaît très bien son sujet
+- **Modèle** : `anthropic/claude-sonnet-4-6` via OpenRouter — meilleur rapport pertinence/coût pour ce rôle de coaching
+- **Web search** : activé via le paramètre `web_search_tool` d'OpenRouter (Sonnet + web) — GEO peut chercher des informations en ligne si la question le justifie (ex : "comment ajouter un FAQ schema sur WordPress")
+- **Langue** : toujours répondre dans la langue du site analysé (fr/en selon `site.language`)
+
+---
+
+#### Deux points d'accès
+
+**1. Bouton flottant global** (`CoachFloatingButton`)
+- Présent sur toutes les pages authentifiées de l'app (`app/(app)/layout.tsx`)
+- Icône fixe en bas à droite (z-50), badge avec solde de crédits
+- Au clic : ouvre un panel latéral `CoachFloatingPanel` (drawer 400px)
+- Le panel s'ouvre **sans contexte pré-injecté** — GEO accueille l'utilisateur et lui demande sur quoi il veut de l'aide
+- Si un `siteId` est détectable dans l'URL courante, GEO connaît déjà le site actif
+- Mémoire : partagée avec l'onglet dédié (même `coach_messages` par siteId)
+
+**2. Onglet Coach dédié** (`/sites/[siteId]/coach`)
+- Interface de chat plein écran, historique complet visible
+- GEO accueille avec un message d'intro contextualisé : score global, pilier le plus faible, suggestion d'action prioritaire
+- Bouton "Nouvelle conversation" possible mais l'historique reste consultable
+
+**3. Ouverture contextuelle depuis une issue** (`"Demander à GEO"`)
+- Sur les onglets Technique et Contenu, chaque `IssueCard` a un bouton "Demander à GEO"
+- Au clic : ouvre le `CoachFloatingPanel` avec l'issue pré-injectée comme premier message système
+- GEO démarre directement sur le problème : "Tu veux corriger **[titre de l'issue]**. Voici comment faire…" + code prêt à copier si applicable (balises HTML, JSON-LD, meta tags…)
+- Pas de navigation vers l'onglet Coach — le panel s'ouvre par-dessus la page courante
+
+---
+
+#### Ce que GEO sait (system prompt contextualisé)
+
+À chaque conversation, le system prompt injecte :
+
+```
+- Nom du site + URL + secteur d'activité + langue + pays
+- Score global + note Autorité + note Technique + note Contenu
+- Top 5 issues prioritaires (titre + sévérité + catégorie)
+- Mots-clés cibles du site
+- Concurrents détectés
+- Résumé mémoire de la conversation précédente (si existant)
+- Date de la dernière analyse
+- Contexte de l'issue si ouverture contextuelle
+```
+
+GEO génère du code prêt à copier-coller quand c'est utile (balise HTML, JSON-LD, meta tag, extrait de config) — rendu en bloc de code Markdown avec bouton "Copier".
+
+---
+
+#### Décisions produit (arbitrées 2026-06-12)
+
+**Premier contact — proactif une seule fois**
+- À la fin de la **première analyse d'un site** (et uniquement celle-là), le panel GEO s'ouvre automatiquement avec un message d'accueil personnalisé : score global, pilier le plus faible, proposition d'attaquer la première correction
+- Flag `coach_intro_seen` (boolean) sur la table `sites` pour ne jamais ré-ouvrir automatiquement
+- Ensuite : badge "•" animé sur le bouton flottant quand GEO a du nouveau (nouvelle analyse terminée, comparaison N vs N-1 disponible) — jamais d'ouverture forcée
+
+**Chips de questions suggérées — contextuelles**
+- 3 suggestions cliquables max sous l'input, qui varient selon la page courante et l'état du site
+- Exemples : onglet Technique avec issues → "Par quoi je commence ?" / "Explique-moi l'issue la plus grave" / "Combien de temps pour tout corriger ?" ; onglet Overview → "Pourquoi mon score est de X ?" / "C'est quoi mon point faible ?" ; panel flottant sans contexte → "Comment améliorer ma visibilité IA ?" / "Explique-moi mes notes"
+- Constantes dans `lib/ai/coach-suggestions.ts` : `getSuggestions(page, siteState): string[]` — fonction pure, testée
+
+**Boucle de correction — le moment gratifiant**
+- Après avoir guidé une correction, GEO propose de relancer une analyse pour vérifier, en affichant le coût : "Quand tu as fait la modif, relance une analyse (400 crédits) et on vérifie ensemble !"
+- Au premier message d'une conversation qui suit une nouvelle analyse, GEO compare automatiquement N vs N-1 (via `lib/analysis/compare.ts`) : issues disparues, deltas de scores — et célèbre les progrès ("🎉 3 issues corrigées, ton score technique passe de 45 à 62")
+- Le contexte injecté dans le system prompt inclut le diff N vs N-1 si une analyse précédente existe
+
+**Avatar — identitaire et sobre**
+- Pas de mascotte cartoon : un orbe/boussole animé aux couleurs GeoMind (SVG animé, dégradé brand)
+- Pulse doux sur le bouton flottant quand le badge "nouveau" est actif
+- `components/features/coach/GeoAvatar.tsx` : 3 tailles (bouton flottant, header du panel, messages)
+
+**Limites et honnêteté**
+- Hors-sujet (rédaction LinkedIn, code sans rapport, etc.) : GEO répond en une phrase avec humour et recentre sur la visibilité IA — pas de longue réponse hors périmètre
+- Donnée indisponible (trafic, analytics, positions Google) : GEO le dit explicitement ("Je n'ai pas accès à ton trafic — par contre je peux te dire ce que les IA pensent de ton site") et propose une alternative dans son périmètre
+- Jamais d'invention de données : si GEO ne sait pas, il le dit
+- Ces règles sont dans le system prompt, avec exemples few-shot
+
+---
+
+#### Mémoire persistante par site
+
+- Table `coach_memory` (userId, siteId, memory_summary text, message_count int, updated_at)
+- Résumé roulant généré automatiquement par Haiku tous les 10 messages (event Inngest `coach.memory.compress`)
+- Le résumé contient : problèmes discutés, corrections déjà appliquées mentionnées, niveau de progression perçu
+- Au mount du panel/page : charger les 20 derniers messages depuis `coach_messages` + le résumé mémoire
+- Plan Gratuit : pas de mémoire (conversation repart de zéro à chaque session) — voir `PLAN_FEATURES.coachMemory`
+
+---
+
+#### Coût en crédits
+
+- Message standard (< 500 tokens en réponse) : **15 crédits**
+- Message long ou avec web search (> 500 tokens) : **30 crédits**
+- Le coût réel est calculé après la réponse (tokens de sortie × coefficient) et déduit via `consumeCredits`
+- Si l'utilisateur n'a plus assez de crédits : message GEO "Il me faut plus de carburant ! Recharge tes crédits pour continuer." + lien vers billing
+
+---
+
+#### Fichiers
+
+- `lib/db/schema.ts` : table `coach_memory` (userId, siteId, memory_summary, message_count, updated_at) + index (userId, siteId) ; colonne `coach_intro_seen boolean default false` sur `sites`
+- `drizzle/migrations/` : migration pour `coach_memory` + `sites.coach_intro_seen`
+- `lib/ai/coach-suggestions.ts` : `getSuggestions(page, siteState): string[]` — chips contextuelles, fonction pure testée
+- `components/features/coach/GeoAvatar.tsx` : orbe/boussole SVG animé, 3 tailles (bouton, header, message)
+- `lib/db/queries/coach.ts` : ajouter `getCoachMemory`, `upsertCoachMemory`, `getRecentCoachMessages(userId, siteId, limit: 20)`
+- `lib/ai/prompts/coach.ts` : `buildCoachSystemPrompt(context: CoachContext): string` — paramétré, versionné, testé
+- `app/api/coach/[siteId]/route.ts` : refactoriser — modèle Sonnet + web search, `consumeCredits` après la réponse (tokens réels), inject system prompt complet, vérif `hasEnoughCredits` avant appel
+- `app/(app)/layout.tsx` : ajouter `<CoachFloatingButton siteId={currentSiteId} />`
+- `components/features/coach/CoachFloatingButton.tsx` : bouton fixe bas-droite, badge crédits, état ouvert/fermé via Context
+- `components/features/coach/CoachFloatingPanel.tsx` : drawer 400px, liste messages, input, streaming SSE, bouton copier sur blocs de code
+- `components/features/coach/CoachProvider.tsx` : Context React global — état du panel ouvert/fermé + `openWithIssue(issue)` pour l'ouverture contextuelle
+- `components/features/coach/CoachPanel.tsx` : refactoriser le panel existant (utilisé dans l'onglet dédié) pour partager la logique avec `CoachFloatingPanel`
+- `components/features/technical/IssueCard.tsx` + `components/features/content/ContentIssueCard.tsx` : ajouter bouton "Demander à GEO" qui appelle `openWithIssue(issue)` depuis le Context
+- `app/(app)/sites/[siteId]/coach/page.tsx` : fix gate plan (utiliser `hasEnoughCredits`), charger historique + mémoire server-side, message d'intro contextualisé
+- `lib/inngest/functions/` : `compress-coach-memory.ts` — déclenché par event `coach.memory.compress`, résume via Haiku, `upsertCoachMemory`
+
+**Critères** :
+- Un user Gratuit voit GEO et peut envoyer des messages (dans la limite de ses crédits — plus aucun paywall bloquant)
+- Cliquer sur "Demander à GEO" depuis une issue ouvre le panel avec GEO qui démarre directement sur le problème
+- Rouvrir GEO 2 jours plus tard → les 20 derniers messages sont là (si plan Solo+)
+- GEO génère du code prêt à copier-coller sur les issues techniques (balise HTML, JSON-LD)
+- Le bouton flottant est visible sur toutes les pages `/sites/[siteId]/*`
+- Le solde de crédits est affiché dans le panel flottant et dans l'onglet Coach
+- À la fin de la 1re analyse d'un site, le panel s'ouvre automatiquement avec le message d'accueil personnalisé — et plus jamais ensuite (`coach_intro_seen`)
+- 3 chips de suggestions contextuelles s'affichent sous l'input et varient selon l'onglet
+- Après une nouvelle analyse, le premier message de GEO compare N vs N-1 (issues corrigées + deltas de scores)
+- Une question hors-sujet reçoit une réponse d'une phrase + recentrage (vérifié manuellement avec 3 exemples)
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
+### TKT-RULES-V2 — Règles GEO v2 (~33 règles techniques, ~26 règles contenu, analyse page par page)
+
+> **Spec de référence : `cahier-des-charges.md` section 18** — catalogues complets des règles avec scope/sévérité/source de données, scoring V2, sélection des pages, opportunités, migration DB. En cas de doute, la section 18 fait foi.
+
+**Objectif** : refonte complète des règles GEO pour qu'un audit ait **toujours** quelque chose à dire. Constat V1 (audit du code 2026-06-12) : seulement 10 règles techniques et 6 règles contenu réellement actives (16 ont été désactivées au fil du temps comme « SEO classique »), toutes au niveau site, seuils à 20 % — un bon site remonte 0 issue.
+
+**Dépendance** : TKT-PLANS-V2 (pour le gate page-par-page par plan). Peut être développé en parallèle de TKT-CREDITS.
+
+**Les 3 leviers** :
+1. **Catalogue ×3** : réintégration des 10 règles désactivées (reformulées sous l'angle GEO — les crawlers IA parsent la structure HTML et utilisent title/meta dans leurs citations) + 17 nouvelles règles techniques + 16 nouvelles règles contenu → ~33 techniques, ~26 contenu (détail complet en §18.4 et §18.5)
+2. **Analyse page par page** : règles à `scope: 'page'` exécutées sur les pages sélectionnées par `selectPagesForAnalysis()` (accueil toujours incluse, puis profondeur/contenu/diversité — pure et déterministe). Gratuit = analyse globale seule, Solo = 5 pages, Pro/Business = 10. Crawl de l'analyse complète porté à `maxPages: 15`.
+3. **Niveau « opportunité »** : sévérité sans pénalité, section « Pour aller plus loin » dédiée — garantie produit : **tout audit affiche ≥ 3 opportunités**, même un site parfait (pool statique par secteur en complément, `lib/analysis/opportunities.ts`, zéro appel LLM).
+
+**Métadonnées de règles** : chaque règle déclare `scope` (site/page), `severity` (major/moderate/minor/opportunity), `effort` (1-3) et `impact` (1-3) — alimentent le bloc « Quick wins » de l'UI et le contexte injecté à GEO.
+
+**Scoring V2** (`lib/analysis/scoring.ts`, pur et testé) :
+- Pénalités par sévérité : major 12 / moderate 6 / minor 3 / opportunity 0
+- Issues de page proportionnelles : pénalité × (pages affectées / pages analysées)
+- Plafond de 30 points de pénalité par catégorie (une catégorie ne coule pas le score seule)
+- Colonne `analyses.rules_version` (V2 = 2) ; pas de recalcul rétroactif ; badge « Méthodologie enrichie » sur les comparaisons N vs N-1 qui traversent un changement de version
+
+**Migration DB** : `technical_issues` + `content_issues` : + `page_url` (null = issue site), + `severity`, + `effort`, + `impact` (`penalty` conservée, calculée depuis la sévérité) ; `analyses` : + `rules_version int default 1`.
+
+**UI V2** (onglets Technique et Contenu) :
+- Bloc « Quick wins » en tête (effort = 1, impact ≥ 2, triés par impact)
+- Vue globale + accordéons par page (« Page : /tarifs — 3 points faibles »)
+- Filtres catégorie/sévérité, section « Pour aller plus loin » en bas
+- Sheet de recommandation conservé + bouton « Demander à GEO »
+
+**Phasage** (détail §18.10) :
+1. **RULES-V2a — Infra** : types V2, scoring V2 + plafonds, `rules_version`, `selectPagesForAnalysis`, migration DB, réintégration des 10 règles désactivées
+2. **RULES-V2b — Technique** : 17 nouvelles règles + durcissement seuils (response-time 2 s, hiérarchie Hn, schema-faq sur contenu FAQ existant) + fixtures
+3. **RULES-V2c — Contenu** : 16 nouvelles règles + durcissement (thin-content médiane/150 mots, Q&A implicites) + fixtures
+4. **RULES-V2d — UI** : vue par page, quick wins, filtres, opportunités, badge méthodologie
+
+**Tests** : 1 test positif + 1 négatif minimum par règle (fixtures dans `tests/unit/fixtures/`), tests scoring V2 (plafonds, proportionnalité, déterminisme), test garantie ≥ 3 opportunités sur fixture de site parfait, tests `selectPagesForAnalysis`.
+
+**Critères** :
+- Sur un site quelconque, l'audit remonte au minimum 5 issues techniques et 5 issues contenu ; sur un site parfait, au minimum 3 opportunités par onglet
+- Le bloc « Quick wins » apparaît en tête quand des issues effort=1/impact≥2 existent
+- L'analyse page par page est visible (accordéons par URL) ; Solo = 5 pages max, Pro/Business = 10, Gratuit = vue globale seule
+- Les scores restent déterministes et comparables ; le badge « Méthodologie enrichie » apparaît sur la première comparaison post-V2
+- Migration DB rétrocompatible (anciennes issues : `page_url = null`, sévérité rétro-déduite de `penalty`)
+- `pnpm typecheck && pnpm lint && pnpm test` : 0 erreur
+
+---
+
 ## Ordre de priorité si retard de planning
 
 Si le rythme dérape, voici l'ordre de coupe (du moins critique au plus critique) :
