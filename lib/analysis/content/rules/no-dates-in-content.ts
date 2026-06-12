@@ -9,6 +9,11 @@ function hasDateContent(markdown: string | null | undefined): boolean {
   return DATE_PATTERN.test(markdown)
 }
 
+/**
+ * Règle SITE — absence totale de dates dans les contenus.
+ * Les IA privilégient les informations datées : une date signale la fraîcheur
+ * et la fiabilité, deux critères clés pour être cité par ChatGPT ou Perplexity.
+ */
 export async function checkNoDatesInContent({ pages }: RuleInput): Promise<ContentIssue | null> {
   if (pages.length === 0) return null
 
@@ -24,8 +29,10 @@ export async function checkNoDatesInContent({ pages }: RuleInput): Promise<Conte
     ruleKey: 'no_dates_in_content',
     category: 'coverage',
     title: 'Absence de dates dans le contenu',
-    description: `Aucune date n'a été détectée dans vos contenus. Les moteurs IA privilégient les informations datées car elles signalent la fraîcheur et la fiabilité du contenu.`,
+    description: `Aucune date n'a été détectée dans vos contenus. Les moteurs IA privilégient les informations datées car elles signalent la fraîcheur et la fiabilité du contenu — ajoutez des dates de publication et de mise à jour visibles.`,
     sampleUrls: contentPages.slice(0, 3).map((p) => p.url),
-    penalty: 5,
+    severity: 'moderate',
+    effort: 1,
+    impact: 2,
   }
 }

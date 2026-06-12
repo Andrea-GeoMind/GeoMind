@@ -12,7 +12,9 @@ export async function checkSitemapMissing({ siteUrl }: RuleInput): Promise<Techn
       description:
         "Votre site n'a pas de sitemap.xml accessible. Un sitemap aide les IAs à découvrir et indexer l'ensemble de vos pages.",
       sampleUrls: [sitemapUrl],
-      penalty: 10,
+      severity: 'moderate',
+      effort: 1,
+      impact: 2,
     }
   } catch {
     return null

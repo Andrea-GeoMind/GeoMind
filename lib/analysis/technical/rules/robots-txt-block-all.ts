@@ -15,7 +15,9 @@ export async function checkRobotsTxtBlockAll({ siteUrl }: RuleInput): Promise<Te
       description:
         'Votre fichier robots.txt contient "Disallow: /" pour tous les agents (User-agent: *). Cela empêche les IAs d\'explorer votre site et d\'indexer votre contenu.',
       sampleUrls: [robotsUrl],
-      penalty: 30,
+      severity: 'major',
+      effort: 1,
+      impact: 3,
     }
   } catch {
     return null

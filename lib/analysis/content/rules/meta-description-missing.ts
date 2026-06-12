@@ -1,27 +1,27 @@
-import type { RuleInput, ContentIssue } from '../types'
+import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
 
-const THRESHOLD_RATIO = 0.2
+/**
+ * Règle PAGE — meta description manquante.
+ * La meta description sert de résumé de référence aux IA quand elles citent
+ * une page : sans elle, ChatGPT et Perplexity doivent deviner le sujet.
+ */
+export async function checkMetaDescriptionMissing(
+  page: FirecrawlPage,
+  _input: RuleInput
+): Promise<ContentIssue | null> {
+  if (page.statusCode != null && page.statusCode !== 200) return null
 
-export async function checkMetaDescriptionMissing({
-  pages,
-}: RuleInput): Promise<ContentIssue | null> {
-  if (pages.length === 0) return null
-
-  const contentPages = pages.filter((p) => p.statusCode === 200 || p.statusCode == null)
-  if (contentPages.length === 0) return null
-
-  const missingPages = contentPages.filter(
-    (p) => !p.metadata?.description || p.metadata.description.trim().length === 0
-  )
-  const ratio = missingPages.length / contentPages.length
-  if (ratio <= THRESHOLD_RATIO) return null
+  const description = page.metadata?.description?.trim() ?? ''
+  if (description.length > 0) return null
 
   return {
     ruleKey: 'meta_description_missing',
     category: 'metadata',
     title: 'Meta description manquante',
-    description: `${Math.round(ratio * 100)}% de vos pages n'ont pas de meta description. Les moteurs IA utilisent cette description comme résumé de référence lors des citations.`,
-    sampleUrls: missingPages.slice(0, 5).map((p) => p.url),
-    penalty: 8,
+    description: `Cette page n'a pas de meta description. Ce résumé nourrit les snippets que les IA reprennent en citation : rédigez 1 à 2 phrases qui résument la page et donnent envie de la citer.`,
+    sampleUrls: [page.url],
+    severity: 'minor',
+    effort: 1,
+    impact: 2,
   }
 }

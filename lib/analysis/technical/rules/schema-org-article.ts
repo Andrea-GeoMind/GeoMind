@@ -21,6 +21,8 @@ export async function checkSchemaOrgArticle({ pages }: RuleInput): Promise<Techn
     title: 'Schema Article manquant',
     description: `${missingSchema.length} page(s) de blog/actualité n'ont pas de schema.org Article ou BlogPosting. Ce schema aide les IAs à identifier et citer votre contenu éditorial.`,
     sampleUrls: missingSchema.slice(0, 5).map((p) => p.url),
-    penalty: 4,
+    severity: 'minor',
+    effort: 2,
+    impact: 2,
   }
 }

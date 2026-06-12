@@ -22,7 +22,9 @@ export async function checkSitemapMalformed({ siteUrl }: RuleInput): Promise<Tec
       description:
         "Votre sitemap.xml existe mais n'est pas un XML valide. Un sitemap malformé empêche les IAs de l'utiliser pour explorer votre site.",
       sampleUrls: [sitemapUrl],
-      penalty: 5,
+      severity: 'moderate',
+      effort: 2,
+      impact: 2,
     }
   } catch {
     return null

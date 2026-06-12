@@ -3,7 +3,7 @@
 import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { IssueSeverityBadge } from '@/components/features/technical/issue-severity-badge'
-import { penaltyToSeverity } from '@/components/features/technical/issue-card'
+import { displaySeverity, type DbIssueSeverity } from '@/components/features/technical/issue-card'
 
 export interface ContentIssueRow {
   id: string
@@ -13,6 +13,11 @@ export interface ContentIssueRow {
   description: string
   sampleUrls: string[]
   penalty: number
+  /** Champs V2 (§18) — absents sur les analyses antérieures à la V2 */
+  severity?: DbIssueSeverity
+  effort?: number
+  impact?: number
+  pageUrl?: string | null
 }
 
 interface ContentIssueCardProps {
@@ -21,7 +26,7 @@ interface ContentIssueCardProps {
 }
 
 export function ContentIssueCard({ issue, onClick }: ContentIssueCardProps) {
-  const severity = penaltyToSeverity(issue.penalty)
+  const severity = displaySeverity(issue)
 
   return (
     <button

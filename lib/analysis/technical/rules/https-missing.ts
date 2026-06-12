@@ -9,6 +9,8 @@ export async function checkHttpsMissing({ siteUrl }: RuleInput): Promise<Technic
     description:
       'Votre site utilise HTTP au lieu de HTTPS. Les moteurs IA accordent moins de confiance aux sites non sécurisés et peuvent les déprioriser dans leurs réponses.',
     sampleUrls: [siteUrl],
-    penalty: 15,
+    severity: 'major',
+    effort: 3,
+    impact: 3,
   }
 }

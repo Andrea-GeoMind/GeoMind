@@ -1,28 +1,29 @@
-import type { RuleInput, ContentIssue } from '../types'
+import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
 
 const MIN_TITLE_LENGTH = 20
-const THRESHOLD_RATIO = 0.2
 
-export async function checkTitleMissingOrShort({
-  pages,
-}: RuleInput): Promise<ContentIssue | null> {
-  if (pages.length === 0) return null
+/**
+ * Règle PAGE — title absent ou trop court.
+ * Le title est le premier élément que les IA lisent pour comprendre une page :
+ * il nourrit directement les snippets cités par ChatGPT et Perplexity.
+ */
+export async function checkTitleMissingOrShort(
+  page: FirecrawlPage,
+  _input: RuleInput
+): Promise<ContentIssue | null> {
+  if (page.statusCode != null && page.statusCode !== 200) return null
 
-  const contentPages = pages.filter((p) => p.statusCode === 200 || p.statusCode == null)
-  if (contentPages.length === 0) return null
-
-  const problemPages = contentPages.filter(
-    (p) => !p.metadata?.title || p.metadata.title.trim().length < MIN_TITLE_LENGTH
-  )
-  const ratio = problemPages.length / contentPages.length
-  if (ratio <= THRESHOLD_RATIO) return null
+  const title = page.metadata?.title?.trim() ?? ''
+  if (title.length >= MIN_TITLE_LENGTH) return null
 
   return {
     ruleKey: 'title_missing_or_short',
     category: 'metadata',
-    title: 'Titre manquant ou trop court',
-    description: `${Math.round(ratio * 100)}% de vos pages ont un titre absent ou inférieur à ${MIN_TITLE_LENGTH} caractères. Un titre descriptif est le premier signal de pertinence pour les moteurs IA.`,
-    sampleUrls: problemPages.slice(0, 5).map((p) => p.url),
-    penalty: 8,
+    title: title.length === 0 ? 'Titre de page manquant' : 'Titre de page trop court',
+    description: `Cette page a un titre ${title.length === 0 ? 'absent' : `de moins de ${MIN_TITLE_LENGTH} caractères`}. Le title nourrit les snippets que les IA citent : un titre descriptif et complet est le premier signal de pertinence pour ChatGPT et Perplexity.`,
+    sampleUrls: [page.url],
+    severity: 'moderate',
+    effort: 1,
+    impact: 2,
   }
 }

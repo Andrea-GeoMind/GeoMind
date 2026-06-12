@@ -1,5 +1,10 @@
 import type { RuleInput, ContentIssue } from '../types'
 
+/**
+ * Règle SITE — meta descriptions dupliquées.
+ * La meta description nourrit les snippets que les IA citent : si plusieurs
+ * pages partagent le même résumé, les IA ne savent plus laquelle référencer.
+ */
 export async function checkDuplicateMetaDescriptions({
   pages,
 }: RuleInput): Promise<ContentIssue | null> {
@@ -26,8 +31,10 @@ export async function checkDuplicateMetaDescriptions({
     ruleKey: 'duplicate_meta_descriptions',
     category: 'metadata',
     title: 'Meta descriptions dupliquées',
-    description: `Plusieurs pages partagent la même meta description. Les moteurs IA peinent à distinguer les pages sans descriptions uniques, ce qui réduit votre autorité thématique.`,
+    description: `Plusieurs pages partagent la même meta description. Ce résumé nourrit les snippets que ChatGPT et Perplexity reprennent en citation : des descriptions uniques aident les IA à distinguer vos pages et à citer la bonne.`,
     sampleUrls: duplicateUrls,
-    penalty: 5,
+    severity: 'minor',
+    effort: 1,
+    impact: 1,
   }
 }

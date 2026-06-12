@@ -70,6 +70,10 @@ export default async function ContentPage({ params }: Props) {
     description: r.description,
     sampleUrls: r.sampleUrls as string[],
     penalty: r.penalty,
+    severity: r.severity,
+    effort: r.effort,
+    impact: r.impact,
+    pageUrl: r.pageUrl,
   }))
 
   const totalPenalty = issues.reduce((sum, i) => sum + i.penalty, 0)
