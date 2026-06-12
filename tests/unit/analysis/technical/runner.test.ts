@@ -55,6 +55,7 @@ const MOCK_SITE = {
   language: 'fr',
   country: 'FR',
   isVerified: false,
+      coachIntroSeen: false,
   createdAt: new Date(),
   updatedAt: new Date(),
 }
