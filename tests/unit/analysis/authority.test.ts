@@ -18,6 +18,9 @@ vi.mock('@/lib/db/queries/authority-results', () => ({
 vi.mock('@/lib/db/queries/authority-sources', () => ({
   insertAuthoritySources: vi.fn(),
 }))
+vi.mock('@/lib/db/queries/citation-checks', () => ({
+  insertCitationChecks: vi.fn(),
+}))
 vi.mock('@/lib/ai/cost', () => ({
   logEstimatedBatchCost: vi.fn(),
 }))
