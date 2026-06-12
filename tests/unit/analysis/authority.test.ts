@@ -70,6 +70,7 @@ describe('runAuthorityAnalysis', () => {
     vi.mocked(getAnalysisById).mockResolvedValue({
       id: 'analysis-1',
       siteId: 'site-1',
+      rulesVersion: 2,
       userId: 'user-1',
       status: 'running',
       errorMessage: null,

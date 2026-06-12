@@ -11,12 +11,13 @@ const shortText = 'mot '.repeat(50).trim()
 // ─── checkThinContent ─────────────────────────────────────────────────────────
 
 describe('checkThinContent', () => {
-  it('returns null when all pages have enough words', async () => {
+  it('returns null when the median page length is above the floor', async () => {
     const pages: FirecrawlPage[] = [
       { url: 'https://example.com/', markdown: longText },
       { url: 'https://example.com/about', markdown: longText },
-      { url: 'https://example.com/services', markdown: longText },
+      { url: 'https://example.com/services', markdown: shortText },
     ]
+    // Median of [50, 350, 350] = 350 ≥ 150 → null
     expect(await checkThinContent({ pages, siteUrl: SITE_URL })).toBeNull()
   })
 
@@ -24,38 +25,33 @@ describe('checkThinContent', () => {
     expect(await checkThinContent({ pages: [], siteUrl: SITE_URL })).toBeNull()
   })
 
-  it('detects when >30% of pages are thin', async () => {
+  it('detects when the median page length is below 150 words', async () => {
     const pages: FirecrawlPage[] = [
       { url: 'https://example.com/', markdown: shortText },
       { url: 'https://example.com/a', markdown: shortText },
-      { url: 'https://example.com/b', markdown: longText },
+      { url: 'https://example.com/b', markdown: shortText },
       { url: 'https://example.com/c', markdown: longText },
       { url: 'https://example.com/d', markdown: longText },
     ]
-    // 2/5 = 40% > 30%
+    // Median of [50, 50, 50, 350, 350] = 50 < 150
     const result = await checkThinContent({ pages, siteUrl: SITE_URL })
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('thin_content')
     expect(result!.category).toBe('readability')
-    expect(result!.penalty).toBe(10)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(3)
+    expect(result!.impact).toBe(3)
   })
 
-  it('does not flag when exactly 30% thin (boundary)', async () => {
+  it('does not flag when the median is exactly at the floor (boundary)', async () => {
+    const exactly150 = 'mot '.repeat(150).trim()
     const pages: FirecrawlPage[] = [
       { url: 'https://example.com/a', markdown: shortText },
-      { url: 'https://example.com/b', markdown: shortText },
-      { url: 'https://example.com/c', markdown: shortText },
-      { url: 'https://example.com/d', markdown: longText },
-      { url: 'https://example.com/e', markdown: longText },
-      { url: 'https://example.com/f', markdown: longText },
-      { url: 'https://example.com/g', markdown: longText },
-      { url: 'https://example.com/h', markdown: longText },
-      { url: 'https://example.com/i', markdown: longText },
-      { url: 'https://example.com/j', markdown: longText },
+      { url: 'https://example.com/b', markdown: exactly150 },
+      { url: 'https://example.com/c', markdown: longText },
     ]
-    // 3/10 = 30% — not > 30%, should be null
-    const result = await checkThinContent({ pages, siteUrl: SITE_URL })
-    expect(result).toBeNull()
+    // Median of [50, 150, 350] = 150, not < 150 → null
+    expect(await checkThinContent({ pages, siteUrl: SITE_URL })).toBeNull()
   })
 
   it('limits sampleUrls to 5', async () => {
@@ -98,7 +94,9 @@ describe('checkNoStructuredLists', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('no_structured_lists')
     expect(result!.category).toBe('readability')
-    expect(result!.penalty).toBe(6)
+    expect(result!.severity).toBe('minor')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(2)
   })
 
   it('recognises ordered lists (1. item)', async () => {

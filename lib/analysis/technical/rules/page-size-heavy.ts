@@ -1,19 +1,19 @@
-import type { TechnicalIssue, RuleInput } from '../types'
+import type { TechnicalPageRuleFn } from '../types'
 
-// markdown × 4 is a rough estimate of the corresponding HTML size.
-// Flag pages where estimated HTML > 2 MB.
+// markdown × 4 ≈ taille HTML correspondante. On signale au-delà de ~2 MB estimés.
 const MARKDOWN_HEAVY_THRESHOLD = 500_000
 
-export async function checkPageSizeHeavy({ pages }: RuleInput): Promise<TechnicalIssue | null> {
-  if (pages.length === 0) return null
-  const heavyPages = pages.filter((p) => (p.markdown?.length ?? 0) > MARKDOWN_HEAVY_THRESHOLD)
-  if (heavyPages.length === 0) return null
+/** Scope page (V2) : signale une page anormalement lourde. */
+export const checkPageSizeHeavy: TechnicalPageRuleFn = async (page) => {
+  if ((page.markdown?.length ?? 0) <= MARKDOWN_HEAVY_THRESHOLD) return null
   return {
     ruleKey: 'page_size_heavy',
     category: 'performance',
-    title: 'Pages trop lourdes',
-    description: `${heavyPages.length} page(s) sont particulièrement lourdes (>2 MB estimés). Des pages volumineuses ralentissent l'exploration et le traitement par les IAs.`,
-    sampleUrls: heavyPages.slice(0, 5).map((p) => p.url),
-    penalty: 3,
+    title: 'Page trop lourde',
+    description: `Cette page est particulièrement volumineuse (plus de 2 MB estimés). Les crawlers IA tronquent ou abandonnent les pages trop lourdes : une partie de votre contenu n'est jamais lue, donc jamais citée.`,
+    sampleUrls: [page.url],
+    severity: 'minor',
+    effort: 2,
+    impact: 1,
   }
 }

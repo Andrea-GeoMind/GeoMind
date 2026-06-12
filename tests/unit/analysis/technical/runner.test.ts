@@ -9,6 +9,9 @@ vi.mock('@/lib/db/queries/firecrawl-pages', () => ({
 vi.mock('@/lib/db/queries/technical-issues', () => ({
   insertTechnicalIssues: vi.fn(),
 }))
+vi.mock('@/lib/quotas', () => ({
+  getPageAnalysisLimit: vi.fn().mockResolvedValue(10),
+}))
 
 // Stub all network rules to avoid real HTTP calls
 vi.mock('@/lib/analysis/technical/rules/robots-txt-block-all', () => ({
@@ -26,36 +29,11 @@ vi.mock('@/lib/analysis/technical/rules/sitemap-malformed', () => ({
 vi.mock('@/lib/analysis/technical/rules/llms-txt-missing', () => ({
   checkLlmsTxtMissing: vi.fn().mockResolvedValue(null),
 }))
-vi.mock('@/lib/analysis/technical/rules/response-time-slow', () => ({
-  checkResponseTimeSlow: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/h1-missing-or-duplicate', () => ({
-  checkH1MissingOrDuplicate: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/hierarchy-missing', () => ({
-  checkHierarchyMissing: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/depth-too-deep', () => ({
-  checkDepthTooDeep: vi.fn().mockResolvedValue(null),
-}))
+// Stub the schema rules that would fire on the minimal fixture pages
 vi.mock('@/lib/analysis/technical/rules/schema-org-organization', () => ({
   checkSchemaOrgOrganization: vi.fn().mockResolvedValue(null),
 }))
-vi.mock('@/lib/analysis/technical/rules/schema-org-faq', () => ({
-  checkSchemaOrgFaq: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/schema-org-article', () => ({
-  checkSchemaOrgArticle: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/schema-org-product', () => ({
-  checkSchemaOrgProduct: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/page-size-heavy', () => ({
-  checkPageSizeHeavy: vi.fn().mockResolvedValue(null),
-}))
-vi.mock('@/lib/analysis/technical/rules/http-errors-ratio', () => ({
-  checkHttpErrorsRatio: vi.fn().mockResolvedValue(null),
-}))
+// Stub https-missing so individual tests can opt-in to an issue
 vi.mock('@/lib/analysis/technical/rules/https-missing', () => ({
   checkHttpsMissing: vi.fn().mockResolvedValue(null),
 }))
@@ -92,6 +70,7 @@ describe('runTechnicalAnalysis', () => {
     vi.mocked(getSiteById).mockResolvedValue(MOCK_SITE)
     vi.mocked(getFirecrawlPagesBySiteId).mockResolvedValue(MOCK_PAGES)
     vi.mocked(insertTechnicalIssues).mockResolvedValue([])
+    vi.mocked(checkHttpsMissing).mockResolvedValue(null)
   })
 
   it('returns score=100 and issueCount=0 when no rules detect issues', async () => {
@@ -100,9 +79,13 @@ describe('runTechnicalAnalysis', () => {
     expect(result.issueCount).toBe(0)
   })
 
-  it('does NOT call insertTechnicalIssues when no issues are detected', async () => {
+  it('inserts only opportunities (≥3, garantie §18.6) when no issues are detected', async () => {
     await runTechnicalAnalysis({ siteId: SITE_ID, analysisId: ANALYSIS_ID })
-    expect(insertTechnicalIssues).not.toHaveBeenCalled()
+    expect(insertTechnicalIssues).toHaveBeenCalledOnce()
+    const inserted = vi.mocked(insertTechnicalIssues).mock.calls[0][0]
+    expect(inserted.length).toBeGreaterThanOrEqual(3)
+    expect(inserted.every((i) => i.severity === 'opportunity')).toBe(true)
+    expect(inserted.every((i) => i.penalty === 0)).toBe(true)
   })
 
   it('inserts issues when rules detect problems', async () => {
@@ -113,23 +96,31 @@ describe('runTechnicalAnalysis', () => {
       title: 'Site non sécurisé (HTTP)',
       description: 'Test description',
       sampleUrls: ['http://example.com'],
-      penalty: 15,
+      severity: 'major',
+      effort: 3,
+      impact: 3,
     })
     const result = await runTechnicalAnalysis({ siteId: SITE_ID, analysisId: ANALYSIS_ID })
     expect(result.issueCount).toBeGreaterThan(0)
     expect(insertTechnicalIssues).toHaveBeenCalledOnce()
     const insertedIssues = vi.mocked(insertTechnicalIssues).mock.calls[0][0]
-    expect(insertedIssues.some((i) => i.ruleKey === 'https_missing')).toBe(true)
+    const httpsIssue = insertedIssues.find((i) => i.ruleKey === 'https_missing')
+    expect(httpsIssue).toBeDefined()
+    // La pénalité est dérivée de la sévérité (major = 12)
+    expect(httpsIssue!.penalty).toBe(12)
+    expect(httpsIssue!.severity).toBe('major')
   })
 
-  it('returns score < 100 when penalties are detected', async () => {
+  it('returns score < 100 when issues are detected', async () => {
     vi.mocked(checkHttpsMissing).mockResolvedValue({
       ruleKey: 'https_missing',
       category: 'accessibility',
       title: 'Site non sécurisé (HTTP)',
       description: 'Test description',
       sampleUrls: ['http://example.com'],
-      penalty: 15,
+      severity: 'major',
+      effort: 3,
+      impact: 3,
     })
     const result = await runTechnicalAnalysis({ siteId: SITE_ID, analysisId: ANALYSIS_ID })
     expect(result.score).toBeLessThan(100)

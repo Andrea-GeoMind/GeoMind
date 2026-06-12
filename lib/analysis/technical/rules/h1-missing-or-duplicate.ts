@@ -1,4 +1,4 @@
-import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
+import type { TechnicalPageRuleFn, FirecrawlPage } from '../types'
 
 function countH1s(page: FirecrawlPage): number {
   if (page.metadata?.h1 !== undefined) {
@@ -9,17 +9,19 @@ function countH1s(page: FirecrawlPage): number {
   return matches?.length ?? 0
 }
 
-export async function checkH1MissingOrDuplicate({ pages }: RuleInput): Promise<TechnicalIssue | null> {
-  if (pages.length === 0) return null
-  const problemPages = pages.filter((p) => countH1s(p) !== 1)
-  const ratio = problemPages.length / pages.length
-  if (ratio <= 0.2) return null
+/** Scope page (V2) : chaque page doit avoir exactement un H1. */
+export const checkH1MissingOrDuplicate: TechnicalPageRuleFn = async (page) => {
+  const count = countH1s(page)
+  if (count === 1) return null
+  const problem = count === 0 ? 'aucun titre principal (H1)' : `${count} titres principaux (H1)`
   return {
     ruleKey: 'h1_missing_or_duplicate',
     category: 'structure',
-    title: 'H1 manquant ou dupliqué',
-    description: `${Math.round(ratio * 100)}% des pages n'ont pas exactement un H1. Les IAs utilisent le H1 comme signal principal du sujet d'une page.`,
-    sampleUrls: problemPages.slice(0, 5).map((p) => p.url),
-    penalty: 5,
+    title: count === 0 ? 'H1 manquant' : 'H1 dupliqué',
+    description: `Cette page contient ${problem}. Les crawlers IA parsent la structure HTML et s'appuient sur le H1 unique pour comprendre le sujet de la page : sans lui, votre contenu est mal classé et rarement cité par ChatGPT ou Perplexity.`,
+    sampleUrls: [page.url],
+    severity: 'moderate',
+    effort: 1,
+    impact: 2,
   }
 }

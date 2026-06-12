@@ -9,8 +9,10 @@ export async function checkHttpErrorsRatio({ pages }: RuleInput): Promise<Techni
     ruleKey: 'http_errors_ratio',
     category: 'accessibility',
     title: "Taux d'erreurs HTTP élevé",
-    description: `${Math.round(ratio * 100)}% des pages crawlées retournent une erreur HTTP (4xx/5xx). Les IAs évitent de citer des sites avec de nombreuses pages en erreur.`,
+    description: `${Math.round(ratio * 100)}% de vos pages renvoient une erreur (4xx/5xx). Quand un crawler IA tombe sur autant d'erreurs, il considère le site peu fiable et arrête son exploration : ces pages n'apparaîtront jamais dans ChatGPT ou Perplexity.`,
     sampleUrls: errorPages.slice(0, 5).map((p) => p.url),
-    penalty: 15,
+    severity: 'major',
+    effort: 2,
+    impact: 3,
   }
 }

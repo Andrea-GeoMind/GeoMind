@@ -33,18 +33,40 @@ describe('checkNoFaqContent', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('no_faq_content')
     expect(result!.category).toBe('structure')
-    expect(result!.penalty).toBe(7)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(3)
   })
 
-  it('does not flag when question headings are spread across pages', async () => {
-    // A single page with ≥3 question headings is enough
+  it('counts implicit Q&A: question headings spread across pages', async () => {
     const pages: FirecrawlPage[] = [
-      { url: 'https://example.com/a', markdown: '## Why use this?' },
-      { url: 'https://example.com/b', markdown: '## When is it useful?' },
-      { url: 'https://example.com/c', markdown: '## How does it work?\n\n## What is the cost?\n\n## Can I cancel?' },
+      { url: 'https://example.com/a', markdown: '## Pourquoi utiliser ce service ?' },
+      { url: 'https://example.com/b', markdown: '## Quand est-ce utile ?' },
+      { url: 'https://example.com/c', markdown: '## Comment ça marche ?' },
     ]
-    // /c has 3 question headings → no issue
+    // 3 titres interrogatifs cumulés sur le site → contenu FAQ implicite
     expect(await checkNoFaqContent({ pages, siteUrl: SITE_URL })).toBeNull()
+  })
+
+  it('counts interrogative headings from crawl metadata (h1/h2)', async () => {
+    const pages: FirecrawlPage[] = [
+      {
+        url: 'https://example.com/aide',
+        metadata: {
+          h1: 'Comment pouvons-nous vous aider ?',
+          h2: ['Quels sont les délais ?', 'Quel est le coût ?'],
+        },
+      },
+    ]
+    expect(await checkNoFaqContent({ pages, siteUrl: SITE_URL })).toBeNull()
+  })
+
+  it('flags when fewer than 3 question headings exist site-wide', async () => {
+    const pages: FirecrawlPage[] = [
+      { url: 'https://example.com/a', markdown: '## Pourquoi nous choisir ?' },
+      { url: 'https://example.com/b', markdown: '## Nos services' },
+    ]
+    expect(await checkNoFaqContent({ pages, siteUrl: SITE_URL })).not.toBeNull()
   })
 })
 
@@ -74,7 +96,9 @@ describe('checkNoDefinitionPatterns', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('no_definition_patterns')
     expect(result!.category).toBe('structure')
-    expect(result!.penalty).toBe(5)
+    expect(result!.severity).toBe('minor')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(2)
   })
 
   it('recognises "désigne" pattern', async () => {
@@ -104,7 +128,9 @@ describe('checkLowPageCount', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('low_page_count')
     expect(result!.category).toBe('coverage')
-    expect(result!.penalty).toBe(10)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(3)
+    expect(result!.impact).toBe(2)
   })
 
   it('returns null for exactly 5 pages', async () => {
@@ -144,7 +170,9 @@ describe('checkNoDatesInContent', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('no_dates_in_content')
     expect(result!.category).toBe('coverage')
-    expect(result!.penalty).toBe(5)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(2)
   })
 
   it('recognises French month names', async () => {

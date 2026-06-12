@@ -35,7 +35,9 @@ describe('checkSitemapMissing', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('sitemap_missing')
     expect(result!.category).toBe('accessibility')
-    expect(result!.penalty).toBe(10)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(2)
   })
 
   it('returns null on network error (graceful degradation)', async () => {
@@ -74,7 +76,9 @@ describe('checkSitemapMalformed', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('sitemap_malformed')
     expect(result!.category).toBe('accessibility')
-    expect(result!.penalty).toBe(5)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(2)
   })
 
   it('returns null on network error', async () => {
@@ -101,7 +105,9 @@ describe('checkLlmsTxtMissing', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('llms_txt_missing')
     expect(result!.category).toBe('accessibility')
-    expect(result!.penalty).toBe(10)
+    expect(result!.severity).toBe('minor')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(2)
   })
 
   it('returns null on network error', async () => {
@@ -111,7 +117,7 @@ describe('checkLlmsTxtMissing', () => {
   })
 })
 
-// ─── checkResponseTimeSlow ────────────────────────────────────────────────────
+// ─── checkResponseTimeSlow (seuil V2 : 2000 ms) ───────────────────────────────
 
 describe('checkResponseTimeSlow', () => {
   it('returns null when no pages have loadTime metadata', async () => {
@@ -122,7 +128,7 @@ describe('checkResponseTimeSlow', () => {
     expect(result).toBeNull()
   })
 
-  it('returns null when average loadTime is ≤3000ms', async () => {
+  it('returns null when average loadTime is ≤2000ms', async () => {
     const pages: FirecrawlPage[] = [
       { url: 'https://example.com/', metadata: { loadTime: 1000 } },
       { url: 'https://example.com/about', metadata: { loadTime: 2000 } },
@@ -131,16 +137,18 @@ describe('checkResponseTimeSlow', () => {
     expect(result).toBeNull()
   })
 
-  it('returns an issue when average loadTime is >3000ms', async () => {
+  it('returns an issue when average loadTime is >2000ms (seuil durci)', async () => {
     const pages: FirecrawlPage[] = [
-      { url: 'https://example.com/', metadata: { loadTime: 4000 } },
-      { url: 'https://example.com/about', metadata: { loadTime: 5000 } },
+      { url: 'https://example.com/', metadata: { loadTime: 2200 } },
+      { url: 'https://example.com/about', metadata: { loadTime: 2600 } },
     ]
     const result = await checkResponseTimeSlow({ pages, siteUrl: SITE_URL })
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('response_time_slow')
     expect(result!.category).toBe('performance')
-    expect(result!.penalty).toBe(5)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(3)
+    expect(result!.impact).toBe(2)
   })
 
   it('only averages pages that have loadTime', async () => {

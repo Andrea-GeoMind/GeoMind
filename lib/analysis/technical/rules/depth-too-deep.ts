@@ -1,13 +1,5 @@
 import type { TechnicalIssue, RuleInput } from '../types'
-
-function urlDepth(url: string): number {
-  try {
-    const { pathname } = new URL(url)
-    return pathname.split('/').filter(Boolean).length
-  } catch {
-    return 0
-  }
-}
+import { urlDepth } from './_metadata-helpers'
 
 export async function checkDepthTooDeep({ pages }: RuleInput): Promise<TechnicalIssue | null> {
   if (pages.length === 0) return null
@@ -18,8 +10,10 @@ export async function checkDepthTooDeep({ pages }: RuleInput): Promise<Technical
     ruleKey: 'depth_too_deep',
     category: 'structure',
     title: 'Architecture du site trop profonde',
-    description: `${Math.round(ratio * 100)}% des pages sont à plus de 3 niveaux de profondeur. Les IAs explorent difficilement les contenus trop imbriqués.`,
+    description: `${Math.round(ratio * 100)}% de vos pages sont enfouies à plus de 3 niveaux de clics. Les crawlers de ChatGPT ou Perplexity ont un budget d'exploration limité : les pages trop profondes sont souvent ignorées et ne seront jamais citées.`,
     sampleUrls: deepPages.slice(0, 5).map((p) => p.url),
-    penalty: 5,
+    severity: 'minor',
+    effort: 3,
+    impact: 1,
   }
 }
