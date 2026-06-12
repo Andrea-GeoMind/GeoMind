@@ -166,3 +166,22 @@
   font-feature-settings: "tnum", "lnum";
   font-variant-numeric: tabular-nums lining-nums;
 }
+
+/* ─── Export PDF (PLAN item 24) ───────────────────────────────────────────────
+   À l'impression, seul le contenu du rapport (.print-report) est visible :
+   sidebar, onglets et boutons disparaissent. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+  .print-report {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0 !important;
+  }
+}

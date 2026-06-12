@@ -95,7 +95,7 @@ test.describe('Phase 3 — Checks visuels fonctionnels', () => {
   test('pricing : plans Pro et Business visibles', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/pricing')
-    await expect(page.getByText('49 €', { exact: true })).toBeVisible()
+    await expect(page.getByText('59 €', { exact: true })).toBeVisible()
     await expect(page.getByText('149 €', { exact: true })).toBeVisible()
   })
 })

@@ -331,6 +331,27 @@ export const citationChecks = pgTable(
   ]
 )
 
+// ─── public_audits ────────────────────────────────────────────────────────────
+// Audits express publics (PLAN item 20) : cache 24 h par domaine, rate limit
+// par IP (hash), et futur jeu de données du Baromètre GEO France.
+// Table purement serveur — RLS sans policy (deny-all côté clés client).
+
+export const publicAudits = pgTable(
+  'public_audits',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    domain: text('domain').notNull(),
+    score: integer('score').notNull(),
+    checks: jsonb('checks').notNull().$type<unknown>(),
+    ipHash: text('ip_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('public_audits_domain_created_idx').on(t.domain, t.createdAt),
+    index('public_audits_ip_created_idx').on(t.ipHash, t.createdAt),
+  ]
+)
+
 // ─── action_states ────────────────────────────────────────────────────────────
 // État durable du Plan d'action (PLAN item 16). Les issues sont recréées à
 // chaque analyse ; l'état « j'ai corrigé / vérifié » doit survivre, donc il est

@@ -46,12 +46,12 @@
 
 ## VAGUE 2 — ACQUISITION & CONVERSION
 
-- [ ] **20. Audit express public sans inscription** — URL sur la landing → mini-score en 60 s (cache par domaine, limite IP) → email pour le rapport complet. L'arme d'acquisition n°1. — **L**
-- [ ] **21. Landing enrichie** — 3 cas d'usage persona (artisan/PME/freelance), comparatif "GEO vs SEO/Ahrefs" en FAQ, équivalence crédits→analyses sur les cards, "pour qui" sur chaque plan. — **M**
-- [ ] **22. Contenu & E-E-A-T** — page À propos, llms.txt, blog avec 3-5 guides GEO ("être cité par ChatGPT en 5 étapes", "GEO vs SEO"…), dates de publication. — **L**
-- [ ] **23. Générateur llms.txt public gratuit** — page outil SEO-bait avec CTA vers l'audit. — **S**
-- [ ] **24. Export PDF** — standard (Pro) + white-label (Business) — déjà vendu dans le pricing, donc dette commerciale. — **L**
-- [ ] **25. Friction d'achat réduite** — essai Pro 7 jours, packs crédits livrés ou retirés ("Bientôt disponible" interdit), OAuth Google au signup. — **M**
+- [x] **20. Audit express public sans inscription** — URL sur la landing → mini-score en 60 s (cache par domaine, limite IP) → email pour le rapport complet. L'arme d'acquisition n°1. — **L**
+- [x] **21. Landing enrichie** — 3 cas d'usage persona (artisan/PME/freelance), comparatif "GEO vs SEO/Ahrefs" en FAQ, équivalence crédits→analyses sur les cards, "pour qui" sur chaque plan. — **M**
+- [x] **22. Contenu & E-E-A-T** — page À propos, llms.txt, blog avec 3-5 guides GEO ("être cité par ChatGPT en 5 étapes", "GEO vs SEO"…), dates de publication. — **L**
+- [x] **23. Générateur llms.txt public gratuit** — page outil SEO-bait avec CTA vers l'audit. — **S**
+- [x] **24. Export PDF** — standard (Pro) + white-label (Business) — déjà vendu dans le pricing, donc dette commerciale. — **L**
+- [x] **25. Friction d'achat réduite** — essai Pro 7 jours, packs crédits livrés ou retirés ("Bientôt disponible" interdit), OAuth Google au signup. — **M**
 
 ## VAGUE 3 — DIFFÉRENCIATION (personne n'a ça à ce prix)
 

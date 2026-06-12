@@ -34,6 +34,12 @@ export async function createCheckoutSession(
   const subscription = await getSubscriptionByUserId(user.id)
   const stripeCustomerId = subscription?.stripeCustomerId ?? undefined
 
+  // Essai Pro 7 jours (PLAN item 25) : uniquement à la première souscription
+  // payante — un client qui a déjà eu un abonnement Stripe ne re-bénéficie
+  // pas de l'essai (anti-abus simple, vérité serveur).
+  const isFirstPaidSubscription = !subscription?.stripeSubscriptionId
+  const trialDays = plan === 'pro' && isFirstPaidSubscription ? 7 : undefined
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -43,7 +49,10 @@ export async function createCheckoutSession(
     success_url: `${APP_URL}/settings/billing?success=1`,
     cancel_url: `${APP_URL}/settings/billing?canceled=1`,
     metadata: { userId: user.id },
-    subscription_data: { metadata: { userId: user.id } },
+    subscription_data: {
+      metadata: { userId: user.id },
+      ...(trialDays ? { trial_period_days: trialDays } : {}),
+    },
     allow_promotion_codes: true,
   })
 
