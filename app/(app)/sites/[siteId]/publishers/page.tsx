@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw, BookOpen } from 'lucide-react'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db/client'
+import { PLAN_FEATURES } from '@/lib/plans'
 import { subscriptions } from '@/lib/db/schema'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
@@ -41,7 +42,8 @@ export default async function PublishersPage({ params }: Props) {
     }),
   ])
 
-  const isFree = !sub || sub.plan === 'free'
+  // Feature gate §17.2 : les 15 publishers visibles dès le plan Solo
+  const isFree = !PLAN_FEATURES[sub?.plan ?? 'free'].publishersFull
 
   if (!latest) {
     return (

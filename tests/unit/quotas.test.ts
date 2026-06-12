@@ -65,15 +65,15 @@ describe('canAddSite', () => {
     expect(await canAddSite('user-1')).toBe(false)
   })
 
-  it('autorise plan pro sous la limite (3 sites)', async () => {
+  it('autorise plan pro sous la limite (5 sites)', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(2)
+    mockSiteCount(4)
     expect(await canAddSite('user-1')).toBe(true)
   })
 
-  it('refuse plan pro à la limite (3 sites)', async () => {
+  it('refuse plan pro à la limite (5 sites)', async () => {
     mockSub.mockResolvedValue({ plan: 'pro' } as never)
-    mockSiteCount(3)
+    mockSiteCount(5)
     expect(await canAddSite('user-1')).toBe(false)
   })
 
@@ -133,7 +133,7 @@ describe('getSitesUsage', () => {
   it('retourne remaining correct pour un plan business', async () => {
     mockSub.mockResolvedValue({ plan: 'business' } as never)
     mockSiteCount(4)
-    expect(await getSitesUsage('user-1')).toEqual({ used: 4, limit: 10, remaining: 6 })
+    expect(await getSitesUsage('user-1')).toEqual({ used: 4, limit: 15, remaining: 11 })
   })
 })
 
@@ -148,7 +148,7 @@ describe('getUsageStats', () => {
     const stats = await getUsageStats('user-1')
 
     expect(stats.plan).toBe('pro')
-    expect(stats.sites).toEqual({ used: 2, limit: 3, remaining: 1 })
+    expect(stats.sites).toEqual({ used: 2, limit: 5, remaining: 3 })
     expect(stats.credits).toEqual({ monthly: 15_000, purchased: 500, total: 15_500 })
     expect(stats.creditsPerMonth).toBe(20_000)
   })

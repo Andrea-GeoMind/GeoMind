@@ -7,12 +7,16 @@ describe('PLAN_LIMITS', () => {
     expect(PLAN_LIMITS.free.sites).toBe(1)
   })
 
-  it('Pro plan limite à 3 sites', () => {
-    expect(PLAN_LIMITS.pro.sites).toBe(3)
+  it('Solo plan limite à 2 sites', () => {
+    expect(PLAN_LIMITS.solo.sites).toBe(2)
   })
 
-  it('Business plan limite à 10 sites', () => {
-    expect(PLAN_LIMITS.business.sites).toBe(10)
+  it('Pro plan limite à 5 sites', () => {
+    expect(PLAN_LIMITS.pro.sites).toBe(5)
+  })
+
+  it('Business plan limite à 15 sites', () => {
+    expect(PLAN_LIMITS.business.sites).toBe(15)
   })
 
   it('Free plan a un URL de passage supérieur', () => {

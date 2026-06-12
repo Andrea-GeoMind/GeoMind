@@ -11,8 +11,15 @@ import {
   createPortalSession,
   createCreditPackCheckout,
 } from '@/app/actions/stripe'
-import { PLAN_LABELS, PLAN_LIMITS, CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
-import { CREDIT_PACK_PRICE_IDS } from '@/lib/stripe'
+import {
+  PLAN_LABELS,
+  PLAN_LIMITS,
+  PLAN_PRICES,
+  CREDIT_PACKS,
+  type CreditPackId,
+  type PaidPlan,
+} from '@/lib/plans'
+import { CREDIT_PACK_PRICE_IDS, STRIPE_PLAN_PRICE_IDS } from '@/lib/stripe'
 import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 interface PageProps {
@@ -210,59 +217,68 @@ export default async function BillingPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Offres disponibles */}
-      {plan === 'free' && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PlanCard
-            name="Pro"
-            price="49"
-            sites={PLAN_LIMITS.pro.sites}
-            creditsPerMonth={PLAN_LIMITS.pro.creditsPerMonth}
-            action={createCheckoutSession.bind(null, 'pro')}
-            highlighted
-          />
-          <PlanCard
-            name="Business"
-            price="149"
-            sites={PLAN_LIMITS.business.sites}
-            creditsPerMonth={PLAN_LIMITS.business.creditsPerMonth}
-            action={createCheckoutSession.bind(null, 'business')}
-          />
-        </div>
-      )}
-
-      {plan === 'pro' && (
-        <div className="grid gap-4 sm:grid-cols-1">
-          <PlanCard
-            name="Business"
-            price="149"
-            sites={PLAN_LIMITS.business.sites}
-            creditsPerMonth={PLAN_LIMITS.business.creditsPerMonth}
-            action={createCheckoutSession.bind(null, 'business')}
-            label="Passer Business"
-          />
+      {/* Offres disponibles (upgrades depuis le plan courant) */}
+      {upgradeTargets(plan).length > 0 && (
+        <div
+          className={`grid gap-4 ${
+            upgradeTargets(plan).length >= 3
+              ? 'sm:grid-cols-3'
+              : upgradeTargets(plan).length === 2
+                ? 'sm:grid-cols-2'
+                : 'sm:grid-cols-1'
+          }`}
+        >
+          {upgradeTargets(plan).map((target) => (
+            <PlanCard
+              key={target}
+              name={PLAN_LABELS[target]}
+              price={String(PLAN_PRICES[target].monthly)}
+              annualPrice={String(PLAN_PRICES[target].annual)}
+              sites={PLAN_LIMITS[target].sites}
+              creditsPerMonth={PLAN_LIMITS[target].creditsPerMonth}
+              action={createCheckoutSession.bind(null, target, 'monthly')}
+              available={!!STRIPE_PLAN_PRICE_IDS[target].monthly}
+              highlighted={target === 'pro'}
+            />
+          ))}
         </div>
       )}
     </div>
   )
 }
 
+/** Plans supérieurs proposés depuis le plan courant. */
+function upgradeTargets(plan: string): PaidPlan[] {
+  switch (plan) {
+    case 'free':
+      return ['solo', 'pro', 'business']
+    case 'solo':
+      return ['pro', 'business']
+    case 'pro':
+      return ['business']
+    default:
+      return []
+  }
+}
+
 function PlanCard({
   name,
   price,
+  annualPrice,
   sites,
   creditsPerMonth,
   action,
+  available,
   highlighted = false,
-  label,
 }: {
   name: string
   price: string
+  annualPrice: string
   sites: number
   creditsPerMonth: number
   action: () => Promise<void>
+  available: boolean
   highlighted?: boolean
-  label?: string
 }) {
   return (
     <div
@@ -281,6 +297,7 @@ function PlanCard({
       <p className="mt-1 text-3xl font-extrabold tracking-tight">
         {price}€<span className="text-base font-normal text-muted-foreground">/mois</span>
       </p>
+      <p className="text-xs text-muted-foreground">ou {annualPrice} €/mois en annuel (−20 %)</p>
       <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
         <li className="flex items-center gap-2">
           <span className="text-emerald-500 font-semibold">✓</span>
@@ -298,13 +315,15 @@ function PlanCard({
       <form action={action} className="mt-5">
         <button
           type="submit"
-          className={`w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 ${
+          disabled={!available}
+          title={available ? undefined : 'Bientôt disponible'}
+          className={`w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${
             highlighted
               ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm'
               : 'bg-foreground text-background'
           }`}
         >
-          {label ?? `Passer ${name}`}
+          Passer {name}
         </button>
       </form>
     </div>

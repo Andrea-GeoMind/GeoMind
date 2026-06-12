@@ -7,13 +7,15 @@ import {
   upsertSubscription,
   cancelSubscription,
   getSubscriptionByStripeCustomerId,
+  getSubscriptionByUserId,
 } from '@/lib/db/queries/subscriptions'
 import {
   addPurchasedCredits,
   hasPackTransactionForSession,
   resetMonthlyCredits,
+  topUpMonthlyCredits,
 } from '@/lib/credits'
-import { CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
+import { CREDIT_PACKS, PLAN_LIMITS, type CreditPackId } from '@/lib/plans'
 import { trackEvent } from '@/lib/posthog'
 
 export const dynamic = 'force-dynamic'
@@ -173,6 +175,10 @@ async function syncSubscription(
     ? new Date(sub.items.data[0].current_period_end * 1000)
     : null
 
+  // Plan avant mise à jour — pour détecter un upgrade et compléter les crédits (§17.5)
+  const previousSub = await getSubscriptionByUserId(userId)
+  const previousPlan = previousSub?.plan ?? 'free'
+
   await upsertSubscription({
     userId,
     stripeCustomerId: customerId,
@@ -181,6 +187,20 @@ async function syncSubscription(
     status,
     currentPeriodEnd,
   })
+
+  // Upgrade → la différence d'allocation mensuelle est créditée immédiatement
+  const previousAllowance = PLAN_LIMITS[previousPlan].creditsPerMonth
+  const newAllowance = PLAN_LIMITS[plan].creditsPerMonth
+  if (
+    Number.isFinite(previousAllowance) &&
+    Number.isFinite(newAllowance) &&
+    newAllowance > previousAllowance
+  ) {
+    await topUpMonthlyCredits(userId, newAllowance - previousAllowance, {
+      from: previousPlan,
+      to: plan,
+    })
+  }
 
   // Track plan upgrade event
   trackEvent(userId, 'plan_upgraded', {
