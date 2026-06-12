@@ -39,6 +39,23 @@ export async function signIn(
   redirect('/dashboard')
 }
 
+export async function signInWithGoogle(): Promise<{ error: string } | void> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      // Le callback échange le code puis route vers /dashboard (un nouveau
+      // compte y voit l'état vide qui mène à l'onboarding).
+      redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/dashboard`,
+    },
+  })
+
+  if (error) return { error: error.message }
+  // data.url est l'URL externe de consentement Google — redirect typé refuse
+  // une route inconnue, on caste comme pour le checkout Stripe.
+  if (data.url) (redirect as (url: string) => never)(data.url)
+}
+
 export async function signOut(): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.signOut()
