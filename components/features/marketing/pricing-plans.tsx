@@ -58,7 +58,7 @@ const PLANS: PlanCardData[] = [
   },
   {
     name: 'Pro',
-    description: 'Pour les PME qui veulent progresser',
+    description: 'Pour les TPE/PME qui veulent agir',
     monthly: PLAN_PRICES.pro.monthly,
     annual: PLAN_PRICES.pro.annual,
     credits: PLAN_LIMITS.pro.creditsPerMonth,

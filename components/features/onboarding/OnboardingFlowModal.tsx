@@ -333,7 +333,7 @@ function AnalyzingPhase({
         </p>
       )}
       <p className="text-xs text-muted-foreground/50">
-        Ne fermez pas cet onglet — vos résultats arrivent.
+        Vous pouvez fermer cet onglet : l’analyse continue en arrière-plan et vos résultats vous attendront sur la Vue d’ensemble.
       </p>
     </div>
   )

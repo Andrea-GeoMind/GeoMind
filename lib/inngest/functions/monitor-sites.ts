@@ -36,7 +36,10 @@ async function listMonitorableSites(segment: 'paid' | 'free'): Promise<string[]>
     .leftJoin(subscriptions, eq(subscriptions.userId, sites.userId))
     .orderBy(desc(sites.createdAt))
 
-  // Regroupe par user pour appliquer la limite de sites du plan (sites gelés exclus)
+  // Regroupe par user pour appliquer la limite de sites du plan (sites gelés
+  // exclus). Hypothèse : une seule subscription active par user (invariant
+  // applicatif — upsertSubscription) ; si plusieurs lignes existaient, le plan
+  // de la première serait retenu.
   const byUser = new Map<string, { plan: Plan; siteIds: string[] }>()
   for (const row of rows) {
     const plan = (row.plan ?? 'free') as Plan

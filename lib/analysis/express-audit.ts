@@ -98,23 +98,30 @@ function hasTag(html: string, re: RegExp): boolean {
   return re.test(html)
 }
 
-/** robots.txt : un des robots IA est-il explicitement interdit (Disallow: /) ? */
+/**
+ * robots.txt : un des robots IA est-il explicitement interdit (Disallow: /) ?
+ * Parsing par groupes au standard robots.txt : des lignes User-agent
+ * consécutives forment un groupe ; toute directive clôt l'accumulation
+ * d'agents ; le User-agent suivant ouvre un nouveau groupe.
+ */
 export function robotsBlocksAiBots(robotsTxt: string): boolean {
   const lines = robotsTxt.split('\n').map((l) => l.trim().toLowerCase())
   const aiBots = ['gptbot', 'claudebot', 'claude-web', 'perplexitybot', 'google-extended', '*']
   let currentAgents: string[] = []
+  let collectingAgents = false
   const blockedAgents = new Set<string>()
   for (const line of lines) {
     if (line.startsWith('user-agent:')) {
-      const agent = line.slice('user-agent:'.length).trim()
-      // nouveau groupe si le précédent avait des règles
-      if (blockedAgents.size > 0 && currentAgents.length > 0) currentAgents = []
-      currentAgents.push(agent)
+      if (!collectingAgents) currentAgents = [] // nouveau groupe
+      currentAgents.push(line.slice('user-agent:'.length).trim())
+      collectingAgents = true
     } else if (line.startsWith('disallow:')) {
+      collectingAgents = false
       const path = line.slice('disallow:'.length).trim()
       if (path === '/') currentAgents.forEach((a) => blockedAgents.add(a))
-    } else if (line === '') {
-      currentAgents = []
+    } else if (line !== '' && !line.startsWith('#')) {
+      // autre directive (allow, sitemap, crawl-delay…) : clôt l'accumulation
+      collectingAgents = false
     }
   }
   return aiBots.some((bot) => blockedAgents.has(bot))

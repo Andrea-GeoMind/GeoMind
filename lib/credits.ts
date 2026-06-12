@@ -107,6 +107,29 @@ async function ensureBalance(userId: string, plan: Plan): Promise<BalanceRow> {
     return row
   }
 
+  // Filet QA : un compte free hérité de V1 peut porter des crédits « mensuels »
+  // alors que le plan n'a plus d'allocation — on préserve la valeur en les
+  // déplaçant vers le solde acheté (sans expiration), une seule fois.
+  // (Migration 0015 fait la même chose en masse ; ceci couvre les retardataires.)
+  if (initialMonthly === 0 && existing.monthlyCredits > 0) {
+    const [moved] = await db
+      .update(creditBalances)
+      .set({
+        purchasedCredits: sql`${creditBalances.purchasedCredits} + ${existing.monthlyCredits}`,
+        monthlyCredits: 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(creditBalances.userId, userId))
+      .returning()
+    await db.insert(creditTransactions).values({
+      userId,
+      amount: 0,
+      reason: 'admin_adjustment',
+      metadata: { type: 'v1_free_monthly_to_purchased', moved: existing.monthlyCredits },
+    })
+    return moved
+  }
+
   if (needsMonthlyReset(existing.lastResetAt, plan, new Date())) {
     return resetMonthlyCredits(userId, plan)
   }
