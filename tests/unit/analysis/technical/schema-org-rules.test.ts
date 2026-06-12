@@ -51,7 +51,9 @@ describe('checkSchemaOrgOrganization', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('schema_org_organization')
     expect(result!.category).toBe('schema_org')
-    expect(result!.penalty).toBe(8)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(2)
   })
 
   it('returns an issue when home page has no schemaOrgs at all', async () => {
@@ -63,7 +65,7 @@ describe('checkSchemaOrgOrganization', () => {
   })
 })
 
-// ─── checkSchemaOrgFaq ────────────────────────────────────────────────────────
+// ─── checkSchemaOrgFaq (détection durcie V2) ──────────────────────────────────
 
 describe('checkSchemaOrgFaq', () => {
   it('returns null when no FAQ pages are detected', async () => {
@@ -99,7 +101,45 @@ describe('checkSchemaOrgFaq', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('schema_org_faq')
     expect(result!.category).toBe('schema_org')
-    expect(result!.penalty).toBe(5)
+    expect(result!.severity).toBe('moderate')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(3)
+  })
+
+  it('détection durcie : flags FAQ content written as bold questions (no interrogative headings)', async () => {
+    const pages: FirecrawlPage[] = [
+      {
+        url: 'https://example.com/aide',
+        markdown:
+          '# Aide\n\n**Combien coûte la livraison ?**\n\n5€ partout en France.\n\n**Quels sont les délais ?**\n\n48h ouvrées.\n\n**Puis-je retourner un produit ?**\n\nOui, sous 30 jours.',
+        metadata: { schemaOrgs: [] },
+      },
+    ]
+    const result = await checkSchemaOrgFaq({ pages, siteUrl: SITE_URL })
+    expect(result).not.toBeNull()
+    expect(result!.ruleKey).toBe('schema_org_faq')
+    expect(result!.severity).toBe('moderate')
+  })
+
+  it('détection durcie : flags a /faq URL even without parsed Q/A markdown', async () => {
+    const pages: FirecrawlPage[] = [
+      { url: 'https://example.com/faq', markdown: '# Vos questions', metadata: { schemaOrgs: [] } },
+    ]
+    const result = await checkSchemaOrgFaq({ pages, siteUrl: SITE_URL })
+    expect(result).not.toBeNull()
+  })
+
+  it('détection durcie : flags explicit Q/R line patterns', async () => {
+    const pages: FirecrawlPage[] = [
+      {
+        url: 'https://example.com/support',
+        markdown:
+          '# Support\n\nQ : Comment créer un compte ?\nR : Cliquez sur Inscription.\n\nQ : Comment changer mon mot de passe ?\nR : Depuis les paramètres.\n\nQ : Comment supprimer mon compte ?\nR : Contactez-nous.',
+        metadata: { schemaOrgs: [] },
+      },
+    ]
+    const result = await checkSchemaOrgFaq({ pages, siteUrl: SITE_URL })
+    expect(result).not.toBeNull()
   })
 })
 
@@ -151,7 +191,9 @@ describe('checkSchemaOrgArticle', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('schema_org_article')
     expect(result!.category).toBe('schema_org')
-    expect(result!.penalty).toBe(4)
+    expect(result!.severity).toBe('minor')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(2)
   })
 })
 
@@ -190,7 +232,9 @@ describe('checkSchemaOrgProduct', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('schema_org_product')
     expect(result!.category).toBe('schema_org')
-    expect(result!.penalty).toBe(6)
+    expect(result!.severity).toBe('minor')
+    expect(result!.effort).toBe(2)
+    expect(result!.impact).toBe(2)
   })
 
   it('detects /product/ and /shop/ URL patterns', async () => {

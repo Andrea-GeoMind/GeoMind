@@ -93,7 +93,9 @@ describe('checkRobotsTxtBlockAll', () => {
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('robots_txt_block_all')
     expect(result!.category).toBe('accessibility')
-    expect(result!.penalty).toBe(30)
+    expect(result!.severity).toBe('major')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(3)
   })
 
   it('returns null when robots.txt returns 404', async () => {
@@ -131,7 +133,9 @@ describe('checkRobotsTxtBlockAiBots', () => {
     const result = await checkRobotsTxtBlockAiBots({ pages: [], siteUrl: SITE_URL })
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('robots_txt_block_ai_bots')
-    expect(result!.penalty).toBe(15)
+    expect(result!.severity).toBe('major')
+    expect(result!.effort).toBe(1)
+    expect(result!.impact).toBe(3)
     expect(result!.description).toContain('GPTBot')
     expect(result!.description).toContain('ClaudeBot')
   })

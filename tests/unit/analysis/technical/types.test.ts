@@ -28,16 +28,47 @@ describe('Technical analysis types', () => {
     expect(page.metadata?.schemaOrgs).toHaveLength(1)
   })
 
-  it('TechnicalIssue has required fields', () => {
+  it('FirecrawlPage metadata accepts extra Firecrawl keys via index signature', () => {
+    const page: FirecrawlPage = {
+      url: 'https://example.com/',
+      metadata: {
+        ogTitle: 'Title',
+        viewport: 'width=device-width, initial-scale=1',
+        robots: 'index, follow',
+        'twitter:card': 'summary',
+      },
+    }
+    expect(typeof page.metadata?.['ogTitle']).toBe('string')
+  })
+
+  it('TechnicalIssue has required V2 fields (severity/effort/impact)', () => {
     const issue: TechnicalIssue = {
       ruleKey: 'https_missing',
       category: 'accessibility',
       title: 'Site non sécurisé',
       description: 'HTTP instead of HTTPS.',
       sampleUrls: ['http://example.com'],
-      penalty: 15,
+      severity: 'major',
+      effort: 3,
+      impact: 3,
     }
-    expect(issue.penalty).toBe(15)
+    expect(issue.severity).toBe('major')
+    expect(issue.effort).toBe(3)
+    expect(issue.impact).toBe(3)
+  })
+
+  it('TechnicalIssue accepts severity opportunity', () => {
+    const issue: TechnicalIssue = {
+      ruleKey: 'url_too_long',
+      category: 'structure',
+      title: 'URL très longue',
+      description: 'Opportunité.',
+      sampleUrls: [],
+      severity: 'opportunity',
+      effort: 3,
+      impact: 1,
+    }
+    expect(issue.severity).toBe('opportunity')
   })
 
   it('TechnicalIssueCategoryEnum accepts valid values', () => {
