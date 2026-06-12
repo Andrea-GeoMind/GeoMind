@@ -111,7 +111,9 @@ export default async function BillingPage({ searchParams }: PageProps) {
             </div>
             <p className="text-sm text-muted-foreground">
               {PLAN_LIMITS[plan].sites} site{PLAN_LIMITS[plan].sites > 1 ? 's' : ''} ·{' '}
-              {formatCreditsAmount(creditsPerMonth)} crédits / mois
+              {creditsPerMonth === 0
+                ? 'crédits de bienvenue, sans renouvellement'
+                : `${formatCreditsAmount(creditsPerMonth)} crédits / mois`}
             </p>
           </div>
           {currentPeriodEnd && (
