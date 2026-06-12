@@ -18,6 +18,8 @@ export async function checkSchemaOrgProduct({ pages }: RuleInput): Promise<Techn
     title: 'Schema Product manquant',
     description: `${missingSchema.length} page(s) produit n'ont pas de schema.org Product. Ce schema est essentiel pour la visibilité dans les IAs sur les requêtes e-commerce.`,
     sampleUrls: missingSchema.slice(0, 5).map((p) => p.url),
-    penalty: 6,
+    severity: 'minor',
+    effort: 2,
+    impact: 2,
   }
 }

@@ -9,6 +9,11 @@ function hasDefinitionContent(markdown: string | null | undefined): boolean {
   return DEFINITION_PATTERN.test(markdown)
 }
 
+/**
+ * Règle SITE — absence de contenu définitionnel.
+ * Les phrases définitionnelles ("X est un...", "X désigne...") sont très
+ * extractables : les IA les reprennent telles quelles pour définir un concept.
+ */
 export async function checkNoDefinitionPatterns({
   pages,
 }: RuleInput): Promise<ContentIssue | null> {
@@ -26,8 +31,10 @@ export async function checkNoDefinitionPatterns({
     ruleKey: 'no_definition_patterns',
     category: 'structure',
     title: 'Aucun contenu définitionnel',
-    description: `Votre site ne semble pas contenir de phrases définitionnelles ("X est un...", "X désigne..."). Ce style rédactionnel est très extractable par les IAs pour définir des concepts dans leurs réponses.`,
+    description: `Votre site ne semble pas contenir de phrases définitionnelles ("X est un...", "X désigne..."). Ce style rédactionnel est très extractable par les IA pour définir des concepts dans leurs réponses — et chaque extraction est une occasion d'être cité.`,
     sampleUrls: [],
-    penalty: 5,
+    severity: 'minor',
+    effort: 2,
+    impact: 2,
   }
 }

@@ -15,7 +15,9 @@ export async function checkRobotsTxtBlockAiBots({ siteUrl }: RuleInput): Promise
       title: 'Robots.txt bloque des bots IA',
       description: `Les agents IA suivants sont bloqués dans votre robots.txt : ${blocked.join(', ')}. Ces bots ne pourront pas indexer votre site dans leurs moteurs de réponse.`,
       sampleUrls: [robotsUrl],
-      penalty: 15,
+      severity: 'major',
+      effort: 1,
+      impact: 3,
     }
   } catch {
     return null

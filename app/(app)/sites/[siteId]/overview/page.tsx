@@ -2,7 +2,7 @@ import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb } from 'lucide-react'
+import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb, Info } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
@@ -99,9 +99,28 @@ export default async function OverviewPage({ params }: Props) {
     return 'stable'
   }
 
+  // Badge §18.3 : la comparaison traverse un changement de méthodologie d'audit —
+  // les deltas reflètent en partie l'enrichissement des règles, pas une régression réelle.
+  const methodologyChanged =
+    previousAnalysis !== null &&
+    currentAnalysis !== null &&
+    previousAnalysis.rulesVersion !== currentAnalysis.rulesVersion
+
   return (
     <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
+
+      {/* Méthodologie enrichie (§18.3) */}
+      {methodologyChanged && deltas !== null && (
+        <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 text-sm text-indigo-800">
+          <Info size={15} className="shrink-0" />
+          <span>
+            <strong>Méthodologie enrichie</strong> — notre audit analyse désormais plus de
+            critères qu&apos;avant. Une variation de score peut refléter ce changement plutôt
+            qu&apos;une évolution réelle de votre site.
+          </span>
+        </div>
+      )}
 
       {/* Error banner */}
       {isError && (

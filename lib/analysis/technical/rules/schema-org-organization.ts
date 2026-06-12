@@ -22,6 +22,8 @@ export async function checkSchemaOrgOrganization({ pages }: RuleInput): Promise<
     description:
       "La page d'accueil ne déclare pas de schema.org Organization (ou LocalBusiness). Ce schema aide les IAs à identifier et mémoriser votre organisation.",
     sampleUrls: [homePage.url],
-    penalty: 8,
+    severity: 'moderate',
+    effort: 1,
+    impact: 2,
   }
 }

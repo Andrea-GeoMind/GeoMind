@@ -1,33 +1,31 @@
-import type { RuleInput, ContentIssue } from '../types'
+import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
 
-const MIN_DESC_LENGTH = 50
-const THRESHOLD_RATIO = 0.3
+const MIN_DESC_LENGTH = 80
 
-export async function checkMetaDescriptionTooShort({
-  pages,
-}: RuleInput): Promise<ContentIssue | null> {
-  if (pages.length === 0) return null
+/**
+ * Règle PAGE — meta description trop courte.
+ * Une description de moins de 80 caractères ne donne pas assez de matière aux
+ * snippets que les IA citent : c'est une occasion manquée, pas une faute.
+ */
+export async function checkMetaDescriptionTooShort(
+  page: FirecrawlPage,
+  _input: RuleInput
+): Promise<ContentIssue | null> {
+  if (page.statusCode != null && page.statusCode !== 200) return null
 
-  const pagesWithDesc = pages.filter(
-    (p) =>
-      (p.statusCode === 200 || p.statusCode == null) &&
-      p.metadata?.description &&
-      p.metadata.description.trim().length > 0
-  )
-  if (pagesWithDesc.length === 0) return null
-
-  const shortPages = pagesWithDesc.filter(
-    (p) => (p.metadata?.description?.trim().length ?? 0) < MIN_DESC_LENGTH
-  )
-  const ratio = shortPages.length / pagesWithDesc.length
-  if (ratio <= THRESHOLD_RATIO) return null
+  const description = page.metadata?.description?.trim() ?? ''
+  // L'absence totale est couverte par meta_description_missing
+  if (description.length === 0) return null
+  if (description.length >= MIN_DESC_LENGTH) return null
 
   return {
     ruleKey: 'meta_description_too_short',
     category: 'metadata',
     title: 'Meta description trop courte',
-    description: `${Math.round(ratio * 100)}% de vos meta descriptions font moins de ${MIN_DESC_LENGTH} caractères. Une description concise mais complète améliore les chances d'être cité par les IAs.`,
-    sampleUrls: shortPages.slice(0, 5).map((p) => p.url),
-    penalty: 5,
+    description: `La meta description de cette page fait moins de ${MIN_DESC_LENGTH} caractères. Une description plus complète nourrit les snippets que ChatGPT et Perplexity reprennent en citation et augmente vos chances d'être repris correctement.`,
+    sampleUrls: [page.url],
+    severity: 'opportunity',
+    effort: 1,
+    impact: 1,
   }
 }

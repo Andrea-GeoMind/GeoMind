@@ -12,7 +12,9 @@ export async function checkLlmsTxtMissing({ siteUrl }: RuleInput): Promise<Techn
       description:
         "Votre site n'a pas de fichier llms.txt. Ce fichier (standard émergent) indique aux LLMs comment interagir avec votre contenu et peut inclure un résumé optimisé pour les IAs.",
       sampleUrls: [llmsUrl],
-      penalty: 10,
+      severity: 'minor',
+      effort: 1,
+      impact: 2,
     }
   } catch {
     return null
