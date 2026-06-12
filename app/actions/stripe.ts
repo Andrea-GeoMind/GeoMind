@@ -5,21 +5,31 @@ import { redirect } from 'next/navigation'
 // next/navigation redirect is typed for internal routes; Stripe returns external https:// URLs
 const redirectExternal: (url: string) => never = redirect as (url: string) => never
 import { createClient } from '@/lib/supabase/server'
-import { stripe, STRIPE_PRICE_IDS, CREDIT_PACK_PRICE_IDS, type StripePlan } from '@/lib/stripe'
+import { stripe, STRIPE_PLAN_PRICE_IDS, CREDIT_PACK_PRICE_IDS, type StripePlan } from '@/lib/stripe'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
-import { CREDIT_PACKS, type CreditPackId } from '@/lib/plans'
+import { CREDIT_PACKS, type CreditPackId, type BillingPeriod } from '@/lib/plans'
 import { env } from '@/lib/env'
 import { trackEvent } from '@/lib/posthog'
 
 const APP_URL = env.NEXT_PUBLIC_SITE_URL
 
-export async function createCheckoutSession(plan: StripePlan): Promise<void> {
+export async function createCheckoutSession(
+  plan: StripePlan,
+  period: BillingPeriod = 'monthly'
+): Promise<void> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
+
+  const priceId = STRIPE_PLAN_PRICE_IDS[plan][period]
+  if (!priceId) {
+    throw new Error(
+      `Plan "${plan}" (${period}) indisponible : price ID Stripe non configuré`
+    )
+  }
 
   const subscription = await getSubscriptionByUserId(user.id)
   const stripeCustomerId = subscription?.stripeCustomerId ?? undefined
@@ -29,7 +39,7 @@ export async function createCheckoutSession(plan: StripePlan): Promise<void> {
     payment_method_types: ['card'],
     customer: stripeCustomerId,
     customer_email: stripeCustomerId ? undefined : user.email,
-    line_items: [{ price: STRIPE_PRICE_IDS[plan], quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${APP_URL}/settings/billing?success=1`,
     cancel_url: `${APP_URL}/settings/billing?canceled=1`,
     metadata: { userId: user.id },
@@ -39,7 +49,7 @@ export async function createCheckoutSession(plan: StripePlan): Promise<void> {
 
   if (!session.url) throw new Error('Stripe session URL manquante')
 
-  trackEvent(user.id, 'plan_upgrade_started', { plan })
+  trackEvent(user.id, 'plan_upgrade_started', { plan, period })
   redirectExternal(session.url)
 }
 

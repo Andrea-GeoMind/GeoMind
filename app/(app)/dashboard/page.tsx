@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Globe, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSitesByUserId } from '@/lib/db/queries/sites'
-import { canAddSite } from '@/lib/quotas'
+import { canAddSite, getFrozenSiteIds } from '@/lib/quotas'
 import { PLAN_UPGRADE_URLS } from '@/lib/plans'
 import { SiteCard } from '@/components/features/sites/site-card'
 import { SiteForm } from '@/components/features/sites/site-form'
@@ -21,9 +21,10 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [siteList, userCanAdd] = await Promise.all([
+  const [siteList, userCanAdd, frozenSiteIds] = await Promise.all([
     getSitesByUserId(user.id),
     canAddSite(user.id),
+    getFrozenSiteIds(user.id),
   ])
 
   return (
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
         /* Site list */
         <div className="grid gap-3">
           {siteList.map((site) => (
-            <SiteCard key={site.id} site={site} />
+            <SiteCard key={site.id} site={site} frozen={frozenSiteIds.includes(site.id)} />
           ))}
         </div>
       )}

@@ -4,6 +4,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db/client'
+import { PLAN_FEATURES } from '@/lib/plans'
 import { subscriptions } from '@/lib/db/schema'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
@@ -44,8 +45,10 @@ export default async function ContentPage({ params }: Props) {
     }),
   ])
 
-  const isPro = sub?.plan === 'pro' || sub?.plan === 'business' || sub?.plan === 'admin'
-  const isBusiness = sub?.plan === 'business' || sub?.plan === 'admin'
+  // Feature gates §17.2 : fiches complètes dès Solo, version IA complète dès Pro
+  const features = PLAN_FEATURES[sub?.plan ?? 'free']
+  const isPro = features.recommendationSheets
+  const isBusiness = features.fullRecommendations
 
   if (!latest) {
     return <NoAnalysisState siteId={siteId} />

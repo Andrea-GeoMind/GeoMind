@@ -52,6 +52,23 @@ const envSchema = z.object({
   STRIPE_BUSINESS_PRICE_ID: z
     .string()
     .startsWith('price_', { message: 'STRIPE_BUSINESS_PRICE_ID doit commencer par price_' }),
+  /** Plan Solo + prix annuels (§17.2) — optionnels tant que non créés dans Stripe */
+  STRIPE_SOLO_PRICE_ID: z
+    .string()
+    .startsWith('price_', { message: 'STRIPE_SOLO_PRICE_ID doit commencer par price_' })
+    .optional(),
+  STRIPE_SOLO_ANNUAL_PRICE_ID: z
+    .string()
+    .startsWith('price_', { message: 'STRIPE_SOLO_ANNUAL_PRICE_ID doit commencer par price_' })
+    .optional(),
+  STRIPE_PRO_ANNUAL_PRICE_ID: z
+    .string()
+    .startsWith('price_', { message: 'STRIPE_PRO_ANNUAL_PRICE_ID doit commencer par price_' })
+    .optional(),
+  STRIPE_BUSINESS_ANNUAL_PRICE_ID: z
+    .string()
+    .startsWith('price_', { message: 'STRIPE_BUSINESS_ANNUAL_PRICE_ID doit commencer par price_' })
+    .optional(),
   /** Packs de crédits (one-shot) — optionnels tant que les produits ne sont pas créés dans Stripe */
   STRIPE_PACK_STARTER_PRICE_ID: z
     .string()

@@ -14,6 +14,7 @@ import {
 } from '@/lib/ai/prompts/recommendations'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { CREDIT_COSTS, consumeCredits, refundCredits } from '@/lib/credits'
+import { PLAN_FEATURES } from '@/lib/plans'
 
 const COMPLETE_MODEL = 'anthropic/claude-sonnet-4-6'
 const EST_INPUT_TOKENS = 400
@@ -29,13 +30,13 @@ export async function generateCompleteRecommendation(
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Verify Business plan (admin = accès illimité)
+  // Feature gate §17.2 : recommandations complètes à partir du plan Pro
   const sub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, user.id),
     columns: { plan: true },
   })
-  if (sub?.plan !== 'business' && sub?.plan !== 'admin') {
-    return { error: 'La version complète est réservée au plan Business.' }
+  if (!PLAN_FEATURES[sub?.plan ?? 'free'].fullRecommendations) {
+    return { error: 'La version complète est réservée aux plans Pro et Business.' }
   }
 
   // Fetch issue and verify ownership via the analysis

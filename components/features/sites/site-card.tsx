@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Globe, Trash2, ExternalLink, ArrowRight } from 'lucide-react'
+import { Globe, Trash2, ExternalLink, ArrowRight, Lock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,9 +25,11 @@ type Site = {
 
 type Props = {
   site: Site
+  /** Site gelé après downgrade (§17.5) : lecture seule, pas de nouvelle analyse */
+  frozen?: boolean
 }
 
-export function SiteCard({ site }: Props) {
+export function SiteCard({ site, frozen = false }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -55,7 +57,18 @@ export function SiteCard({ site }: Props) {
 
           {/* Site info */}
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold">{site.name}</p>
+            <div className="flex items-center gap-2">
+              <p className="truncate font-semibold">{site.name}</p>
+              {frozen && (
+                <span
+                  title="Votre plan actuel ne couvre plus tous vos sites. Les données restent consultables, mais aucune nouvelle analyse n'est possible. Passez à un plan supérieur pour le réactiver."
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  <Lock className="h-2.5 w-2.5" />
+                  Gelé
+                </span>
+              )}
+            </div>
             <a
               href={site.url}
               target="_blank"

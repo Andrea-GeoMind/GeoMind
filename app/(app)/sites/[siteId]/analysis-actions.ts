@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { createAnalysis, updateAnalysisStatus } from '@/lib/db/queries/analyses'
 import { CREDIT_COSTS, consumeCredits, refundCredits, getUserCredits } from '@/lib/credits'
+import { isSiteFrozen } from '@/lib/quotas'
 import { inngest } from '@/lib/inngest/client'
 import { trackEvent } from '@/lib/posthog'
 
@@ -54,6 +55,14 @@ export async function runAnalysisAction(
     return { error: 'Une erreur est survenue. Veuillez réessayer.' }
   }
   if (!site || site.userId !== user.id) return { error: 'Site introuvable.' }
+
+  // Site gelé après downgrade (§17.5) : lecture seule, pas de nouvelle analyse
+  if (await isSiteFrozen(user.id, siteId)) {
+    return {
+      error:
+        'Ce site est gelé : votre plan actuel ne couvre plus tous vos sites. Passez à un plan supérieur ou supprimez un site pour le réactiver.',
+    }
+  }
 
   // Décompte au lancement (§17.4) — remboursé automatiquement si l'analyse
   // échoue techniquement (ici ou dans run-full-analysis).

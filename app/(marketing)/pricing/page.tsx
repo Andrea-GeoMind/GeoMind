@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Check, X, CheckCircle2 } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { PricingPlans } from '@/components/features/marketing/pricing-plans'
 
 export default function PricingPage() {
   return (
@@ -18,7 +19,8 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Commencez gratuitement. Passez au Pro quand vous êtes prêt.
+            Chaque plan inclut des crédits mensuels — vous les dépensez librement entre analyses
+            et coach IA.
           </p>
         </div>
       </section>
@@ -26,152 +28,13 @@ export default function PricingPage() {
       {/* ── Plans ─────────────────────────────────────────────────────── */}
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Gratuit */}
-            <div className="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
-              <h2 className="text-lg font-bold text-foreground">Gratuit</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Pour découvrir la visibilité IA</p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-foreground">0 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <Button asChild variant="outline" className="mt-8 rounded-lg">
-                <Link href="/signup">Commencer gratuitement</Link>
-              </Button>
-              <ul className="mt-8 flex-1 space-y-4 text-sm">
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">1 site</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">1 analyse à vie</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Score GEO global</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
-                  <span className="text-muted-foreground">Analyse technique</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
-                  <span className="text-muted-foreground">Analyse contenu</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
-                  <span className="text-muted-foreground">Coach IA</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
-                  <span className="text-muted-foreground">Support prioritaire</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Pro — highlighted */}
-            <div className="relative flex flex-col rounded-xl border border-border bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-xs font-semibold text-white">
-                Populaire
-              </span>
-              <h2 className="text-lg font-bold text-foreground">Pro</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Pour les indépendants et PME actifs
-              </p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-foreground">49 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <Button
-                asChild
-                className="mt-8 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity"
-              >
-                <Link href="/signup">Essayer Pro</Link>
-              </Button>
-              <ul className="mt-8 flex-1 space-y-4 text-sm">
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">3 sites</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">4 analyses / mois</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Score GEO global</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Analyse technique</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Analyse contenu</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Coach IA (recommandations)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
-                  <span className="text-muted-foreground">Support prioritaire</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Business */}
-            <div className="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
-              <h2 className="text-lg font-bold text-foreground">Business</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Pour les agences et équipes marketing
-              </p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-5xl font-extrabold text-foreground">149 €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
-              </div>
-              <Button asChild variant="outline" className="mt-8 rounded-lg">
-                <Link href="mailto:contact@geomind.fr">Nous contacter</Link>
-              </Button>
-              <ul className="mt-8 flex-1 space-y-4 text-sm">
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">10 sites</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">30 analyses / mois</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Score GEO global</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Analyse technique</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Analyse contenu</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Coach IA + API access</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  <span className="text-foreground">Support prioritaire</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <PricingPlans />
         </div>
       </section>
 
       {/* ── Comparison table ──────────────────────────────────────────── */}
       <section className="bg-muted/50 py-20">
-        <div className="mx-auto max-w-4xl px-4">
+        <div className="mx-auto max-w-5xl px-4">
           <h2 className="mb-12 text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
             Comparaison détaillée
           </h2>
@@ -179,99 +42,70 @@ export default function PricingPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/60">
                 <tr className="border-b border-border">
-                  <th className="px-6 py-4 text-left font-medium text-muted-foreground">
+                  <th className="px-5 py-4 text-left font-medium text-muted-foreground">
                     Fonctionnalité
                   </th>
-                  <th className="px-6 py-4 text-center font-medium text-muted-foreground">
+                  <th className="px-5 py-4 text-center font-medium text-muted-foreground">
                     Gratuit
                   </th>
-                  <th className="px-6 py-4 text-center font-semibold text-primary">Pro</th>
-                  <th className="px-6 py-4 text-center font-medium text-muted-foreground">
+                  <th className="px-5 py-4 text-center font-medium text-muted-foreground">Solo</th>
+                  <th className="px-5 py-4 text-center font-semibold text-primary">Pro</th>
+                  <th className="px-5 py-4 text-center font-medium text-muted-foreground">
                     Business
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                <tr className="bg-card">
-                  <td className="px-6 py-4 font-medium text-foreground">Sites</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">1</td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">3</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">10</td>
-                </tr>
-                <tr className="bg-muted/20">
-                  <td className="px-6 py-4 font-medium text-foreground">Analyses</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">1 à vie</td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">4 / mois</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">30 / mois</td>
-                </tr>
-                <tr className="bg-card">
-                  <td className="px-6 py-4 font-medium text-foreground">Score GEO global</td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                </tr>
-                <tr className="bg-muted/20">
-                  <td className="px-6 py-4 font-medium text-foreground">Analyse technique</td>
-                  <td className="px-6 py-4 text-center">
-                    <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                </tr>
-                <tr className="bg-card">
-                  <td className="px-6 py-4 font-medium text-foreground">Analyse contenu</td>
-                  <td className="px-6 py-4 text-center">
-                    <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                </tr>
-                <tr className="bg-muted/20">
-                  <td className="px-6 py-4 font-medium text-foreground">Analyse autorité</td>
-                  <td className="px-6 py-4 text-center">
-                    <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                </tr>
-                <tr className="bg-card">
-                  <td className="px-6 py-4 font-medium text-foreground">
-                    Coach IA (recommandations)
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <Check className="mx-auto h-4 w-4 text-emerald-500" />
-                  </td>
-                </tr>
-                <tr className="bg-muted/20">
-                  <td className="px-6 py-4 font-medium text-foreground">Support</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">Email</td>
-                  <td className="px-6 py-4 text-center font-medium text-foreground">Email</td>
-                  <td className="px-6 py-4 text-center text-muted-foreground">Prioritaire</td>
-                </tr>
+                <ComparisonRow
+                  label="Crédits / mois"
+                  values={['500', '5 000', '20 000', '80 000']}
+                />
+                <ComparisonRow label="Sites" values={['1', '2', '5', '15']} striped />
+                <ComparisonRow
+                  label="Analyses complètes (400 crédits)"
+                  values={['≈ 1 / mois', '≈ 12 / mois', '≈ 50 / mois', '≈ 200 / mois']}
+                />
+                <ComparisonRow
+                  label="Coach IA GEO"
+                  values={[true, true, true, true]}
+                  striped
+                />
+                <ComparisonRow
+                  label="Mémoire du coach entre sessions"
+                  values={[false, true, true, true]}
+                />
+                <ComparisonRow
+                  label="Analyse page par page"
+                  values={[false, '5 pages', '10 pages', '10 pages']}
+                  striped
+                />
+                <ComparisonRow
+                  label="Recommandations complètes (IA avancée)"
+                  values={[false, false, true, true]}
+                />
+                <ComparisonRow
+                  label="Publishers recommandés"
+                  values={['3', '15', '15', '15']}
+                  striped
+                />
+                <ComparisonRow
+                  label="Export PDF des rapports"
+                  values={[false, false, true, 'White-label']}
+                />
+                <ComparisonRow
+                  label="Historique des analyses"
+                  values={['30 jours', '90 jours', '1 an', 'Illimité']}
+                  striped
+                />
+                <ComparisonRow
+                  label="Packs de crédits à la carte"
+                  values={[true, true, true, true]}
+                />
+                <ComparisonRow
+                  label="Support"
+                  values={['Email', 'Email', 'Email', 'Prioritaire < 24 h']}
+                  striped
+                />
               </tbody>
             </table>
           </div>
@@ -287,20 +121,28 @@ export default function PricingPage() {
           <div className="divide-y divide-border">
             {[
               {
+                q: 'Comment fonctionnent les crédits ?',
+                a: "Chaque plan inclut une allocation mensuelle de crédits que vous dépensez librement : une analyse complète coûte 400 crédits, une question au coach IA environ 10. Les crédits du plan se renouvellent à chaque cycle de facturation. Vous voyez toujours le coût avant de lancer une action.",
+              },
+              {
+                q: 'Que se passe-t-il si j’épuise mes crédits ?',
+                a: "Vous pouvez acheter un pack de crédits à la carte (à partir de 5 €) sans changer de plan. Les crédits achetés n'expirent jamais et sont consommés après les crédits mensuels.",
+              },
+              {
+                q: 'Les crédits non utilisés sont-ils reportés ?',
+                a: "Les crédits mensuels du plan ne sont pas reportés d'un mois sur l'autre. Les crédits achetés en pack, eux, restent valables sans limite de temps.",
+              },
+              {
                 q: 'Puis-je annuler à tout moment ?',
-                a: "Oui, sans engagement ni frais de résiliation. Vous restez sur le plan gratuit après l'annulation.",
-              },
-              {
-                q: "Y a-t-il une période d'essai ?",
-                a: "Le plan Gratuit vous permet de tester GEOMIND sans carte bancaire. Vous pouvez passer au Pro ou Business quand vous le souhaitez.",
-              },
-              {
-                q: 'Comment fonctionne la facturation ?',
-                a: "La facturation est mensuelle, prélevée chaque mois à la date de souscription. Vous recevez une facture par email via Stripe.",
+                a: "Oui, sans engagement ni frais de résiliation. Votre plan reste actif jusqu'à la fin de la période payée, puis vous basculez sur le plan Gratuit. Vos crédits achetés restent utilisables.",
               },
               {
                 q: 'Puis-je changer de plan en cours de mois ?',
-                a: "Oui, le changement prend effet immédiatement. Le montant est proratisé sur la période restante.",
+                a: "Oui. En cas de passage à un plan supérieur, le changement est immédiat : le montant est proratisé et la différence de crédits est ajoutée tout de suite à votre solde. En cas de passage à un plan inférieur, le changement prend effet à la fin de la période en cours.",
+              },
+              {
+                q: 'Que deviennent mes sites si je réduis mon plan ?',
+                a: "Rien n'est supprimé. Si vous avez plus de sites que la limite du nouveau plan, les sites excédentaires passent en lecture seule : vous consultez leurs données, mais vous ne pouvez plus lancer d'analyses dessus.",
               },
               {
                 q: "Mes données sont-elles supprimées si j'annule ?",
@@ -329,7 +171,8 @@ export default function PricingPage() {
               Lancez votre premier audit
             </h2>
             <p className="mb-8 text-indigo-100">
-              Créez votre compte gratuitement. Aucune carte bancaire requise.
+              Créez votre compte gratuitement — 1 000 crédits offerts, aucune carte bancaire
+              requise.
             </p>
             <Button
               size="lg"
@@ -342,5 +185,34 @@ export default function PricingPage() {
         </div>
       </section>
     </main>
+  )
+}
+
+function ComparisonRow({
+  label,
+  values,
+  striped = false,
+}: {
+  label: string
+  values: Array<string | boolean>
+  striped?: boolean
+}) {
+  return (
+    <tr className={striped ? 'bg-muted/20' : 'bg-card'}>
+      <td className="px-5 py-4 font-medium text-foreground">{label}</td>
+      {values.map((value, i) => (
+        <td key={i} className="px-5 py-4 text-center">
+          {value === true ? (
+            <Check className="mx-auto h-4 w-4 text-emerald-500" />
+          ) : value === false ? (
+            <X className="mx-auto h-4 w-4 text-muted-foreground/40" />
+          ) : (
+            <span className={i === 2 ? 'font-medium text-foreground' : 'text-muted-foreground'}>
+              {value}
+            </span>
+          )}
+        </td>
+      ))}
+    </tr>
   )
 }

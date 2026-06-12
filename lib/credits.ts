@@ -230,6 +230,37 @@ export async function consumeCredits(
   }
 }
 
+/**
+ * Complète le solde mensuel à l'upgrade de plan (§17.5) : la différence entre
+ * l'ancienne et la nouvelle allocation est créditée immédiatement.
+ */
+export async function topUpMonthlyCredits(
+  userId: string,
+  amount: number,
+  metadata?: Record<string, unknown>
+): Promise<void> {
+  if (amount <= 0 || !Number.isInteger(amount)) return
+
+  const plan = await getUserPlan(userId)
+  if (plan === 'admin') return
+
+  await ensureBalance(userId, plan)
+  await db
+    .update(creditBalances)
+    .set({
+      monthlyCredits: sql`${creditBalances.monthlyCredits} + ${amount}`,
+      updatedAt: new Date(),
+    })
+    .where(eq(creditBalances.userId, userId))
+
+  await db.insert(creditTransactions).values({
+    userId,
+    amount,
+    reason: 'monthly_reset',
+    metadata: { ...metadata, type: 'plan_upgrade_topup' },
+  })
+}
+
 /** Crédite le solde acheté (packs Stripe, remboursements). */
 export async function addPurchasedCredits(
   userId: string,
