@@ -142,6 +142,8 @@ export const sites = pgTable('sites', {
   language: varchar('language', { length: 2 }).notNull().default('fr'),
   country: varchar('country', { length: 2 }).notNull().default('FR'),
   isVerified: boolean('is_verified').notNull().default(false),
+  // GEO (coach IA) s'ouvre automatiquement une seule fois, après la 1re analyse (§16.5.D)
+  coachIntroSeen: boolean('coach_intro_seen').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -390,6 +392,27 @@ export const coachMessages = pgTable('coach_messages', {
   content: text('content').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+// ─── coach_memory ─────────────────────────────────────────────────────────────
+// Mémoire persistante de GEO par (user, site) — résumé roulant compressé par
+// Haiku tous les 10 messages utilisateur (§16.8). Gate plan : PLAN_FEATURES.coachMemory.
+
+export const coachMemory = pgTable(
+  'coach_memory',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    memorySummary: text('memory_summary').notNull(),
+    messageCount: integer('message_count').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('coach_memory_user_site_unique').on(t.userId, t.siteId)]
+)
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 
