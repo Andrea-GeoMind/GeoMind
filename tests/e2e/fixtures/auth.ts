@@ -56,7 +56,7 @@ async function loginViaUI(page: Page, email: string, password: string): Promise<
   await page.goto('/login')
   await page.getByLabel(/email/i).fill(email)
   await page.getByLabel(/mot de passe|password/i).fill(password)
-  await page.getByRole('button', { name: /se connecter|connexion/i }).click()
+  await page.getByRole('button', { name: 'Se connecter', exact: true }).click()
   await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 15_000 })
 }
 
