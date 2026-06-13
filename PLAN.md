@@ -55,7 +55,7 @@
 
 ## VAGUE 3 — DIFFÉRENCIATION (personne n'a ça à ce prix)
 
-- [ ] **26. Studio de correctifs** — génération un-clic : llms.txt, robots.txt, JSON-LD (Organization/LocalBusiness/FAQ/Article), metas réécrites, FAQ générée du contenu, page À propos pré-rédigée ; instructions par CMS détecté ; mode "envoyer à mon webmaster". — **L**
+- [x] **26. Studio de correctifs** — génération un-clic : llms.txt, robots.txt, JSON-LD (Organization/LocalBusiness/FAQ/Article), metas réécrites, FAQ générée du contenu, page À propos pré-rédigée ; instructions par CMS détecté ; mode "envoyer à mon webmaster". — **L**
 - [ ] **27. Onglet Concurrents** — audit allégé des concurrents détectés, share of voice par prompt, "pourquoi lui est cité" → recommandations en miroir. — **L**
 - [ ] **28. Google AI Overviews** — 5e moteur suivi (le plus vu par les clients FR). — **M**
 - [ ] **29. Pixel GeoMind v1 ("La Preuve")** — snippet + plugin WP : trafic referrers IA, actions (tel/formulaire), crawlers IA → "ce mois-ci les IA vous ont amené N visiteurs et X demandes". — **L**
