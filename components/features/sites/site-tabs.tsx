@@ -3,7 +3,7 @@
 import type { Route } from 'next'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, TrendingUp, ListTodo, Wand2, Swords, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
+import { LayoutDashboard, TrendingUp, ListTodo, Wand2, Swords, Radio, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
 import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
   { label: 'Plan d’action',  segment: 'action-plan', icon: ListTodo },
   { label: 'Studio',         segment: 'studio',      icon: Wand2 },
   { label: 'Suivi',          segment: 'trends',      icon: TrendingUp },
+  { label: 'Pixel',          segment: 'pixel',       icon: Radio },
   { label: 'Autorité',       segment: 'authority',   icon: Shield },
   { label: 'Concurrents',    segment: 'competitors', icon: Swords },
   { label: 'Technique',      segment: 'technical',   icon: Wrench },

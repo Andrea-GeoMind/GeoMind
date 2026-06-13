@@ -56,6 +56,7 @@ const MOCK_SITE = {
   country: 'FR',
   isVerified: false,
       coachIntroSeen: false,
+      pixelKey: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 }

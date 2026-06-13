@@ -159,6 +159,9 @@ export const sites = pgTable('sites', {
   isVerified: boolean('is_verified').notNull().default(false),
   // GEO (coach IA) s'ouvre automatiquement une seule fois, après la 1re analyse (§16.5.D)
   coachIntroSeen: boolean('coach_intro_seen').notNull().default(false),
+  // Clé publique du Pixel GeoMind (PLAN item 29) — identifie le site côté
+  // snippet. Générée à la demande, rotatable. Null tant que le pixel n'est pas activé.
+  pixelKey: text('pixel_key').unique(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -328,6 +331,37 @@ export const citationChecks = pgTable(
   (t) => [
     index('citation_checks_site_checked_idx').on(t.siteId, t.checkedAt),
     index('citation_checks_prompt_engine_idx').on(t.promptId, t.engine),
+  ]
+)
+
+// ─── pixel_events ─────────────────────────────────────────────────────────────
+// Pixel GeoMind (PLAN item 29) — la preuve du ROI : visites venant des IA et
+// actions réalisées sur le site du client. Alimenté par le snippet public via
+// /api/pixel (insert serveur sans session, RLS deny-all côté clés client).
+
+export const pixelEventTypeEnum = pgEnum('pixel_event_type', ['pageview', 'action'])
+
+export const pixelEvents = pgTable(
+  'pixel_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    siteId: uuid('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    type: pixelEventTypeEnum('type').notNull(),
+    /** Source IA normalisée : 'chatgpt' | 'perplexity' | 'gemini' | 'copilot' | 'claude' | 'other' */
+    aiSource: text('ai_source').notNull(),
+    /** Chemin de la page visitée (sans query) */
+    path: text('path').notNull().default('/'),
+    /** Pour type=action : 'tel' | 'mailto' | 'form' | 'booking' | 'outbound' */
+    actionKind: text('action_kind'),
+    /** Hash anonyme visiteur+jour (RGPD : pas d'IP en clair) — comptage de visiteurs uniques */
+    visitorHash: text('visitor_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('pixel_events_site_created_idx').on(t.siteId, t.createdAt),
+    index('pixel_events_site_source_idx').on(t.siteId, t.aiSource),
   ]
 )
 
@@ -677,4 +711,8 @@ export const citationChecksRelations = relations(citationChecks, ({ one }) => ({
     fields: [citationChecks.analysisId],
     references: [analyses.id],
   }),
+}))
+
+export const pixelEventsRelations = relations(pixelEvents, ({ one }) => ({
+  site: one(sites, { fields: [pixelEvents.siteId], references: [sites.id] }),
 }))
