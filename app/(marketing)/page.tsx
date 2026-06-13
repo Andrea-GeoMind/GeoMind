@@ -440,10 +440,6 @@ export default function HomePage() {
                 title: 'Surveillance automatique',
                 body: 'GeoMind re-vérifie votre visibilité chaque semaine et vous alerte par email : nouvelle citation, ou baisse à corriger.',
               },
-              {
-                title: 'Prêt pour les agents IA',
-                body: 'Demain les IA réservent et contactent pour vos clients. Le score Agent-Ready vérifie qu’elles peuvent le faire chez vous.',
-              },
             ].map(({ title, body }) => (
               <div key={title} className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
