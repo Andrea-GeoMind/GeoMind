@@ -13,7 +13,7 @@
 
 Les paliers se différencient surtout par **le nombre de sites**. Or votre persona cœur (patron de TPE) a **UN site**. Pour lui, passer de Solo à Pro (+40 €) n'achète rien de désirable : il n'utilise ni les sites en plus, ni les 15 000 crédits supplémentaires. Le seul vrai argument (recommandations complètes) est invisible avant l'achat.
 
-**Depuis, l'app a énormément gagné en valeur** : Studio de correctifs, Concurrents, Réputation, Local, Agent-Ready, Pixel, Suivi, Plan d'action, surveillance + alertes. La grille doit refléter cette valeur et se différencier sur **la profondeur et l'automatisation**, pas sur le nombre de sites.
+**Depuis, l'app a énormément gagné en valeur** : Studio de correctifs, Concurrents, Réputation, Local, Pixel, Suivi, Plan d'action, surveillance + alertes. La grille doit refléter cette valeur et se différencier sur **la profondeur et l'automatisation**, pas sur le nombre de sites.
 
 ## Proposition : 4 plans axés usage, pas sites
 
@@ -25,7 +25,7 @@ Les paliers se différencient surtout par **le nombre de sites**. Or votre perso
 | Surveillance auto | mensuelle, score seul | hebdo + alertes | hebdo + alertes + concurrents | + tous clients |
 | Studio de correctifs | aperçu | ✅ | ✅ | ✅ |
 | Pixel (preuve ROI) | ❌ | ✅ | ✅ | ✅ |
-| Réputation + Local + Agent-Ready | aperçu | ✅ | ✅ | ✅ |
+| Réputation + Local | aperçu | ✅ | ✅ | ✅ |
 | Concurrents suivis | ❌ | 1 | 5 | 5/client |
 | Rapport | — | mensuel email | PDF + hebdo | PDF white-label |
 

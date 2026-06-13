@@ -263,15 +263,14 @@ La boucle devient imbattable : *audit → correctifs (Studio) → citations (sui
 
 **Faisabilité solo-dev** : un endpoint de collecte + un script de 3 Ko + détection de referrers/user-agents + un plugin WP minimal. C'est dans vos cordes (M-L). Conformité : pas de cookies tiers nécessaires, compteurs agrégés anonymes = RGPD-friendly, argument "100 % français, hébergé en Europe" en prime.
 
-### Le coup d'après (même famille, encore plus loin) : le Score Agent-Ready
+### Le Score Agent-Ready — exploré puis abandonné (2026-06-13)
 
-2026 = commerce agentique : les IA ne se contentent plus de répondre, elles **agissent** (réservent, contactent, achètent). La question de demain n'est pas "suis-je cité ?" mais **"une IA peut-elle me trouver ET me choisir ET me contacter sans humain ?"**. Test concret : un agent IA cherche un plombier à Lyon, trouve le site du client — arrive-t-il à extraire le téléphone, comprendre les horaires, soumettre le formulaire de contact, trouver le lien de réservation ? GeoMind le simule (agent headless + règles : `tel:` cliquable, formulaire parsable, horaires en schema.org, lien de RDV) et rend un **Score Agent-Ready** avec ses correctifs. Personne — pas même Profound — ne propose ça en SMB aujourd'hui. C'est l'onglet qui fait dire "ces gens ont deux ans d'avance", pour un coût de construction modéré (L).
+Idée initiale : un score mesurant si un agent IA autonome (commerce agentique) peut trouver, comprendre et contacter/réserver chez le client sans humain (`tel:` cliquable, formulaire parsable, horaires schema.org, lien de RDV). **Construit puis retiré du produit** : jugé trop en avance sur le marché pour la cible TPE actuelle — personne ne consomme encore ce signal. À reconsidérer si le commerce agentique se généralise.
 
 ### Pourquoi c'est LE positionnement
 
 - **Pixel** = la preuve que ça rapporte (passé).
 - **Audit + Studio** = le travail fait pour vous (présent).
-- **Agent-Ready** = prêt pour ce qui arrive (futur).
 
 Slogan possible : *« Les autres vous donnent un score. GeoMind vous amène des clients — et le prouve. »*
 
