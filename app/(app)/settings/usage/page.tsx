@@ -6,7 +6,6 @@ import { getCreditTransactions, type CreditTransactionReason } from '@/lib/credi
 import { formatCreditsAmount, formatCreditsAsUsage } from '@/lib/credits-shared'
 import { PLAN_LABELS, PLAN_UPGRADE_URLS } from '@/lib/plans'
 import Link from 'next/link'
-import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 export const metadata: Metadata = {
   title: 'Utilisation — GEOMIND',
@@ -43,13 +42,9 @@ export default async function UsagePage() {
       : 'bg-muted text-muted-foreground'
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
-      {/* Page header */}
-      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
-      <SettingsTabNav />
-
+    <div className="space-y-4">
       {/* Plan badge subtitle */}
-      <p className="text-sm text-muted-foreground -mt-4">
+      <p className="text-sm text-muted-foreground">
         Crédits et utilisation — plan{' '}
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${planBadgeClass}`}>
           {PLAN_LABELS[stats.plan]}

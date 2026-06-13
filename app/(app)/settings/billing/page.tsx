@@ -20,7 +20,6 @@ import {
   type PaidPlan,
 } from '@/lib/plans'
 import { CREDIT_PACK_PRICE_IDS, STRIPE_PLAN_PRICE_IDS } from '@/lib/stripe'
-import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 
 interface PageProps {
   searchParams: Promise<{ success?: string; canceled?: string; pack_success?: string }>
@@ -62,11 +61,7 @@ export default async function BillingPage({ searchParams }: PageProps) {
       : null
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
-      {/* Page header */}
-      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
-      <SettingsTabNav />
-
+    <div className="space-y-4">
       {/* Banners */}
       {showSuccess && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">

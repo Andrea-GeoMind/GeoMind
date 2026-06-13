@@ -48,7 +48,7 @@ export async function getCitationTrend(
            count(*)::int AS total,
            count(*) FILTER (WHERE cited)::int AS cited
     FROM citation_checks
-    WHERE site_id = ${siteId} AND checked_at >= ${since} AND mode = 'forced'
+    WHERE site_id = ${siteId} AND checked_at >= ${since.toISOString()} AND mode = 'forced'
     GROUP BY 1
     ORDER BY 1 ASC
   `)) as Array<{ day: string; total: number; cited: number }>

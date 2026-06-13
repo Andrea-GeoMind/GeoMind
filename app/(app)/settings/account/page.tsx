@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db/client'
 import { profiles } from '@/lib/db/schema'
 import { DeleteAccountButton } from '@/components/features/settings/delete-account-button'
-import { SettingsTabNav } from '@/components/features/settings/settings-tab-nav'
 import { EmailNotificationsToggle } from '@/components/features/settings/email-notifications-toggle'
 
 export const metadata: Metadata = {
@@ -26,10 +25,7 @@ export default async function AccountSettingsPage() {
     .where(eq(profiles.id, user.id))
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-6 sm:p-8">
-      <h1 className="text-2xl font-extrabold tracking-tight mb-6">Paramètres</h1>
-      <SettingsTabNav />
-
+    <div className="space-y-4">
       {/* Email */}
       <div className="rounded-xl border border-border bg-white shadow-sm p-6">
         <p className="text-base font-semibold mb-4">Informations du compte</p>
