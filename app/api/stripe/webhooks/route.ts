@@ -16,6 +16,7 @@ import {
   topUpMonthlyCredits,
 } from '@/lib/credits'
 import { claimWebhookEvent, releaseWebhookEvent } from '@/lib/db/queries/webhook-events'
+import { logAudit } from '@/lib/db/queries/audit-log'
 import { CREDIT_PACKS, PLAN_LIMITS, type CreditPackId } from '@/lib/plans'
 import { trackEvent } from '@/lib/posthog'
 
@@ -210,6 +211,11 @@ async function syncSubscription(
       from: previousPlan,
       to: plan,
     })
+  }
+
+  // Trace le changement de plan effectif (PLAN item 38) — pas les re-syncs identiques
+  if (previousPlan !== plan) {
+    await logAudit('plan.changed', userId, { from: previousPlan, to: plan, status })
   }
 
   // Track plan upgrade event
