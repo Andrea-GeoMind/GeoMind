@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import type { AnalysisProgressResponse } from '@/app/api/analysis/[analysisId]/progress/route'
+import { toast } from '@/components/ui/use-toast'
+import { useAnalysisLock } from './analysis-lock-context'
 
 type Props = {
   siteName: string | null
@@ -10,10 +13,13 @@ type Props = {
 }
 
 export function AnalysisLoadingOverlay({ siteName, analysisId }: Props) {
+  const router = useRouter()
+  const { unlockAnalysis } = useAnalysisLock()
   const [progress, setProgress] = useState(2)
   const [step, setStep] = useState('Démarrage de l\'analyse…')
   const [elapsed, setElapsed] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const doneRef = useRef(false)
 
   // Chronomètre
   useEffect(() => {
@@ -21,17 +27,41 @@ export function AnalysisLoadingOverlay({ siteName, analysisId }: Props) {
     return () => clearInterval(id)
   }, [])
 
-  // Polling du vrai état DB toutes les 3 secondes
+  // Polling du vrai état DB toutes les 3 secondes.
+  // L'overlay est seule source de vérité pendant l'analyse : il interroge une
+  // route légère (compteurs) plutôt que de déclencher un router.refresh() de
+  // toute la page overview en boucle (cause des ralentissements navigateur).
+  // À la fin, un SEUL router.refresh() recharge les résultats puis on déverrouille.
   useEffect(() => {
     if (!analysisId) return
 
     async function fetchProgress() {
+      if (doneRef.current) return
       try {
         const res = await fetch(`/api/analysis/${analysisId}/progress`)
         if (!res.ok) return
         const data: AnalysisProgressResponse = await res.json()
         setProgress(data.progress)
         setStep(data.step)
+
+        if (data.status === 'success' || data.status === 'error') {
+          doneRef.current = true
+          if (intervalRef.current) clearInterval(intervalRef.current)
+          router.refresh()
+          unlockAnalysis()
+          if (data.status === 'success') {
+            toast({
+              title: 'Analyse terminée',
+              description: 'Votre score GEO est maintenant disponible.',
+            })
+          } else {
+            toast({
+              title: 'Analyse échouée',
+              description: "Une erreur est survenue lors de l'analyse.",
+              variant: 'destructive',
+            })
+          }
+        }
       } catch {
         // Silencieux — on garde le dernier état connu
       }
@@ -42,7 +72,7 @@ export function AnalysisLoadingOverlay({ siteName, analysisId }: Props) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [analysisId])
+  }, [analysisId, router, unlockAnalysis])
 
   // Prévenir fermeture de l'onglet
   useEffect(() => {
@@ -60,7 +90,7 @@ export function AnalysisLoadingOverlay({ siteName, analysisId }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95"
       role="dialog"
       aria-modal="true"
       aria-label="Analyse en cours"
