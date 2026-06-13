@@ -5,6 +5,7 @@ import { CheckCircle2, Zap, Sparkles, FileText, ChevronDown } from 'lucide-react
 import { ContentIssueCard, type ContentIssueRow } from './content-issue-card'
 import { ContentRecommendationSheet } from './content-recommendation-sheet'
 import { isQuickWinRow } from '@/components/features/technical/issue-card'
+import type { ActionFix } from '@/lib/analysis/action-fixes'
 
 const CATEGORY_LABELS: Record<ContentIssueRow['category'], string> = {
   readability: 'Lisibilité',
@@ -24,9 +25,11 @@ interface ContentIssuesListProps {
   issues: ContentIssueRow[]
   isPro: boolean
   isBusiness: boolean
+  /** Correctifs prêts à coller indexés par ruleKey (affichés dans la fiche). */
+  fixesByRule: Record<string, ActionFix>
 }
 
-export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesListProps) {
+export function ContentIssuesList({ issues, isPro, isBusiness, fixesByRule }: ContentIssuesListProps) {
   const [selected, setSelected] = useState<ContentIssueRow | null>(null)
 
   const opportunities = issues.filter((i) => i.severity === 'opportunity')
@@ -174,6 +177,7 @@ export function ContentIssuesList({ issues, isPro, isBusiness }: ContentIssuesLi
         issue={selected}
         isPro={isPro}
         isBusiness={isBusiness}
+        fix={selected ? fixesByRule[selected.ruleKey] : undefined}
         onClose={() => setSelected(null)}
       />
     </>

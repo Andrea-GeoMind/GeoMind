@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CheckCircle2, Zap, Sparkles, FileText, ChevronDown } from 'lucide-react'
 import { IssueCard, isQuickWinRow, type TechnicalIssueRow } from './issue-card'
 import { RecommendationSheet } from '@/components/features/coach/recommendation-sheet'
+import type { ActionFix } from '@/lib/analysis/action-fixes'
 
 const CATEGORY_LABELS: Record<TechnicalIssueRow['category'], string> = {
   accessibility: 'Accessibilité',
@@ -23,9 +24,11 @@ interface IssuesListProps {
   issues: TechnicalIssueRow[]
   isPro: boolean
   isBusiness: boolean
+  /** Correctifs prêts à coller indexés par ruleKey (affichés dans la fiche). */
+  fixesByRule: Record<string, ActionFix>
 }
 
-export function IssuesList({ issues, isPro, isBusiness }: IssuesListProps) {
+export function IssuesList({ issues, isPro, isBusiness, fixesByRule }: IssuesListProps) {
   const [selected, setSelected] = useState<TechnicalIssueRow | null>(null)
 
   const opportunities = issues.filter((i) => i.severity === 'opportunity')
@@ -178,6 +181,7 @@ export function IssuesList({ issues, isPro, isBusiness }: IssuesListProps) {
         issue={selected}
         isPro={isPro}
         isBusiness={isBusiness}
+        fix={selected ? fixesByRule[selected.ruleKey] : undefined}
         onClose={() => setSelected(null)}
       />
     </>
