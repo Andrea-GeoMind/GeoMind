@@ -70,3 +70,30 @@ export const PublishersOutputSchema = z.object({
 
 export type PublishersOutput = z.infer<typeof PublishersOutputSchema>
 export type PublisherItem = z.infer<typeof PublisherItemSchema>
+
+// Schéma d'extraction de réputation (PLAN item 31) — sentiment + affirmations
+export const ReputationExtractSchema = z.object({
+  knows_business: z.boolean(),
+  sentiment: z.enum(['positive', 'neutral', 'negative']),
+  claims: z
+    .array(
+      z.object({
+        type: z.enum([
+          'activite',
+          'adresse',
+          'ville',
+          'horaires',
+          'telephone',
+          'prix',
+          'service',
+          'fondation',
+          'autre',
+        ]),
+        value: z.string().min(1).max(300),
+      })
+    )
+    .max(20)
+    .default([]),
+})
+
+export type ReputationExtract = z.infer<typeof ReputationExtractSchema>

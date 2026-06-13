@@ -25,6 +25,7 @@ export type PostHogEvent =
   | 'plan_upgraded'
   | 'credit_pack_checkout_started'
   | 'credit_pack_purchased'
+  | 'reputation_started'
 
 export function trackEvent(
   userId: string,
