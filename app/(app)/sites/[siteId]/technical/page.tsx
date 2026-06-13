@@ -10,6 +10,7 @@ import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
 import { countFirecrawlPagesBySiteId } from '@/lib/db/queries/firecrawl-pages'
+import { getActionFixesByRule } from '@/lib/analysis/action-fixes.server'
 import { PageSamplingNote } from '@/components/features/analysis/methodology-note'
 import { ScoreGauge } from '@/components/charts/score-gauge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -59,11 +60,12 @@ export default async function TechnicalPage({ params }: Props) {
   const isInProgress = latest.status === 'pending' || latest.status === 'running'
   const isError = latest.status === 'error'
 
-  const [rawIssues, pagesDetected] = await Promise.all([
+  const [rawIssues, pagesDetected, fixesByRule] = await Promise.all([
     latest.status === 'success'
       ? getTechnicalIssuesByAnalysisId(latest.id)
       : Promise.resolve([]),
     countFirecrawlPagesBySiteId(siteId),
+    getActionFixesByRule(site),
   ])
   const pagesAnalyzed = Math.min(features.pageAnalysisLimit, pagesDetected)
 
@@ -174,7 +176,12 @@ export default async function TechnicalPage({ params }: Props) {
             <Skeleton className="h-16 rounded-xl" />
           </div>
         ) : latest.status === 'success' ? (
-          <IssuesList issues={issues} isPro={isPro} isBusiness={isBusiness} />
+          <IssuesList
+            issues={issues}
+            isPro={isPro}
+            isBusiness={isBusiness}
+            fixesByRule={fixesByRule}
+          />
         ) : null}
       </section>
     </div>

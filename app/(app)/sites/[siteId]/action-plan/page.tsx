@@ -7,10 +7,7 @@ import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
-import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
-import { getFirecrawlPagesBySiteId } from '@/lib/db/queries/firecrawl-pages'
-import { detectCms, seedFaqEntries, type StudioSite, type CmsKind } from '@/lib/analysis/studio'
-import { buildActionFixesByRule } from '@/lib/analysis/action-fixes'
+import { getActionFixesByRule } from '@/lib/analysis/action-fixes.server'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { ActionCard, type ActionItem } from '@/components/features/action-plan/action-card'
 
@@ -37,32 +34,17 @@ export default async function ActionPlanPage({ params }: Props) {
   const latest = await getLatestAnalysis(siteId)
   if (!latest) return <NoAnalysisState siteId={siteId} />
 
-  const [technical, content, states, metadata, pages] = await Promise.all([
+  const [technical, content, states, fixesByRule] = await Promise.all([
     latest.status === 'success'
       ? getTechnicalIssuesByAnalysisId(latest.id)
       : Promise.resolve([]),
     latest.status === 'success' ? getContentIssuesByAnalysisId(latest.id) : Promise.resolve([]),
     getActionStatesBySiteId(siteId),
-    getSiteMetadataBySiteId(siteId),
-    getFirecrawlPagesBySiteId(siteId),
+    // Correctifs prêts à coller indexés par ruleKey (fusion Studio → Plan d'action)
+    getActionFixesByRule(site),
   ])
 
   const stateByKey = new Map(states.map((s) => [`${s.ruleKey}::${s.pageUrl}`, s]))
-
-  // Correctifs prêts à coller indexés par ruleKey (fusion Studio → Plan d'action) :
-  // chaque problème mappé affiche directement son code, généré depuis les infos du site.
-  const homeMeta = pages[0]?.metadata as Record<string, unknown> | null
-  const generator = typeof homeMeta?.generator === 'string' ? homeMeta.generator : null
-  const detectedCms: CmsKind = detectCms(generator)
-  const studioSite: StudioSite = {
-    name: site.name,
-    url: site.url,
-    language: site.language,
-    country: site.country,
-    description: metadata?.description ?? null,
-    keywords: metadata?.keywords ?? [],
-  }
-  const fixesByRule = buildActionFixesByRule(studioSite, seedFaqEntries(studioSite), detectedCms)
 
   // Issues de la dernière analyse, enrichies de leur état durable
   const items: ActionItem[] = [

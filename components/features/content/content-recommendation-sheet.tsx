@@ -18,6 +18,8 @@ import {
 } from '@/lib/analysis/content/recommendations'
 import type { ContentIssueRow } from './content-issue-card'
 import { generateCompleteRecommendation } from '@/app/(app)/sites/[siteId]/recommendation-actions'
+import { FixDetails } from '@/components/features/fixes/fix-details'
+import type { ActionFix } from '@/lib/analysis/action-fixes'
 
 const EFFORT_LABELS: Record<ContentRecommendation['effort'], string> = {
   low: 'Rapide',
@@ -35,10 +37,12 @@ interface ContentRecommendationSheetProps {
   issue: ContentIssueRow | null
   isPro: boolean
   isBusiness: boolean
+  /** Correctif prêt à coller pour cette règle, si disponible (ouvert à tous les plans). */
+  fix?: ActionFix
   onClose: () => void
 }
 
-export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }: ContentRecommendationSheetProps) {
+export function ContentRecommendationSheet({ issue, isPro, isBusiness, fix, onClose }: ContentRecommendationSheetProps) {
   const rec = issue ? CONTENT_RECOMMENDATIONS[issue.ruleKey] : undefined
   const severity = issue ? penaltyToSeverity(issue.penalty) : undefined
   const [showComplete, setShowComplete] = useState(false)
@@ -95,6 +99,13 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, onClose }
               </SheetTitle>
               <SheetDescription className="text-sm leading-relaxed">{issue.description}</SheetDescription>
             </SheetHeader>
+
+            {/* Correctif prêt à coller (ouvert à tous les plans) */}
+            {fix && (
+              <div className="mb-5">
+                <FixDetails fix={fix} />
+              </div>
+            )}
 
             {/* Toggle version complète */}
             {isPro && (
