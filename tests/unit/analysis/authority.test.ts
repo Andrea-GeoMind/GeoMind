@@ -93,6 +93,7 @@ describe('runAuthorityAnalysis', () => {
       country: 'FR',
       isVerified: false,
       coachIntroSeen: false,
+      pixelKey: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
