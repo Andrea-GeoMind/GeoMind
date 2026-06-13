@@ -66,11 +66,11 @@
 - [x] **31. Onglet Réputation** — fact-check de ce que les IA disent (hallucinations sur horaires/adresse/prix), sentiment des mentions. — **L**
 - [x] **32. Onglet Local** — prompts géolocalisés auto, checklist présence locale (Google Business, annuaires). — **M**
 - [x] **33. Score Agent-Ready** — un agent IA peut-il vous trouver, comprendre vos horaires, vous contacter, réserver ? Score + correctifs. — **L**
-- [ ] **34. Refonte grille tarifaire** — Découverte 0 / Essentiel 29 / Croissance 79 / Agence 199, axée fréquence+concurrents+automatisation (cf. AUDIT-STRATEGIE A6). — **M**
+- [~] **34. Refonte grille tarifaire** — PROPOSITION-TARIFAIRE.md rédigé, EN ATTENTE de validation (décision business) — Découverte 0 / Essentiel 29 / Croissance 79 / Agence 199, axée fréquence+concurrents+automatisation (cf. AUDIT-STRATEGIE A6). — **M**
 - [ ] **35. Plan Agence & partenaires** — multi-clients, white-label complet, programme prescripteurs webmasters. — **L**
 - [ ] **36. Baromètre GEO France** — page publique de données agrégées par secteur (PR + moat). — **L**
 - [ ] **37. Mistral Le Chat** — 6e moteur, argument 100 % français. — **M**
-- [ ] **38. Divers dette** — refund prorata des analyses, split `schema.ts`, table `audit_logs`, circuit breaker OpenRouter. — **M**
+- [x] **38. Divers dette** (audit_logs fait ; refund prorata / split schema / circuit breaker écartés à dessein, voir commit) — refund prorata des analyses, split `schema.ts`, table `audit_logs`, circuit breaker OpenRouter. — **M**
 
 ---
 
