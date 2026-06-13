@@ -21,6 +21,7 @@ import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issue
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { reconcileActionStates } from '@/lib/db/queries/action-states'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
+import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 
 const DEFAULT_MAX_PAGES = 20
@@ -35,6 +36,14 @@ export const runFullAnalysisFunction = inngest.createFunction(
     }
 
     await step.run('mark-running', () => updateAnalysisStatus(analysisId, 'running'))
+
+    // Plan gratuit → analyse offerte allégée (4 IA mais 3 questions, sans 2ᵉ salve)
+    // pour ne pas brûler ~2€ d'API sur un compte sans revenu. Les abonnés payants
+    // (solo/pro/business) et les comptes admin gardent l'analyse complète.
+    const tier = await step.run('check-plan-tier', async () => {
+      const plan = userId ? ((await getSubscriptionByUserId(userId))?.plan ?? 'free') : 'free'
+      return plan === 'free' ? ('free' as const) : ('full' as const)
+    })
 
     try {
       // 1. Crawl — sauté si les pages ont moins de 2 heures (cas typique : juste après la découverte).
@@ -58,7 +67,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
       // 3. Authority analysis — persisted immediately so the UI can show partial progress
       const authorityResult = await step.run('run-authority', () =>
-        runAuthorityAnalysis(analysisId)
+        runAuthorityAnalysis(analysisId, { tier })
       )
       const authorityScore = computeAuthorityScore(
         authorityResult.successfulCalls,
