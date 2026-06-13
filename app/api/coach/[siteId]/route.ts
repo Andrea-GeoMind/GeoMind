@@ -59,7 +59,9 @@ async function callOpenRouter(
       Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://geomind.fr',
-      'X-Title': 'GeoMind — GEO',
+      // ASCII strict : les valeurs de headers HTTP sont du Latin-1 — un tiret
+      // cadratin (—) y fait planter fetch (« Cannot convert argument to ByteString »).
+      'X-Title': 'GeoMind GEO',
     },
     body: JSON.stringify({
       model,
