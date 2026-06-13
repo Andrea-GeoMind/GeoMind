@@ -21,13 +21,9 @@ import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issue
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { reconcileActionStates } from '@/lib/db/queries/action-states'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
-import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 
 const DEFAULT_MAX_PAGES = 20
-// Mode test : les comptes admin (= nous, en QA) déclenchent une analyse volontairement
-// minimale pour ne pas brûler de crédit API. Jamais appliqué aux vrais plans clients.
-const LITE_MAX_PAGES = 3
 
 export const runFullAnalysisFunction = inngest.createFunction(
   { id: 'run-full-analysis', triggers: [{ event: 'analysis.full.requested' }] },
@@ -40,13 +36,6 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
     await step.run('mark-running', () => updateAnalysisStatus(analysisId, 'running'))
 
-    // Mode test : compte admin → analyse minimale (1 moteur, 2 prompts, crawl court).
-    // Gate sur le plan, pas sur une variable d'env : impossible de dégrader un vrai client.
-    const isLite = await step.run('check-test-mode', async () =>
-      userId ? (await getSubscriptionByUserId(userId))?.plan === 'admin' : false
-    )
-    if (isLite) console.log(`[run-full-analysis] ${analysisId}: mode test (analyse minimale)`)
-
     try {
       // 1. Crawl — sauté si les pages ont moins de 2 heures (cas typique : juste après la découverte).
       //    Lors d'une ré-analyse manuelle > 2h, on re-crawle pour avoir des données fraîches.
@@ -56,8 +45,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
         !lastCrawledAt || Date.now() - new Date(lastCrawledAt).getTime() > CRAWL_FRESHNESS_MS
 
       if (crawlIsStale) {
-        const maxPages = isLite ? LITE_MAX_PAGES : DEFAULT_MAX_PAGES
-        await step.run('crawl', () => crawlSite({ siteId, maxPages }))
+        await step.run('crawl', () => crawlSite({ siteId, maxPages: DEFAULT_MAX_PAGES }))
       }
 
       // 2. Discovery — skip if site_metadata already exists
@@ -70,7 +58,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
       // 3. Authority analysis — persisted immediately so the UI can show partial progress
       const authorityResult = await step.run('run-authority', () =>
-        runAuthorityAnalysis(analysisId, { lite: isLite })
+        runAuthorityAnalysis(analysisId)
       )
       const authorityScore = computeAuthorityScore(
         authorityResult.successfulCalls,

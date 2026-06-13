@@ -33,11 +33,6 @@ export const CITATION_SUFFIX =
 //   bruité, donc limité à un échantillon, stocké en citation_checks uniquement.
 const SPONTANEOUS_SAMPLE_SIZE = 3
 
-// Mode test (comptes admin) : analyse volontairement minimale pour ne pas brûler
-// de crédit API en QA. 1 moteur éco (Gemini Flash) × N prompts, aucun spontané.
-// Les vrais plans clients gardent toujours les 4 moteurs et tous les prompts.
-const LITE_FORCED_PROMPTS = 2
-
 // ─── Pool de concurrence simple (sans dépendance externe) ─────────────────────
 
 async function runWithConcurrency<T>(
@@ -75,10 +70,8 @@ export interface AuthorityAnalysisResult {
 // ─── runAuthorityAnalysis ──────────────────────────────────────────────────────
 
 export async function runAuthorityAnalysis(
-  analysisId: string,
-  options: { lite?: boolean } = {}
+  analysisId: string
 ): Promise<AuthorityAnalysisResult> {
-  const lite = options.lite ?? false
   const analysis = await getAnalysisById(analysisId)
   if (!analysis) throw new Error(`Analyse introuvable : ${analysisId}`)
 
@@ -87,11 +80,7 @@ export async function runAuthorityAnalysis(
 
   const allPrompts = await getPromptsBySiteId(analysis.siteId)
   // Seuls les prompts neutres sont utilisés pour le score (règle §6 CLAUDE.md)
-  const allNeutralPrompts = allPrompts.filter((p) => p.isNeutral)
-  // Mode test : on n'interroge que les premiers prompts (cf. LITE_FORCED_PROMPTS)
-  const neutralPrompts = lite
-    ? allNeutralPrompts.slice(0, LITE_FORCED_PROMPTS)
-    : allNeutralPrompts
+  const neutralPrompts = allPrompts.filter((p) => p.isNeutral)
 
   if (neutralPrompts.length === 0) {
     return {
@@ -104,15 +93,12 @@ export async function runAuthorityAnalysis(
     }
   }
 
-  // Mode test : 1 seul moteur éco (Gemini Flash) suffit à valider le pipeline.
-  const engines: IAEngine[] = lite
-    ? [new GeminiConnector()]
-    : [
-        new ChatGPTConnector(),
-        new ClaudeConnector(),
-        new GeminiConnector(),
-        new PerplexityConnector(),
-      ]
+  const engines: IAEngine[] = [
+    new ChatGPTConnector(),
+    new ClaudeConnector(),
+    new GeminiConnector(),
+    new PerplexityConnector(),
+  ]
 
   const clientDomain = extractDomain(site.url)
 
@@ -124,8 +110,7 @@ export async function runAuthorityAnalysis(
     perplexity: 'sonar',
   }
 
-  // Aucun mode spontané en test (il double le nombre d'appels).
-  const spontaneousPrompts = lite ? [] : neutralPrompts.slice(0, SPONTANEOUS_SAMPLE_SIZE)
+  const spontaneousPrompts = neutralPrompts.slice(0, SPONTANEOUS_SAMPLE_SIZE)
 
   // Estimation coût avant batch (règle §10 CLAUDE.md) — forcé + spontané
   logEstimatedBatchCost(
