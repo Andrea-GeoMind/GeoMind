@@ -421,8 +421,8 @@ export default function HomePage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                title: 'Studio de correctifs',
-                body: 'Vos fichiers corrigés prêts à coller (llms.txt, données structurées, FAQ, balises) — ou à envoyer à votre webmaster en un clic.',
+                title: 'Correctifs prêts à coller',
+                body: 'Pour chaque problème détecté, le fichier corrigé prêt à coller (llms.txt, données structurées, FAQ, balises) — avec les instructions pour votre plateforme.',
               },
               {
                 title: 'La preuve par les chiffres',

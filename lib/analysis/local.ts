@@ -114,7 +114,7 @@ export function buildLocalChecklist(ctx: LocalContext): LocalChecklistItem[] {
       key: 'schema-localbusiness',
       label: 'Données structurées LocalBusiness sur le site',
       why: 'Elles donnent aux IA votre adresse, vos horaires et votre téléphone dans un format sûr.',
-      action: 'Générez le bloc LocalBusiness dans l’onglet Studio et collez-le sur votre page d’accueil.',
+      action: 'Ajoutez le bloc LocalBusiness (adresse, horaires, téléphone) dans le <head> de votre page d’accueil — si ces données structurées manquent, le correctif prêt à coller apparaît dans votre Plan d’action.',
     },
     {
       key: 'nap-consistency',
