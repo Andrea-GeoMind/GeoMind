@@ -15,14 +15,21 @@ export function OverviewPolling({ status }: OverviewPollingProps) {
   const router = useRouter()
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const prevStatusRef = useRef<AnalysisStatus | null>(null)
-  const { unlockAnalysis } = useAnalysisLock()
+  const wasPollingRef = useRef(false)
+  const { locked, unlockAnalysis } = useAnalysisLock()
 
-  // Notify and unlock on transition — not on first render
+  // Quand l'overlay est actif, il est seule source de vérité : il suit la
+  // progression via une route légère et déclenche lui-même le refresh + toast
+  // de fin. On n'agit ici que dans le cas où l'overlay est absent (ex. onglet
+  // rechargé en cours d'analyse), pour éviter le double toast et surtout le
+  // router.refresh() en boucle qui fait ramer le navigateur.
+
+  // Notify and unlock on transition — uniquement si c'est ce composant qui poll
   useEffect(() => {
     const prev = prevStatusRef.current
     prevStatusRef.current = status
 
-    if (prev !== null && prev !== status) {
+    if (prev !== null && prev !== status && wasPollingRef.current) {
       if (status === 'success') {
         unlockAnalysis()
         toast({
@@ -40,17 +47,19 @@ export function OverviewPolling({ status }: OverviewPollingProps) {
     }
   }, [status, unlockAnalysis])
 
-  // Poll every 5 s while in progress
+  // Poll every 5 s while in progress — sauf si l'overlay s'en charge déjà
   useEffect(() => {
+    if (locked) return
     if (status !== 'pending' && status !== 'running') {
       if (timerRef.current !== null) clearInterval(timerRef.current)
       return
     }
+    wasPollingRef.current = true
     timerRef.current = setInterval(() => router.refresh(), 5000)
     return () => {
       if (timerRef.current !== null) clearInterval(timerRef.current)
     }
-  }, [status, router])
+  }, [status, router, locked])
 
   return null
 }
