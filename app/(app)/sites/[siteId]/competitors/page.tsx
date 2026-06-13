@@ -204,8 +204,8 @@ export default async function CompetitorsPage({ params }: Props) {
             <p className="text-xs leading-relaxed text-muted-foreground">
               <strong className="text-foreground">Comment les rattraper ?</strong> Ouvrez les pages
               citées de vos concurrents (liens ci-dessus) : repérez ce qu’ils ont et qu’il vous
-              manque (FAQ, avis, page détaillée, données chiffrées), puis générez les correctifs
-              correspondants dans l’onglet <strong className="text-foreground">Studio</strong>.
+              manque (FAQ, avis, page détaillée, données chiffrées), puis appliquez les correctifs
+              proposés dans votre <strong className="text-foreground">Plan d’action</strong>.
             </p>
           </div>
         </>

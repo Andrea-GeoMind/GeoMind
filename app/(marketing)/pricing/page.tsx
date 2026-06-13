@@ -83,7 +83,7 @@ export default function PricingPage() {
                   values={[false, true, true, true]}
                 />
                 <ComparisonRow
-                  label="Studio de correctifs (fichiers prêts à coller)"
+                  label="Correctifs prêts à coller (intégrés au plan d’action)"
                   values={[true, true, true, true]}
                   striped
                 />

@@ -35,7 +35,7 @@ const PLANS: PlanCardData[] = [
     features: [
       '1 site',
       '1 analyse complète offerte',
-      'Coach IA, Studio de correctifs, Concurrents',
+      'Coach IA, correctifs prêts à coller, Concurrents',
       'Réputation, Local, Pixel',
       'Surveillance mensuelle + historique 30 j',
     ],
