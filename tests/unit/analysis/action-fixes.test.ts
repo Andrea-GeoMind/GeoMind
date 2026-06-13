@@ -29,7 +29,16 @@ describe('buildActionFixesByRule', () => {
     expect(fixes.llms_txt_missing.cmsInstruction.toLowerCase()).toContain('wordpress')
   })
 
-  it('ne renvoie aucun correctif pour une règle non mappée', () => {
+  it('fournit un template de code pour les règles à snippet (ex. H1)', () => {
+    const fixes = buildActionFixesByRule(SITE, seedFaqEntries(SITE), 'wordpress')
+    expect(fixes.h1_missing_or_duplicate).toBeDefined()
+    expect(fixes.h1_missing_or_duplicate.content).toContain('<h1>')
+    // Snippet générique : pas de plateforme CMS accolée
+    expect(fixes.h1_missing_or_duplicate.cmsLabel).toBe('')
+    expect(fixes.images_without_alt.content).toContain('alt=')
+  })
+
+  it('ne renvoie aucun correctif pour une règle sans fichier ni snippet', () => {
     const fixes = buildActionFixesByRule(SITE, seedFaqEntries(SITE), 'unknown')
     expect(fixes['thin_content']).toBeUndefined()
     expect(fixes['response_time_slow']).toBeUndefined()
