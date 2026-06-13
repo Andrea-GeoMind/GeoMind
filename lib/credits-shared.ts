@@ -27,6 +27,8 @@ export const CREDIT_COSTS = {
   coachMessagePremium: 30,
   /** Génération de recommandation complète via Sonnet */
   completeRecommendation: 50,
+  /** Analyse de réputation : 4 moteurs interrogés + 4 extractions Haiku (PLAN item 31) */
+  reputationCheck: 150,
 } as const
 
 export const WELCOME_BONUS_CREDITS = 1_000

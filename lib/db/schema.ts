@@ -35,6 +35,15 @@ export const analysisStatusEnum = pgEnum('analysis_status', [
 
 export const iaEngineEnum = pgEnum('ia_engine', ['chatgpt', 'claude', 'gemini', 'perplexity'])
 
+export const reputationStatusEnum = pgEnum('reputation_status', [
+  'pending',
+  'running',
+  'success',
+  'error',
+])
+
+export const sentimentEnum = pgEnum('sentiment', ['positive', 'neutral', 'negative', 'unknown'])
+
 export const technicalIssueCategoryEnum = pgEnum('technical_issue_category', [
   'accessibility',
   'structure',
@@ -333,6 +342,39 @@ export const citationChecks = pgTable(
     index('citation_checks_prompt_engine_idx').on(t.promptId, t.engine),
   ]
 )
+
+// ─── reputation (onglet Réputation, PLAN item 31) ─────────────────────────────
+// Ce que les IA DISENT de l'entreprise (pas seulement si elles la citent) :
+// réponses brutes, sentiment, et affirmations factuelles extraites (adresse,
+// horaires, téléphone, prix…). Le désaccord entre moteurs = signal d'hallucination.
+
+export const reputationRuns = pgTable('reputation_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  status: reputationStatusEnum('status').notNull().default('pending'),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const reputationResults = pgTable('reputation_results', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  runId: uuid('run_id')
+    .notNull()
+    .references(() => reputationRuns.id, { onDelete: 'cascade' }),
+  engine: iaEngineEnum('engine').notNull(),
+  answer: text('answer').notNull(),
+  sentiment: sentimentEnum('sentiment').notNull().default('unknown'),
+  /** Affirmations factuelles extraites : [{ type, value }] */
+  claims: jsonb('claims').notNull().$type<{ type: string; value: string }[]>().default([]),
+  knowsBusiness: boolean('knows_business').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
 
 // ─── pixel_events ─────────────────────────────────────────────────────────────
 // Pixel GeoMind (PLAN item 29) — la preuve du ROI : visites venant des IA et
@@ -715,4 +757,13 @@ export const citationChecksRelations = relations(citationChecks, ({ one }) => ({
 
 export const pixelEventsRelations = relations(pixelEvents, ({ one }) => ({
   site: one(sites, { fields: [pixelEvents.siteId], references: [sites.id] }),
+}))
+
+export const reputationRunsRelations = relations(reputationRuns, ({ one, many }) => ({
+  site: one(sites, { fields: [reputationRuns.siteId], references: [sites.id] }),
+  results: many(reputationResults),
+}))
+
+export const reputationResultsRelations = relations(reputationResults, ({ one }) => ({
+  run: one(reputationRuns, { fields: [reputationResults.runId], references: [reputationRuns.id] }),
 }))

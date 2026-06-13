@@ -14,6 +14,7 @@ import {
   monthlyReportCronFunction,
   monthlyReportSendFunction,
 } from '@/lib/inngest/functions/monthly-report'
+import { runReputationCheckFunction } from '@/lib/inngest/functions/run-reputation-check'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -28,5 +29,6 @@ export const { GET, POST, PUT } = serve({
     monitorSiteFunction,
     monthlyReportCronFunction,
     monthlyReportSendFunction,
+    runReputationCheckFunction,
   ],
 })
