@@ -159,12 +159,15 @@ export function ContentRecommendationSheet({ issue, isPro, isBusiness, fix, onCl
                 </div>
               ) : rec ? (
                 <div className={isPro ? undefined : 'max-h-32 overflow-hidden'}>
-                  <section className="mb-5 rounded-xl border border-border bg-muted/30 p-4">
-                    <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Comment corriger
-                    </h4>
-                    <p className="text-sm leading-relaxed text-foreground">{rec.how}</p>
-                  </section>
+                  {/* « Comment corriger » générique masqué quand un correctif prêt à coller le remplace */}
+                  {!fix && (
+                    <section className="mb-5 rounded-xl border border-border bg-muted/30 p-4">
+                      <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        Comment corriger
+                      </h4>
+                      <p className="text-sm leading-relaxed text-foreground">{rec.how}</p>
+                    </section>
+                  )}
                   <section className="rounded-xl border border-border bg-muted/30 p-4">
                     <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Impact attendu
