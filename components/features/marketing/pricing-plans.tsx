@@ -208,8 +208,8 @@ export function PricingPlans() {
       </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Besoin d&apos;un coup de pouce ponctuel ? Des packs de crédits sont disponibles à partir
-        de 5 € — sans abonnement, ils n&apos;expirent jamais.
+        Déjà abonné et besoin d&apos;un coup de pouce ponctuel ? Des packs de crédits
+        complémentaires sont disponibles à partir de 5 € — ils n&apos;expirent jamais.
       </p>
     </div>
   )
