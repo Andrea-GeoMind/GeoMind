@@ -65,8 +65,10 @@ async function callOpenRouter(
     },
     body: JSON.stringify({
       model,
-      messages,
-      system: systemPrompt,
+      // OpenRouter (compatible OpenAI) ignore un champ `system` de premier niveau :
+      // le prompt système doit être le 1er message (role:'system'), sinon le contexte
+      // du site n'atteint jamais le modèle et le coach répond « à côté ».
+      messages: [{ role: 'system' as const, content: systemPrompt }, ...messages],
       stream: true,
       max_tokens: 1024,
       temperature: 0.7,
