@@ -405,6 +405,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Capacités phares (PLAN item 34 : montrer la valeur réelle) ──── */}
+      <section className="bg-muted/30 py-24">
+        <div className="mx-auto max-w-6xl px-4">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
+            Bien plus qu&apos;un score
+          </p>
+          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            GeoMind fait le travail, pas seulement le constat
+          </h2>
+          <p className="mx-auto mb-14 max-w-2xl text-center text-muted-foreground">
+            Les autres outils vous donnent un tableau de bord. GeoMind vous donne les correctifs,
+            la preuve que ça marche, et vous prévient quand ça bouge.
+          </p>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                title: 'Studio de correctifs',
+                body: 'Vos fichiers corrigés prêts à coller (llms.txt, données structurées, FAQ, balises) — ou à envoyer à votre webmaster en un clic.',
+              },
+              {
+                title: 'La preuve par les chiffres',
+                body: 'Le Pixel GeoMind compte les visiteurs réels que les IA vous amènent, et ce qu’ils font : appels, devis, rendez-vous.',
+              },
+              {
+                title: 'Vos concurrents en face',
+                body: 'Sur les questions de votre secteur, qui les IA citent-elles ? Vous, ou eux ? Et surtout : pourquoi eux.',
+              },
+              {
+                title: 'Ce que les IA disent de vous',
+                body: 'On détecte quand ChatGPT ou Gemini racontent des infos fausses sur vous (horaires, adresse) — avant que ça vous coûte un client.',
+              },
+              {
+                title: 'Surveillance automatique',
+                body: 'GeoMind re-vérifie votre visibilité chaque semaine et vous alerte par email : nouvelle citation, ou baisse à corriger.',
+              },
+              {
+                title: 'Prêt pour les agents IA',
+                body: 'Demain les IA réservent et contactent pour vos clients. Le score Agent-Ready vérifie qu’elles peuvent le faire chez vous.',
+              },
+            ].map(({ title, body }) => (
+              <div key={title} className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+                  <Zap className="h-5 w-5 text-indigo-600" />
+                </div>
+                <h3 className="mb-1.5 text-base font-bold text-foreground">{title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Pricing preview ───────────────────────────────────────────── */}
       <section className="py-24">
         <div className="mx-auto max-w-6xl px-4">
