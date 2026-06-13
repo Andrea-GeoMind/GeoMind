@@ -2,10 +2,13 @@ import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb, Info } from 'lucide-react'
+import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb, Info, Radar, Radio } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
+import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
+import { getPixelEvents } from '@/lib/db/queries/pixel'
+import { summarizePixelEvents } from '@/lib/analysis/pixel'
 import { computeDeltas, } from '@/lib/analysis/compare'
 import { getScoreMaturity, getPriorityAction } from '@/lib/analysis/scoring'
 import { ScoreGauge } from '@/components/charts/score-gauge'
@@ -41,6 +44,15 @@ export default async function OverviewPage({ params }: Props) {
   if (!latest) {
     return <NoAnalysisState siteId={siteId} />
   }
+
+  // Résumés remontés des onglets Suivi & Pixel : l'info clé sans changer d'onglet.
+  const [rolling, pixelEvents] = await Promise.all([
+    getRollingCitationRate(siteId, 30),
+    site.pixelKey ? getPixelEvents(siteId, 30) : Promise.resolve([]),
+  ])
+  const pixelSummary = summarizePixelEvents(pixelEvents)
+  const showTrendSummary = rolling.rate !== null
+  const showPixelSummary = Boolean(site.pixelKey) && pixelSummary.aiVisitors > 0
 
   const isInProgress = latest.status === 'pending' || latest.status === 'running'
   const isError = latest.status === 'error'
@@ -255,6 +267,68 @@ export default async function OverviewPage({ params }: Props) {
           ) : null}
         </div>
       </section>
+
+      {/* Résumés Suivi & Pixel — l'essentiel sans changer d'onglet */}
+      {(showTrendSummary || showPixelSummary) && !isInProgress && (
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {showTrendSummary && (
+            <Link
+              href={`/sites/${siteId}/trends` as Route}
+              className="group flex items-center gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+                <Radar size={20} className="text-primary" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Visibilité IA · 30 j
+                </p>
+                <p className="mt-0.5 text-2xl font-extrabold leading-none text-foreground">
+                  {rolling.rate}%
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  taux de citation moyen ({rolling.cited}/{rolling.total} mesures)
+                </p>
+              </div>
+              <ArrowRight
+                size={15}
+                className="shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                aria-hidden
+              />
+            </Link>
+          )}
+          {showPixelSummary && (
+            <Link
+              href={`/sites/${siteId}/pixel` as Route}
+              className="group flex items-center gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+                <Radio size={20} className="text-primary" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Trafic venu des IA · 30 j
+                </p>
+                <p className="mt-0.5 text-2xl font-extrabold leading-none text-foreground">
+                  {pixelSummary.aiVisitors}
+                  <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                    visiteur{pixelSummary.aiVisitors > 1 ? 's' : ''}
+                  </span>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {pixelSummary.aiActions} action{pixelSummary.aiActions > 1 ? 's' : ''} (appels,
+                  devis…)
+                </p>
+              </div>
+              <ArrowRight
+                size={15}
+                className="shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                aria-hidden
+              />
+            </Link>
+          )}
+        </section>
+      )}
 
       {/* Action prioritaire */}
       {priorityAction && !isInProgress && (
