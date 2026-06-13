@@ -65,7 +65,9 @@ export function FixDetails({ fix }: { fix: ActionFix }) {
           )}
         </div>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
-          <span className="font-semibold text-foreground">Où l’installer ({fix.cmsLabel}) :</span>{' '}
+          <span className="font-semibold text-foreground">
+            Où l’installer{fix.cmsLabel ? ` (${fix.cmsLabel})` : ''} :
+          </span>{' '}
           {fix.cmsInstruction}
         </p>
       </div>
