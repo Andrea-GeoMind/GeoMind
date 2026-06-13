@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { db } from '@/lib/db/client'
 import { profiles, sites } from '@/lib/db/schema'
+import { logAudit } from '@/lib/db/queries/audit-log'
 
 /** Active/désactive les alertes email de visibilité (PLAN item 13). */
 export async function setEmailNotificationsAction(
@@ -33,6 +34,9 @@ export async function deleteAccountAction(): Promise<{ error: string } | void> {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Trace avant suppression (la ligne audit survit, userId conservé en clair)
+  await logAudit('account.deleted', user.id, { email: user.email })
 
   // Delete all sites (cascades to analyses, metadata, competitors, prompts…)
   await db.delete(sites).where(eq(sites.userId, user.id))

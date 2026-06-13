@@ -18,6 +18,7 @@ import { creditBalances, creditTransactions, profiles } from '@/lib/db/schema'
 import { PLAN_LIMITS, type Plan } from '@/lib/plans'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { sendLowCreditsEmail } from '@/lib/email/templates/low-credits'
+import { logAudit } from '@/lib/db/queries/audit-log'
 import { WELCOME_BONUS_CREDITS, needsMonthlyReset } from '@/lib/credits-shared'
 
 // Helpers purs et constantes : voir lib/credits-shared.ts (importable côté client)
@@ -320,6 +321,10 @@ export async function refundCredits(
   metadata?: Record<string, unknown>
 ): Promise<void> {
   await addPurchasedCredits(userId, amount, 'refund_failed_analysis', metadata)
+  // Trace les remboursements significatifs (PLAN item 38) — best-effort
+  if (amount >= 50) {
+    await logAudit('credits.refunded', userId, { amount, ...metadata })
+  }
 }
 
 /** Historique des mouvements pour la page Usage. */

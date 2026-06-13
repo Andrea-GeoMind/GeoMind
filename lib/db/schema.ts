@@ -376,6 +376,25 @@ export const reputationResults = pgTable('reputation_results', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── audit_logs ───────────────────────────────────────────────────────────────
+// Journal des mutations sensibles (PLAN item 38) : suppression de compte,
+// changement de plan, remboursements importants. Traçabilité RGPD + litiges.
+// Écrit côté serveur uniquement ; userId nullable (le compte peut être supprimé).
+
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    /** Null si l'utilisateur a été supprimé (on garde la trace) */
+    userId: uuid('user_id'),
+    /** ex : 'account.deleted', 'plan.changed', 'credits.refunded' */
+    action: text('action').notNull(),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('audit_logs_user_created_idx').on(t.userId, t.createdAt)]
+)
+
 // ─── pixel_events ─────────────────────────────────────────────────────────────
 // Pixel GeoMind (PLAN item 29) — la preuve du ROI : visites venant des IA et
 // actions réalisées sur le site du client. Alimenté par le snippet public via
