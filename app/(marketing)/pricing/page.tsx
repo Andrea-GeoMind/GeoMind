@@ -83,6 +83,42 @@ export default function PricingPage() {
                   values={[false, true, true, true]}
                 />
                 <ComparisonRow
+                  label="Studio de correctifs (fichiers prêts à coller)"
+                  values={[true, true, true, true]}
+                  striped
+                />
+                <ComparisonRow
+                  label="Suivi des concurrents (share of voice)"
+                  values={[true, true, true, true]}
+                />
+                <ComparisonRow
+                  label="Réputation : ce que les IA disent de vous"
+                  values={[true, true, true, true]}
+                  striped
+                />
+                <ComparisonRow
+                  label="Local : questions géolocalisées + checklist"
+                  values={[true, true, true, true]}
+                />
+                <ComparisonRow
+                  label="Score Agent-Ready (commerce agentique)"
+                  values={[true, true, true, true]}
+                  striped
+                />
+                <ComparisonRow
+                  label="Pixel : visiteurs réels venus des IA"
+                  values={[true, true, true, true]}
+                />
+                <ComparisonRow
+                  label="Surveillance automatique + alertes email"
+                  values={['mensuelle', 'hebdomadaire', 'hebdomadaire', 'hebdomadaire']}
+                  striped
+                />
+                <ComparisonRow
+                  label="Suivi dans le temps (tendances)"
+                  values={[true, true, true, true]}
+                />
+                <ComparisonRow
                   label="Analyse page par page"
                   values={[false, '5 pages', '10 pages', '10 pages']}
                   striped
