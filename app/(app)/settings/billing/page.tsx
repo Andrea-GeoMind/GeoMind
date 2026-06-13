@@ -177,9 +177,10 @@ export default async function BillingPage({ searchParams }: PageProps) {
 
       {/* Packs de crédits — seuls les packs réellement achetables sont affichés
           (PLAN item 25 : « Bientôt disponible » interdit, pas d'UI morte) */}
-      {(Object.keys(CREDIT_PACKS) as CreditPackId[]).some(
-        (packId) => !!CREDIT_PACK_PRICE_IDS[packId]
-      ) && (
+      {plan !== 'free' &&
+        (Object.keys(CREDIT_PACKS) as CreditPackId[]).some(
+          (packId) => !!CREDIT_PACK_PRICE_IDS[packId]
+        ) && (
         <div className="rounded-xl border border-border bg-white shadow-sm p-6">
           <p className="text-base font-semibold mb-1">Acheter des crédits</p>
           <p className="text-sm text-muted-foreground mb-4">
