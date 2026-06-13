@@ -33,6 +33,11 @@ export const CITATION_SUFFIX =
 //   bruité, donc limité à un échantillon, stocké en citation_checks uniquement.
 const SPONTANEOUS_SAMPLE_SIZE = 3
 
+// Analyse offerte (plan gratuit) : on garde les 4 IA mais on limite à 3 questions
+// et on saute le mode spontané (la 2ᵉ salve), ce qui divise le coût API par ~4.
+// Les plans payants (et admin) gardent l'analyse complète.
+const FREE_TIER_FORCED_PROMPTS = 3
+
 // ─── Pool de concurrence simple (sans dépendance externe) ─────────────────────
 
 async function runWithConcurrency<T>(
@@ -70,8 +75,10 @@ export interface AuthorityAnalysisResult {
 // ─── runAuthorityAnalysis ──────────────────────────────────────────────────────
 
 export async function runAuthorityAnalysis(
-  analysisId: string
+  analysisId: string,
+  options: { tier?: 'free' | 'full' } = {}
 ): Promise<AuthorityAnalysisResult> {
+  const tier = options.tier ?? 'full'
   const analysis = await getAnalysisById(analysisId)
   if (!analysis) throw new Error(`Analyse introuvable : ${analysisId}`)
 
@@ -80,7 +87,12 @@ export async function runAuthorityAnalysis(
 
   const allPrompts = await getPromptsBySiteId(analysis.siteId)
   // Seuls les prompts neutres sont utilisés pour le score (règle §6 CLAUDE.md)
-  const neutralPrompts = allPrompts.filter((p) => p.isNeutral)
+  const allNeutralPrompts = allPrompts.filter((p) => p.isNeutral)
+  // Plan gratuit : 3 questions max (cf. FREE_TIER_FORCED_PROMPTS). Payants : toutes.
+  const neutralPrompts =
+    tier === 'free'
+      ? allNeutralPrompts.slice(0, FREE_TIER_FORCED_PROMPTS)
+      : allNeutralPrompts
 
   if (neutralPrompts.length === 0) {
     return {
@@ -110,7 +122,10 @@ export async function runAuthorityAnalysis(
     perplexity: 'sonar',
   }
 
-  const spontaneousPrompts = neutralPrompts.slice(0, SPONTANEOUS_SAMPLE_SIZE)
+  // Plan gratuit : pas de 2ᵉ salve « spontanée » (mesure de citation naturelle) —
+  // c'est elle qui re-pose les questions une seconde fois. Payants : conservée.
+  const spontaneousPrompts =
+    tier === 'free' ? [] : neutralPrompts.slice(0, SPONTANEOUS_SAMPLE_SIZE)
 
   // Estimation coût avant batch (règle §10 CLAUDE.md) — forcé + spontané
   logEstimatedBatchCost(
