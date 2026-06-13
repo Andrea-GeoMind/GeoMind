@@ -20,13 +20,13 @@ test.describe('Pages publiques', () => {
   test('page login', async ({ page }) => {
     await page.goto('/login')
     await expect(page.getByRole('heading', { name: /connexion/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /se connecter/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Se connecter', exact: true })).toBeVisible()
   })
 
   test('page signup', async ({ page }) => {
     await page.goto('/signup')
     await expect(page.getByRole('heading', { name: /inscription|créer|compte/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /créer|s'inscrire|commencer/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Créer mon compte', exact: true })).toBeVisible()
   })
 })
 

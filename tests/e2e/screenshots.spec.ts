@@ -77,7 +77,7 @@ test.describe('Phase 3 — Checks visuels fonctionnels', () => {
   test('login : boutons taille mobile-friendly (min 44px)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await page.goto('/login')
-    const btn = page.getByRole('button', { name: /se connecter/i })
+    const btn = page.getByRole('button', { name: 'Se connecter', exact: true })
     await expect(btn).toBeVisible()
     const box = await btn.boundingBox()
     expect(box?.height).toBeGreaterThanOrEqual(40) // shadcn default is h-10 = 40px
