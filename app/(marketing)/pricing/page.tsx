@@ -101,11 +101,6 @@ export default function PricingPage() {
                   values={[true, true, true, true]}
                 />
                 <ComparisonRow
-                  label="Score Agent-Ready (commerce agentique)"
-                  values={[true, true, true, true]}
-                  striped
-                />
-                <ComparisonRow
                   label="Pixel : visiteurs réels venus des IA"
                   values={[true, true, true, true]}
                 />

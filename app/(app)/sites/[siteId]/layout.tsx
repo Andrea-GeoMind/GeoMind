@@ -4,7 +4,7 @@ import { Globe, ChevronLeft, ExternalLink, FileDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
-import { SiteTabs } from '@/components/features/sites/site-tabs'
+import { SiteNav } from '@/components/features/sites/site-nav'
 import { AnalysisLockInit } from '@/components/features/analysis/analysis-lock-init'
 import { CoachSiteBinding } from '@/components/features/coach/coach-site-binding'
 
@@ -92,10 +92,11 @@ export default async function SiteLayout({ children, params }: Props) {
         </div>
       </div>
 
-      {/* Tabs navigation */}
-      <SiteTabs siteId={siteId} />
-
-      <div className="flex-1">{children}</div>
+      {/* Navigation du site : sidebar groupée (desktop) / barre horizontale (mobile) */}
+      <div className="flex flex-1 flex-col lg:flex-row">
+        <SiteNav siteId={siteId} />
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
     </div>
   )
 }
