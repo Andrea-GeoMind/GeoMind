@@ -170,7 +170,7 @@ export default function PricingPage() {
               },
               {
                 q: 'Que se passe-t-il si j’épuise mes crédits ?',
-                a: "Vous pouvez acheter un pack de crédits à la carte (à partir de 5 €) sans changer de plan. Les crédits achetés n'expirent jamais et sont consommés après les crédits mensuels.",
+                a: "Si vous êtes abonné, vous pouvez acheter un pack de crédits complémentaire (à partir de 5 €) sans changer de plan — les crédits achetés n'expirent jamais et sont consommés après vos crédits mensuels. Sur le plan Gratuit, il faut passer à un abonnement pour continuer.",
               },
               {
                 q: 'Les crédits non utilisés sont-ils reportés ?',
