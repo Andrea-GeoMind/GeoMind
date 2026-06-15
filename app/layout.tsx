@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const viewport: Viewport = {
-  themeColor: '#4F46E5',
+  themeColor: '#31649B',
   width: 'device-width',
   initialScale: 1,
   minimumScale: 1,
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: 'GEOMIND',
   },
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    icon: [{ url: '/favicon.png', type: 'image/png', sizes: '64x64' }],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
   },
 }

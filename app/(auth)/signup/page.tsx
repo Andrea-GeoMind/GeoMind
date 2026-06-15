@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 import { SignupForm } from '@/components/features/auth/signup-form'
 
 export const metadata: Metadata = {
@@ -11,12 +12,7 @@ export default function SignupPage() {
     <div className="space-y-6">
       <div className="space-y-2 text-center">
         <Link href="/" className="inline-block">
-          <span className="text-xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              GEO
-            </span>
-            <span className="text-foreground">MIND</span>
-          </span>
+          <Logo size={32} className="justify-center" />
         </Link>
         <h1 className="text-2xl font-extrabold tracking-tight">Créer un compte</h1>
         <p className="text-sm text-muted-foreground">

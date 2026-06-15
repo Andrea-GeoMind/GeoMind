@@ -18,6 +18,37 @@ const config: Config = {
     },
     extend: {
       colors: {
+        /* ── Rebrand GEOMIND ──────────────────────────────────────────
+           Les classes utilitaires `indigo-*` et `violet-*` héritées de
+           l'ancienne charte sont remappées sur les bleus du logo officiel
+           (bleu royal #2348B4 → navy #15233D). Aucune classe à modifier
+           dans les composants : la couleur suit la marque automatiquement. */
+        indigo: {
+          50: '#EEF3F8',
+          100: '#D8E3EF',
+          200: '#B2C8DE',
+          300: '#84A6C6',
+          400: '#5784AC',
+          500: '#3C6C97',
+          600: '#31649B',
+          700: '#2A5483',
+          800: '#214367',
+          900: '#16304B',
+          950: '#0F2236',
+        },
+        violet: {
+          50: '#EDF2F7',
+          100: '#D6E2EC',
+          200: '#AFC6DA',
+          300: '#7FA2C0',
+          400: '#4D7AA4',
+          500: '#345E8A',
+          600: '#2A5483',
+          700: '#214467',
+          800: '#18344F',
+          900: '#11283C',
+          950: '#0B1A28',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

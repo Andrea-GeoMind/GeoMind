@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
+import { LogoMark } from '@/components/logo'
 
 /**
  * Coque mobile de la sidebar (PLAN item 19) : barre supérieure avec hamburger
@@ -30,16 +31,11 @@ export function MobileSidebar({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Barre supérieure mobile */}
-      <div className="flex h-14 shrink-0 items-center justify-between bg-[#0F172A] px-4 lg:hidden">
+      <div className="flex h-14 shrink-0 items-center justify-between bg-[#16304B] px-4 lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600">
-            <span className="text-[10px] font-black text-white">G</span>
-          </div>
+          <LogoMark size={28} />
           <span className="text-base font-extrabold tracking-tight text-white">
-            Geo
-            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-              Mind
-            </span>
+            GEO<span className="text-white/70">MIND</span>
           </span>
         </Link>
         <button

@@ -1,16 +1,14 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/logo'
 
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        {/* Logo gradient */}
-        <Link href="/" className="text-xl font-extrabold tracking-tight">
-          <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-            GEO
-          </span>
-          <span className="text-foreground">MIND</span>
+        {/* Logo officiel */}
+        <Link href="/" aria-label="GEOMIND — accueil">
+          <Logo size={32} />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">

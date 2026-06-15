@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 import { MailOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -12,12 +13,7 @@ export default function VerifyEmailPage() {
     <div className="space-y-6 text-center">
       <div className="space-y-4">
         <Link href="/" className="inline-block">
-          <span className="text-xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              GEO
-            </span>
-            <span className="text-foreground">MIND</span>
-          </span>
+          <Logo size={32} className="justify-center" />
         </Link>
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-50">
           <MailOpen className="h-8 w-8 text-indigo-600" />
