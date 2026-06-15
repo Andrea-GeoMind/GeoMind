@@ -8,6 +8,7 @@ import type { Route } from 'next'
 import { cn } from '@/lib/utils'
 import { signOut } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
+import { LogoMark } from '@/components/logo'
 import { useAnalysisLock } from '@/components/features/analysis/analysis-lock-context'
 
 type NavItem = {
@@ -35,9 +36,9 @@ export default function Sidebar({ userEmail, credits }: Props) {
   const { locked } = useAnalysisLock()
 
   return (
-    <aside className="flex h-full w-64 shrink-0 flex-col bg-[#0F172A]">
+    <aside className="flex h-full w-64 shrink-0 flex-col bg-[#16304B]">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-slate-800 px-5">
+      <div className="flex h-16 items-center border-b border-white/10 px-5">
         <div
           className={cn(
             'flex items-center gap-2.5',
@@ -46,14 +47,9 @@ export default function Sidebar({ userEmail, credits }: Props) {
           title={locked ? 'Analyse en cours…' : undefined}
         >
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600">
-              <span className="text-xs font-black text-white">G</span>
-            </div>
+            <LogoMark size={32} />
             <span className="text-lg font-extrabold tracking-tight text-white">
-              Geo
-              <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                Mind
-              </span>
+              GEO<span className="text-white/70">MIND</span>
             </span>
           </Link>
         </div>

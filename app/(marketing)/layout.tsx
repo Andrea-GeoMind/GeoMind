@@ -13,7 +13,7 @@ const ORGANIZATION_JSON_LD = {
       '@id': 'https://geomind.fr/#organization',
       name: 'GEOMIND',
       url: 'https://geomind.fr',
-      logo: 'https://geomind.fr/logo.svg',
+      logo: 'https://geomind.fr/logo-mark.png',
       description:
         'GEOMIND audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude) et fournit un plan d’action concret. Pensé pour les TPE et PME françaises.',
       email: 'contact@geomind.fr',
