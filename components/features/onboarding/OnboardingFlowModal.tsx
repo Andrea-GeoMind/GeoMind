@@ -165,69 +165,72 @@ function ReviewingPhase({
         />
       </div>
 
-      {/* Mots-clés */}
-      <div className="space-y-2">
-        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Tag size={12} /> Mots-clés
-        </label>
-        <div className="flex flex-wrap gap-1.5">
-          {keywords.map((kw) => (
-            <span
-              key={kw}
-              className="flex items-center gap-1 rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-500/20"
-            >
-              {kw}
-              <button onClick={() => removeKeyword(kw)} className="ml-0.5 hover:text-destructive">
-                <X size={10} />
-              </button>
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={kwInput}
-            onChange={(e) => setKwInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-            placeholder="Ajouter un mot-clé…"
-            className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <button
-            onClick={addKeyword}
-            className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-muted"
-          >
-            <Plus size={12} /> Ajouter
-          </button>
-        </div>
-      </div>
-
-      {/* Concurrents */}
-      <div className="space-y-2">
-        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Users size={12} /> Concurrents détectés
-        </label>
-        <div className="space-y-1.5">
-          {competitorsList.map((c, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input
-                value={c.url}
-                onChange={(e) => setCompetitorsList((prev) => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
-                placeholder="https://concurrent.fr"
-                className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button
-                onClick={() => setCompetitorsList((prev) => prev.filter((_, j) => j !== i))}
-                className="text-muted-foreground hover:text-destructive"
+      {/* Mots-clés + Concurrents côte à côte sur grand écran */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Mots-clés */}
+        <div className="space-y-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <Tag size={12} /> Mots-clés
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {keywords.map((kw) => (
+              <span
+                key={kw}
+                className="flex items-center gap-1 rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-500/20"
               >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => setCompetitorsList((prev) => [...prev, { url: '', name: '' }])}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Plus size={12} /> Ajouter un concurrent
-          </button>
+                {kw}
+                <button onClick={() => removeKeyword(kw)} className="ml-0.5 hover:text-destructive">
+                  <X size={10} />
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={kwInput}
+              onChange={(e) => setKwInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
+              placeholder="Ajouter un mot-clé…"
+              className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              onClick={addKeyword}
+              className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-muted"
+            >
+              <Plus size={12} /> Ajouter
+            </button>
+          </div>
+        </div>
+
+        {/* Concurrents */}
+        <div className="space-y-2">
+          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <Users size={12} /> Concurrents détectés
+          </label>
+          <div className="space-y-1.5">
+            {competitorsList.map((c, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={c.url}
+                  onChange={(e) => setCompetitorsList((prev) => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                  placeholder="https://concurrent.fr"
+                  className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={() => setCompetitorsList((prev) => prev.filter((_, j) => j !== i))}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => setCompetitorsList((prev) => [...prev, { url: '', name: '' }])}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Plus size={12} /> Ajouter un concurrent
+            </button>
+          </div>
         </div>
       </div>
 
@@ -547,7 +550,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
-      <div className="w-full max-w-lg px-4">
+      <div className={['w-full px-4', phase === 'reviewing' ? 'max-w-3xl' : 'max-w-lg'].join(' ')}>
         <div
           className={[
             'rounded-2xl border border-border bg-card shadow-2xl',
