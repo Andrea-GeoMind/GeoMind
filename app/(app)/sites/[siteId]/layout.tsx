@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Globe, ChevronLeft, ExternalLink, FileDown } from 'lucide-react'
+import { ChevronLeft, ExternalLink, FileDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { SiteLogo } from '@/components/features/sites/site-logo'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
 import { SiteNav } from '@/components/features/sites/site-nav'
@@ -66,9 +67,12 @@ export default async function SiteLayout({ children, params }: Props) {
 
         {/* Site identity */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-            <Globe className="h-5 w-5 text-indigo-600" />
-          </div>
+          <SiteLogo
+            url={site.url}
+            name={site.name}
+            className="ring-primary/20"
+            iconClassName="h-5 w-5 text-indigo-600"
+          />
           <div className="min-w-0">
             <h1 className="truncate text-base font-extrabold tracking-tight">{site.name}</h1>
             <a

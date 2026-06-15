@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Globe, Trash2, ExternalLink, ArrowRight, Lock } from 'lucide-react'
+import { Trash2, ExternalLink, ArrowRight, Lock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { SiteLogo } from '@/components/features/sites/site-logo'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -50,10 +51,8 @@ export function SiteCard({ site, frozen = false }: Props) {
     <>
       <Card className="rounded-xl border border-border bg-white shadow-sm transition-shadow duration-150 hover:shadow-md">
         <CardContent className="flex items-center gap-4 p-4">
-          {/* Icon */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/15">
-            <Globe className="h-4 w-4 text-primary" />
-          </div>
+          {/* Logo du site (favicon Google, fallback Globe) */}
+          <SiteLogo url={site.url} name={site.name} />
 
           {/* Site info */}
           <div className="min-w-0 flex-1">
