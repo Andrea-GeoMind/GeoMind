@@ -17,6 +17,38 @@ export interface ArticleMeta {
 
 export const ARTICLES: ArticleMeta[] = [
   {
+    slug: 'choisir-outil-visibilite-ia',
+    title: 'Comment choisir un outil de visibilité IA (GEO) en 2026',
+    description:
+      'Suivi des citations, audit technique, recommandations, prix : les critères pour choisir un outil de visibilité dans les IA, et les questions à poser avant de vous engager.',
+    datePublished: '2026-06-16',
+    readingMinutes: 8,
+  },
+  {
+    slug: 'entreprise-pas-citee-chatgpt',
+    title: 'Mon entreprise n’apparaît pas dans ChatGPT : que faire ?',
+    description:
+      'Vous avez demandé à ChatGPT et c’est un concurrent qui sort ? Voici les 6 causes les plus fréquentes et comment y remédier, étape par étape.',
+    datePublished: '2026-06-16',
+    readingMinutes: 7,
+  },
+  {
+    slug: 'apparaitre-dans-gemini',
+    title: 'Comment apparaître dans Google Gemini',
+    description:
+      'Gemini s’appuie sur l’index de Google et ses signaux d’autorité. Voici comment fonctionne son choix de sources et comment devenir l’une d’elles.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
+    slug: 'suivre-citations-ia',
+    title: 'Comment suivre ses citations dans les IA (et pourquoi c’est crucial)',
+    description:
+      'Être cité par les IA, ça se mesure. Pourquoi suivre une tendance plutôt qu’un score, quoi surveiller, et comment mettre en place un suivi fiable.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
     slug: 'quest-ce-que-le-geo',
     title: 'Qu’est-ce que le GEO (Generative Engine Optimization) ?',
     description:
