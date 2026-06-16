@@ -11,9 +11,17 @@
 
 ## Guides
 
+- [Qu'est-ce que le GEO (Generative Engine Optimization) ?](https://geomind.fr/blog/quest-ce-que-le-geo) : définition du GEO et différence avec le SEO
 - [Comment être cité par ChatGPT : le guide pour TPE et PME](https://geomind.fr/blog/comment-etre-cite-par-chatgpt)
+- [Comment apparaître dans les réponses de Perplexity](https://geomind.fr/blog/etre-visible-perplexity)
+- [Comment savoir si ChatGPT parle de votre entreprise](https://geomind.fr/blog/savoir-si-chatgpt-parle-de-mon-entreprise)
+- [GEO local : être recommandé par les IA près de chez vous](https://geomind.fr/blog/geo-commerce-local) : pour commerces, artisans et professions locales
 - [GEO vs SEO : ce qui change, ce qui reste](https://geomind.fr/blog/geo-vs-seo)
 - [llms.txt, Schema.org, FAQ : les fichiers qui parlent aux IA](https://geomind.fr/blog/fichiers-qui-parlent-aux-ia)
+
+## Outils gratuits
+
+- [Générateur llms.txt](https://geomind.fr/outils/generateur-llms-txt) : créez votre fichier llms.txt en 2 minutes, sans inscription
 
 ## Contact
 
