@@ -13,10 +13,10 @@ import Footer from '@/components/features/marketing/footer'
 const SAME_AS: string[] = [
   'https://x.com/GeoMind_fr',
   'https://www.producthunt.com/@geomind_fr',
+  'https://www.wikidata.org/wiki/Q140249597',
   // À ajouter dès qu'ils sont en ligne / validés :
   // 'https://www.crunchbase.com/organization/geomind' (en modération)
   // 'https://www.linkedin.com/company/geomind-fr'
-  // 'https://www.wikidata.org/wiki/<QID>'
 ]
 
 const ORGANIZATION_JSON_LD = {
