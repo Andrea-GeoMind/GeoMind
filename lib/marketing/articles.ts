@@ -17,6 +17,38 @@ export interface ArticleMeta {
 
 export const ARTICLES: ArticleMeta[] = [
   {
+    slug: 'quest-ce-que-le-geo',
+    title: 'Qu’est-ce que le GEO (Generative Engine Optimization) ?',
+    description:
+      'Définition simple du GEO, pourquoi il devient incontournable face à ChatGPT et Perplexity, et en quoi il diffère du SEO classique — expliqué pour les dirigeants de TPE et PME.',
+    datePublished: '2026-06-16',
+    readingMinutes: 7,
+  },
+  {
+    slug: 'etre-visible-perplexity',
+    title: 'Comment apparaître dans les réponses de Perplexity',
+    description:
+      'Perplexity cite ses sources, ligne par ligne. Voici comment fonctionne son moteur et les actions concrètes pour que votre site fasse partie des sources citées.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
+    slug: 'savoir-si-chatgpt-parle-de-mon-entreprise',
+    title: 'Comment savoir si ChatGPT parle de votre entreprise',
+    description:
+      'La méthode pas à pas pour tester, à la main ou avec un outil, si les IA citent votre entreprise — et quoi faire quand ce sont vos concurrents qui apparaissent à votre place.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
+    slug: 'geo-commerce-local',
+    title: 'GEO local : être recommandé par les IA près de chez vous',
+    description:
+      'Restaurants, artisans, commerces, professions libérales : comment devenir la réponse des IA quand un client cherche un professionnel dans votre ville.',
+    datePublished: '2026-06-16',
+    readingMinutes: 7,
+  },
+  {
     slug: 'comment-etre-cite-par-chatgpt',
     title: 'Comment être cité par ChatGPT : le guide pour TPE et PME',
     description:

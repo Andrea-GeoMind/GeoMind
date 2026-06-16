@@ -13,17 +13,32 @@ export function ArticleLayout({
   meta: ArticleMeta
   children: React.ReactNode
 }) {
+  const url = `https://geomind.fr/blog/${meta.slug}`
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: meta.title,
-    description: meta.description,
-    datePublished: meta.datePublished,
-    dateModified: meta.datePublished,
-    inLanguage: 'fr-FR',
-    author: { '@type': 'Organization', name: 'GEOMIND', url: 'https://geomind.fr' },
-    publisher: { '@id': 'https://geomind.fr/#organization' },
-    mainEntityOfPage: `https://geomind.fr/blog/${meta.slug}`,
+    '@graph': [
+      {
+        '@type': 'BlogPosting',
+        headline: meta.title,
+        description: meta.description,
+        datePublished: meta.datePublished,
+        dateModified: meta.datePublished,
+        inLanguage: 'fr-FR',
+        image: `${url}/opengraph-image`,
+        author: { '@type': 'Organization', name: 'GEOMIND', url: 'https://geomind.fr' },
+        publisher: { '@id': 'https://geomind.fr/#organization' },
+        isPartOf: { '@id': 'https://geomind.fr/#website' },
+        mainEntityOfPage: url,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://geomind.fr' },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://geomind.fr/blog' },
+          { '@type': 'ListItem', position: 3, name: meta.title, item: url },
+        ],
+      },
+    ],
   }
 
   return (
