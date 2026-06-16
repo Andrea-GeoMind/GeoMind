@@ -13,10 +13,17 @@
 ## Guides
 
 - [Qu'est-ce que le GEO (Generative Engine Optimization) ?](https://geomind.fr/blog/quest-ce-que-le-geo) : définition du GEO et différence avec le SEO
+- [Comment choisir un outil de visibilité IA (GEO) en 2026](https://geomind.fr/blog/choisir-outil-visibilite-ia) : guide d'achat, critères et pièges
 - [Comment être cité par ChatGPT : le guide pour TPE et PME](https://geomind.fr/blog/comment-etre-cite-par-chatgpt)
-- [Comment apparaître dans les réponses de Perplexity](https://geomind.fr/blog/etre-visible-perplexity)
+- [Mon entreprise n'apparaît pas dans ChatGPT : que faire ?](https://geomind.fr/blog/entreprise-pas-citee-chatgpt) : les 6 causes et leurs solutions
 - [Comment savoir si ChatGPT parle de votre entreprise](https://geomind.fr/blog/savoir-si-chatgpt-parle-de-mon-entreprise)
+- [Comment apparaître dans les réponses de Perplexity](https://geomind.fr/blog/etre-visible-perplexity)
+- [Comment apparaître dans Google Gemini](https://geomind.fr/blog/apparaitre-dans-gemini)
+- [Comment apparaître dans les AI Overviews de Google](https://geomind.fr/blog/apparaitre-google-ai-overviews)
+- [Comment suivre ses citations dans les IA](https://geomind.fr/blog/suivre-citations-ia) : mesurer une tendance, pas un score
 - [GEO local : être recommandé par les IA près de chez vous](https://geomind.fr/blog/geo-commerce-local) : pour commerces, artisans et professions locales
+- [GEO pour le e-commerce : faire recommander vos produits par les IA](https://geomind.fr/blog/geo-ecommerce)
+- [Les 7 erreurs GEO qui vous rendent invisible dans les IA](https://geomind.fr/blog/erreurs-geo-frequentes)
 - [GEO vs SEO : ce qui change, ce qui reste](https://geomind.fr/blog/geo-vs-seo)
 - [llms.txt, Schema.org, FAQ : les fichiers qui parlent aux IA](https://geomind.fr/blog/fichiers-qui-parlent-aux-ia)
 
