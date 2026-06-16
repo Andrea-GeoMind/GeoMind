@@ -11,10 +11,12 @@ import Footer from '@/components/features/marketing/footer'
 // pointer vers les profils externes officiels dès qu'ils existent (LinkedIn,
 // X, Crunchbase, Product Hunt…) — c'est LE signal d'entité n°1 pour les IA.
 const SAME_AS: string[] = [
-  // TODO GEO : remplir dès que les profils sont en ligne, p. ex.
-  // 'https://www.linkedin.com/company/geomind-fr',
-  // 'https://x.com/geomind_fr',
-  // 'https://www.crunchbase.com/organization/geomind',
+  'https://x.com/GeoMind_fr',
+  'https://www.producthunt.com/@geomind_fr',
+  // À ajouter dès qu'ils sont en ligne / validés :
+  // 'https://www.crunchbase.com/organization/geomind' (en modération)
+  // 'https://www.linkedin.com/company/geomind-fr'
+  // 'https://www.wikidata.org/wiki/<QID>'
 ]
 
 const ORGANIZATION_JSON_LD = {
