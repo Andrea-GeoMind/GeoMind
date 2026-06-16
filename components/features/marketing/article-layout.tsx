@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import type { Route } from 'next'
 import { Button } from '@/components/ui/button'
-import type { ArticleMeta } from '@/lib/marketing/articles'
+import { ARTICLES, type ArticleMeta } from '@/lib/marketing/articles'
 
 /**
  * Gabarit d'article de blog (PLAN item 22) : en-tête avec date visible
@@ -14,6 +15,7 @@ export function ArticleLayout({
   children: React.ReactNode
 }) {
   const url = `https://geomind.fr/blog/${meta.slug}`
+  const related = ARTICLES.filter((a) => a.slug !== meta.slug).slice(0, 3)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -67,6 +69,22 @@ export function ArticleLayout({
       <div className="prose-geomind mt-10 space-y-5 text-base leading-relaxed text-foreground/85 [&_h2]:mt-10 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-foreground">
         {children}
       </div>
+
+      <aside className="mt-16 border-t border-border pt-8">
+        <h2 className="text-base font-bold text-foreground">Continuer la lecture</h2>
+        <ul className="mt-4 space-y-3">
+          {related.map((a) => (
+            <li key={a.slug} className="!ml-0 !list-none">
+              <Link
+                href={`/blog/${a.slug}` as Route}
+                className="font-medium text-primary hover:underline"
+              >
+                {a.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </aside>
 
       <div className="mt-14 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-10 text-center shadow-xl shadow-indigo-200">
         <p className="mb-2 text-lg font-bold text-white">
