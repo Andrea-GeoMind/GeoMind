@@ -21,6 +21,12 @@ export default function Footer() {
               Blog
             </Link>
             <Link
+              href="/glossaire"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Glossaire GEO
+            </Link>
+            <Link
               href="/about"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

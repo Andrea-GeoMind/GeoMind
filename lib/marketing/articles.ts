@@ -49,6 +49,30 @@ export const ARTICLES: ArticleMeta[] = [
     readingMinutes: 7,
   },
   {
+    slug: 'apparaitre-google-ai-overviews',
+    title: 'Comment apparaître dans les AI Overviews de Google',
+    description:
+      'Google répond désormais directement en haut de ses résultats avec l’IA. Voici comment fonctionnent les AI Overviews et comment devenir une de leurs sources.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
+    slug: 'geo-ecommerce',
+    title: 'GEO pour le e-commerce : faire recommander vos produits par les IA',
+    description:
+      'Quand un client demande à une IA « quel est le meilleur produit pour… », comment faire en sorte que ce soit le vôtre qui soit cité ? Le guide GEO pour les boutiques en ligne.',
+    datePublished: '2026-06-16',
+    readingMinutes: 7,
+  },
+  {
+    slug: 'erreurs-geo-frequentes',
+    title: 'Les 7 erreurs GEO qui vous rendent invisible dans les IA',
+    description:
+      'Robots.txt qui bloque, contenu vague, infos incohérentes… les erreurs les plus courantes qui empêchent les IA de citer votre entreprise — et comment les corriger.',
+    datePublished: '2026-06-16',
+    readingMinutes: 6,
+  },
+  {
     slug: 'comment-etre-cite-par-chatgpt',
     title: 'Comment être cité par ChatGPT : le guide pour TPE et PME',
     description:

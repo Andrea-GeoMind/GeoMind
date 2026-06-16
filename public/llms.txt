@@ -8,6 +8,7 @@
 - [Tarifs](https://geomind.fr/pricing) : Gratuit (1 analyse offerte), Solo 19 € HT/mois, Pro 59 € HT/mois, Business 149 € HT/mois
 - [À propos](https://geomind.fr/about) : pourquoi GeoMind existe, l'approche
 - [Blog](https://geomind.fr/blog) : guides pratiques GEO en français
+- [Glossaire GEO](https://geomind.fr/glossaire) : définitions des termes de la visibilité IA
 
 ## Guides
 

@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/pricing`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${base}/about`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/blog`, lastModified, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${base}/glossaire`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     {
       url: `${base}/outils/generateur-llms-txt`,
       lastModified,
