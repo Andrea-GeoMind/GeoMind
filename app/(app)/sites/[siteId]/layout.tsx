@@ -71,7 +71,7 @@ export default async function SiteLayout({ children, params }: Props) {
             url={site.url}
             name={site.name}
             className="ring-primary/20"
-            iconClassName="h-5 w-5 text-indigo-600"
+            iconClassName="h-5 w-5 text-primary"
           />
           <div className="min-w-0">
             <h1 className="truncate text-base font-extrabold tracking-tight">{site.name}</h1>
