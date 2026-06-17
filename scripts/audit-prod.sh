@@ -72,8 +72,9 @@ check GET "/settings/account"     200 "Settings → /login (avec -L)"
 # ── Assets statiques ──
 echo ""
 echo "  ── Assets statiques ──"
-check GET "/logo.svg"             200 "Logo wordmark SVG"
-check GET "/logo-mark.svg"        200 "Logo mark SVG"
+check GET "/logo-mark.png"        200 "Logo mark PNG"
+check GET "/favicon.png"          200 "Favicon"
+check GET "/manifest.json"        200 "Manifest PWA"
 
 # ── Route 404 ──
 echo ""
