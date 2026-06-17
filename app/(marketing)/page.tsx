@@ -1,6 +1,25 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { BarChart2, Search, Lightbulb, CheckCircle2, Shield, Wrench, FileText, TrendingUp, Zap } from 'lucide-react'
+import {
+  BarChart2,
+  BarChart3,
+  Search,
+  Lightbulb,
+  CheckCircle2,
+  Shield,
+  Wrench,
+  FileText,
+  TrendingUp,
+  Zap,
+  Building2,
+  Briefcase,
+  FileCode2,
+  Trophy,
+  AlertTriangle,
+  BellRing,
+  ArrowRight,
+  Globe,
+} from 'lucide-react'
 import { PLAN_PRICES, PLAN_LIMITS } from '@/lib/plans'
 import { CREDIT_COSTS } from '@/lib/credits-shared'
 import { ExpressAudit } from '@/components/features/marketing/express-audit'
@@ -66,10 +85,31 @@ const FAQ_JSON_LD = {
   })),
 }
 
+/* ─── Intitulé de section — aligné à gauche, kicker bleu acier + gros titre navy ─── */
+function SectionHeading({
+  kicker,
+  title,
+  intro,
+}: {
+  kicker: string
+  title: string
+  intro?: string
+}) {
+  return (
+    <div className="mb-12 max-w-2xl">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-primary">{kicker}</p>
+      <h2 className="text-3xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-4xl">
+        {title}
+      </h2>
+      {intro && <p className="mt-4 text-base leading-relaxed text-muted-foreground">{intro}</p>}
+    </div>
+  )
+}
+
 /* ─── Mini product preview — rendered in pure Tailwind, no images needed ─── */
 function ProductPreview() {
   return (
-    <div className="w-full max-w-2xl rounded-2xl border border-border/80 bg-card shadow-xl shadow-indigo-100/60 overflow-hidden">
+    <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card shadow-2xl shadow-black/30 overflow-hidden">
       {/* Top bar */}
       <div className="flex items-center gap-2 border-b border-border/60 bg-muted/40 px-4 py-3">
         <div className="flex gap-1.5">
@@ -79,7 +119,7 @@ function ProductPreview() {
         </div>
         <div className="mx-auto flex items-center gap-2 rounded-full bg-background px-3 py-1 text-[11px] text-muted-foreground border border-border/60">
           <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-          geomind.fr/sites/votre-site/overview
+          geomind.fr
         </div>
       </div>
 
@@ -87,7 +127,9 @@ function ProductPreview() {
       <div className="p-5 space-y-4">
         {/* Score hero */}
         <div className="rounded-xl border border-border bg-background p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Score GEO Global</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Score GEO Global
+          </p>
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="flex items-baseline gap-1.5 mb-2">
@@ -100,11 +142,9 @@ function ProductPreview() {
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div className="h-full w-[72%] rounded-full bg-[--score-good-500]" />
               </div>
-              <p className="mt-1.5 text-[10px] text-muted-foreground">Niveau : <span className="font-semibold text-foreground">Avancé</span></p>
-            </div>
-            {/* Pie suggestion */}
-            <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-4 border-[--score-good-100] bg-[--score-good-50]">
-              <span className="text-sm font-extrabold text-[--score-good-600]">72</span>
+              <p className="mt-1.5 text-[10px] text-muted-foreground">
+                Niveau : <span className="font-semibold text-foreground">Avancé</span>
+              </p>
             </div>
           </div>
         </div>
@@ -112,90 +152,69 @@ function ProductPreview() {
         {/* 3 pillar cards */}
         <div className="grid grid-cols-3 gap-2.5">
           {[
-            { icon: Shield, label: 'Autorité', sub: 'Citations IA', score: 68, color: '--score-mid' },
-            { icon: Wrench, label: 'Technique', sub: 'Lisibilité IA', score: 82, color: '--score-good' },
-            { icon: FileText, label: 'Contenu', sub: 'Pertinence', score: 65, color: '--score-mid' },
-          ].map(({ icon: Icon, label, sub, score, color }) => (
+            { icon: Shield, label: 'Autorité', score: 68, color: '--score-mid' },
+            { icon: Wrench, label: 'Technique', score: 82, color: '--score-good' },
+            { icon: FileText, label: 'Contenu', score: 65, color: '--score-mid' },
+          ].map(({ icon: Icon, label, score, color }) => (
             <div key={label} className="rounded-xl border border-border bg-background p-3">
-              <div className="flex items-center gap-1.5 mb-2.5">
-                <Icon size={11} className="text-primary shrink-0" />
-                <div>
-                  <p className="text-[10px] font-semibold text-foreground leading-none">{label}</p>
-                  <p className="text-[9px] text-muted-foreground">{sub}</p>
-                </div>
-              </div>
-              <div className="flex items-baseline gap-0.5 mb-1.5">
-                <span className="text-xl font-extrabold leading-none" style={{ color: `var(${color}-600)` }}>{score}</span>
-                <span className="text-[9px] text-muted-foreground">/100</span>
-              </div>
-              <div className="h-1 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full" style={{ width: `${score}%`, backgroundColor: `var(${color}-500)` }} />
-              </div>
+              <Icon size={15} className="text-primary" aria-hidden />
+              <p className="mt-2 text-[10px] text-muted-foreground">{label}</p>
+              <p className="text-lg font-extrabold" style={{ color: `var(${color}-600)` }}>
+                {score}
+              </p>
             </div>
           ))}
-        </div>
-
-        {/* Action prioritaire */}
-        <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-indigo-50/60 px-3 py-2.5">
-          <Lightbulb size={13} className="text-primary mt-0.5 shrink-0" />
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Action prioritaire</p>
-            <p className="text-[11px] font-semibold text-foreground mt-0.5">Boostez votre Autorité IA</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">Votre site est rarement cité. Renforcez vos signaux d&apos;autorité.</p>
-          </div>
         </div>
       </div>
     </div>
   )
 }
 
-export default function HomePage() {
+export default function MarketingHome() {
   return (
-    <div>
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-4 py-20 sm:py-28">
-        {/* Background glow */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-indigo-500/6 blur-3xl" />
+    <div className="bg-white">
+      {/* ── Hero — surface navy premium ─────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#16304B]">
+        {/* Halos lumineux */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-32 left-[28%] h-[420px] w-[640px] -translate-x-1/2 rounded-full bg-primary/30 blur-3xl" />
+          <div className="absolute -bottom-40 right-0 h-[380px] w-[520px] rounded-full bg-[--score-good-500]/15 blur-3xl" />
         </div>
 
-        <div className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
             {/* Left: copy */}
             <div>
-              {/* Badge */}
-              <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-xs font-semibold text-indigo-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold text-[#B2C8DE]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#34D399]" />
                 Audit GEO · 100&nbsp;% français
               </span>
 
-              <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-5xl">
+              <h1 className="text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-5xl">
                 Vos clients cherchent dans ChatGPT.{' '}
-                <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                  Êtes-vous trouvable&nbsp;?
-                </span>
+                <span className="text-[#7FB5E6]">Y êtes-vous&nbsp;?</span>
               </h1>
 
-              <p className="mt-5 max-w-lg text-balance text-lg text-muted-foreground">
-                GEOMIND audite votre visibilité dans les moteurs IA (ChatGPT, Perplexity, Gemini,
-                Claude) et vous donne un plan d&apos;action concret.
+              <p className="mt-5 max-w-lg text-balance text-lg text-[#B2C8DE]">
+                GEOMIND mesure si votre site est cité par les IA — ChatGPT, Perplexity, Gemini,
+                Claude — et vous donne un plan d&apos;action concret.
               </p>
 
               {/* Audit express sans inscription (PLAN item 20) — l'outil EST le hero */}
               <div className="mt-8">
                 <ExpressAudit />
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-3 text-xs text-[#7C92AC]">
                   Envie d&apos;aller directement à l&apos;audit complet ?{' '}
                   <Link
                     href="/signup"
-                    className="font-medium text-primary underline underline-offset-4"
+                    className="font-medium text-white underline underline-offset-4"
                   >
                     Créer un compte gratuit
                   </Link>{' '}
                   ·{' '}
                   <Link
                     href="/pricing"
-                    className="font-medium text-primary underline underline-offset-4"
+                    className="font-medium text-white underline underline-offset-4"
                   >
                     Voir les tarifs
                   </Link>
@@ -203,42 +222,38 @@ export default function HomePage() {
               </div>
 
               {/* Social proof — uniquement des faits vérifiables */}
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/10 pt-6 text-sm text-[#B2C8DE]">
                 <span>
-                  <strong className="text-foreground">4 IA</strong> interrogées à chaque audit
+                  <strong className="font-semibold text-white">4 IA</strong> interrogées à chaque
+                  audit
                 </span>
-                <span className="text-border">·</span>
+                <span className="text-white/20">·</span>
                 <span>
-                  <strong className="text-foreground">1 analyse offerte</strong>, sans carte
-                  bancaire
+                  <strong className="font-semibold text-white">1 analyse offerte</strong>, sans
+                  carte bancaire
                 </span>
-                <span className="text-border">·</span>
+                <span className="text-white/20">·</span>
                 <span>
-                  Données hébergées <strong className="text-foreground">en Europe</strong>
+                  Données hébergées <strong className="font-semibold text-white">en Europe</strong>
                 </span>
               </div>
             </div>
 
-            {/* Right: product preview */}
-            <div className="flex justify-center lg:justify-end">
+            {/* Right: product preview, décalé */}
+            <div className="flex justify-center lg:mt-10 lg:justify-end">
               <ProductPreview />
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ── IA Trust bar ──────────────────────────────────────────────── */}
-      <section className="border-y border-border/60 bg-muted/30 py-8">
-        <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Compatible avec les principales IA
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+        {/* IA Trust bar — intégrée en bas du hero */}
+        <div className="relative border-t border-white/10 bg-[#0F2236]">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-7 gap-y-2 px-4 py-4">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7C92AC]">
+              Interrogées à chaque audit
+            </span>
             {['ChatGPT', 'Perplexity', 'Google Gemini', 'Claude'].map((name) => (
-              <span
-                key={name}
-                className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm transition-colors hover:border-indigo-200 hover:text-foreground"
-              >
+              <span key={name} className="text-sm font-medium text-white">
                 {name}
               </span>
             ))}
@@ -247,50 +262,45 @@ export default function HomePage() {
       </section>
 
       {/* ── Comment ça marche ─────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24">
-        <div className="mx-auto max-w-5xl px-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            Comment ça marche
-          </p>
-          <h2 className="mb-16 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Trois étapes, quelques minutes.
-          </h2>
+      <section id="how-it-works" className="py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4">
+          <SectionHeading kicker="Comment ça marche" title="Trois étapes, quelques minutes." />
 
-          <div className="relative grid gap-8 md:grid-cols-3">
-            {/* Connector line (desktop only) */}
-            <div
-              aria-hidden
-              className="absolute top-6 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] hidden h-px bg-gradient-to-r from-indigo-200 via-violet-200 to-indigo-200 md:block"
-            />
-
+          <div className="grid gap-4 md:grid-cols-3">
             {[
               {
-                num: '01',
-                icon: Search,
+                num: '1',
+                icon: Globe,
                 title: 'Donnez votre URL',
                 body: "Entrez l'adresse de votre site. Pas besoin d'installer quoi que ce soit.",
               },
               {
-                num: '02',
+                num: '2',
                 icon: Zap,
                 title: 'On interroge les 4 IA',
-                body: 'GEOMIND envoie des questions neutres à ChatGPT, Perplexity, Gemini et Claude et analyse leurs réponses.',
+                body: 'Des questions neutres envoyées à ChatGPT, Perplexity, Gemini et Claude, puis analysées.',
               },
               {
-                num: '03',
+                num: '3',
                 icon: Lightbulb,
                 title: 'Vous recevez un plan',
-                body: "Un rapport clair : où vous êtes cité, où vous ratez des opportunités, et quoi faire en priorité.",
+                body: 'Où vous êtes cité, où vous ratez des opportunités, et quoi faire en priorité.',
               },
             ].map(({ num, icon: Icon, title, body }) => (
-              <div key={num} className="flex flex-col items-center text-center">
-                <div className="relative mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-                  <Icon size={20} className="text-primary" aria-hidden />
-                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 text-[9px] font-black text-white">
-                    {num.replace('0', '')}
-                  </span>
-                </div>
-                <h3 className="mb-2 font-semibold text-foreground">{title}</h3>
+              <div
+                key={num}
+                className="relative overflow-hidden rounded-2xl border border-border bg-card p-6"
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -top-3 right-4 text-6xl font-extrabold text-foreground/[0.04]"
+                >
+                  {num}
+                </span>
+                <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon size={19} className="text-primary" aria-hidden />
+                </span>
+                <h3 className="mb-1.5 font-semibold text-foreground">{title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
               </div>
             ))}
@@ -298,72 +308,94 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────────────── */}
-      <section id="features" className="bg-muted/50 py-24">
+      {/* ── Features — bento ──────────────────────────────────────────── */}
+      <section id="features" className="bg-slate-50 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            Fonctionnalités
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Tout ce dont vous avez besoin pour être cité par les IA
-          </h2>
-          <p className="mx-auto mb-14 max-w-2xl text-center text-muted-foreground">
-            Un outil simple, conçu pour les indépendants et PME qui n&apos;ont pas d&apos;équipe
-            marketing dédiée.
-          </p>
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                icon: <BarChart2 className="h-6 w-6 text-indigo-600" />,
-                title: 'Sachez',
-                subtitle: 'Où vous en êtes',
-                body: "Votre score GEO en temps réel : combien d'IA vous citent, sur quels mots-clés, et par rapport à vos concurrents.",
-              },
-              {
-                icon: <Search className="h-6 w-6 text-indigo-600" />,
-                title: 'Comprenez',
-                subtitle: "Pourquoi vous n'apparaissez pas",
-                body: "Analyse technique et contenu : on détecte exactement ce qui bloque les IA de vous citer.",
-              },
-              {
-                icon: <Lightbulb className="h-6 w-6 text-indigo-600" />,
-                title: 'Améliorez',
-                subtitle: 'Avec un plan concret',
-                body: "Recommandations personnalisées, priorisées par impact. Pas de jargon, des actions simples.",
-              },
-            ].map(({ icon, title, subtitle, body }) => (
+          <SectionHeading
+            kicker="Fonctionnalités"
+            title="Tout pour être cité par les IA."
+            intro="Un outil simple, conçu pour les indépendants et PME qui n'ont pas d'équipe marketing dédiée."
+          />
+
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            {/* Carte phare — navy */}
+            <div className="relative overflow-hidden rounded-2xl bg-[#16304B] p-7">
               <div
-                key={title}
-                className="rounded-xl border border-border bg-card p-8 shadow-sm transition-all hover:shadow-md hover:shadow-indigo-100/50 hover:-translate-y-0.5"
-              >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-                  {icon}
-                </div>
-                <h3 className="mb-1 text-xl font-bold text-foreground">{title}</h3>
-                <p className="mb-3 text-sm font-semibold text-primary">{subtitle}</p>
-                <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+                aria-hidden
+                className="pointer-events-none absolute -top-20 right-0 h-64 w-72 rounded-full bg-primary/30 blur-3xl"
+              />
+              <span className="relative mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                <BarChart2 className="h-5 w-5 text-[#7FB5E6]" aria-hidden />
+              </span>
+              <h3 className="relative text-xl font-bold text-white">Sachez où vous en êtes</h3>
+              <p className="relative mt-2 max-w-md text-sm leading-relaxed text-[#B2C8DE]">
+                Votre score GEO en temps réel : combien d&apos;IA vous citent, sur quels mots-clés,
+                et face à vos concurrents.
+              </p>
+              <div className="relative mt-6 flex flex-wrap gap-3">
+                {[
+                  { value: '72', label: 'Score GEO', accent: true },
+                  { value: '4/4', label: 'IA suivies', accent: false },
+                  { value: '+8', label: '30 jours', accent: false },
+                ].map(({ value, label, accent }) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5"
+                  >
+                    <p
+                      className={`text-2xl font-extrabold ${accent ? 'text-[#34D399]' : 'text-white'}`}
+                    >
+                      {value}
+                    </p>
+                    <p className="text-[10px] text-[#7C92AC]">{label}</p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Deux cartes secondaires */}
+            <div className="grid gap-4">
+              {[
+                {
+                  icon: Search,
+                  iconClass: 'bg-primary/10 text-primary',
+                  title: 'Comprenez pourquoi pas',
+                  body: 'Analyse technique et contenu : on détecte exactement ce qui bloque les IA de vous citer.',
+                },
+                {
+                  icon: Lightbulb,
+                  iconClass: 'bg-[--score-good-50] text-[--score-good-600]',
+                  title: 'Améliorez avec un plan',
+                  body: 'Recommandations personnalisées, priorisées par impact. Pas de jargon, des actions simples.',
+                },
+              ].map(({ icon: Icon, iconClass, title, body }) => (
+                <div key={title} className="rounded-2xl border border-border bg-card p-6">
+                  <span
+                    className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}
+                  >
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <h3 className="mb-1 font-semibold text-foreground">{title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Cas d'usage / personas (PLAN item 21) ─────────────────────── */}
-      <section className="py-24">
+      <section className="py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            Pour qui ?
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Ça change quoi, concrètement ?
-          </h2>
-          <p className="mx-auto mb-14 max-w-2xl text-center text-muted-foreground">
-            Trois situations types — la vôtre y est sûrement.
-          </p>
-          <div className="grid gap-6 md:grid-cols-3">
+          <SectionHeading
+            kicker="Pour qui ?"
+            title="Ça change quoi, concrètement ?"
+            intro="Trois situations types — la vôtre y est sûrement."
+          />
+          <div className="grid gap-4 md:grid-cols-3">
             {[
               {
-                emoji: '🔧',
+                icon: Wrench,
                 who: 'Artisan ou commerce local',
                 scenario:
                   '« Quelqu\'un demande à ChatGPT le meilleur plombier de sa ville. Trois noms sortent — pas le mien. »',
@@ -371,7 +403,7 @@ export default function HomePage() {
                   'GeoMind vous dit si vous sortez dans ces réponses, pourquoi vos concurrents y sont, et quoi corriger en premier (souvent : une fiche bien structurée et des infos lisibles par les IA).',
               },
               {
-                emoji: '🏢',
+                icon: Building2,
                 who: 'PME avec un site vitrine',
                 scenario:
                   '« On a investi dans le SEO. Mais nos prospects posent maintenant leurs questions à une IA, et on ne sait même pas si on y existe. »',
@@ -379,21 +411,18 @@ export default function HomePage() {
                   'Vous suivez votre taux de citation mois après mois, recevez une alerte quand il bouge, et votre équipe applique un plan d\'action priorisé — vérifié automatiquement.',
               },
               {
-                emoji: '💼',
+                icon: Briefcase,
                 who: 'Freelance ou consultant',
                 scenario:
                   '« Mes clients me trouvaient par Google. Maintenant ils demandent à ChatGPT "quel consultant pour…" — et je n\'ai aucune idée de ce qu\'il répond. »',
                 outcome:
                   'Vous voyez les réponses réelles des 4 moteurs sur les questions de votre métier, et le coach vous guide pas à pas, sans jargon, pour y apparaître.',
               },
-            ].map(({ emoji, who, scenario, outcome }) => (
-              <div
-                key={who}
-                className="flex flex-col rounded-xl border border-border bg-card p-7 shadow-sm"
-              >
-                <div className="mb-3 text-3xl" aria-hidden>
-                  {emoji}
-                </div>
+            ].map(({ icon: Icon, who, scenario, outcome }) => (
+              <div key={who} className="flex flex-col rounded-2xl border border-border bg-card p-6">
+                <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" aria-hidden />
+                </span>
                 <h3 className="mb-3 text-base font-bold text-foreground">{who}</h3>
                 <p className="mb-4 text-sm italic leading-relaxed text-muted-foreground">
                   {scenario}
@@ -406,45 +435,45 @@ export default function HomePage() {
       </section>
 
       {/* ── Capacités phares (PLAN item 34 : montrer la valeur réelle) ──── */}
-      <section className="bg-muted/30 py-24">
+      <section className="bg-slate-50 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            Bien plus qu&apos;un score
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            GeoMind fait le travail, pas seulement le constat
-          </h2>
-          <p className="mx-auto mb-14 max-w-2xl text-center text-muted-foreground">
-            Les autres outils vous donnent un tableau de bord. GeoMind vous donne les correctifs,
-            la preuve que ça marche, et vous prévient quand ça bouge.
-          </p>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <SectionHeading
+            kicker="Bien plus qu'un score"
+            title="GeoMind fait le travail, pas seulement le constat."
+            intro="Les autres outils vous donnent un tableau de bord. GeoMind vous donne les correctifs, la preuve que ça marche, et vous prévient quand ça bouge."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
+                icon: FileCode2,
                 title: 'Correctifs prêts à coller',
                 body: 'Pour chaque problème détecté, le fichier corrigé prêt à coller (llms.txt, données structurées, FAQ, balises) — avec les instructions pour votre plateforme.',
               },
               {
+                icon: BarChart3,
                 title: 'La preuve par les chiffres',
                 body: 'Le Pixel GeoMind compte les visiteurs réels que les IA vous amènent, et ce qu’ils font : appels, devis, rendez-vous.',
               },
               {
+                icon: Trophy,
                 title: 'Vos concurrents en face',
                 body: 'Sur les questions de votre secteur, qui les IA citent-elles ? Vous, ou eux ? Et surtout : pourquoi eux.',
               },
               {
+                icon: AlertTriangle,
                 title: 'Ce que les IA disent de vous',
                 body: 'On détecte quand ChatGPT ou Gemini racontent des infos fausses sur vous (horaires, adresse) — avant que ça vous coûte un client.',
               },
               {
+                icon: BellRing,
                 title: 'Surveillance automatique',
                 body: 'GeoMind re-vérifie votre visibilité chaque semaine et vous alerte par email : nouvelle citation, ou baisse à corriger.',
               },
-            ].map(({ title, body }) => (
-              <div key={title} className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
-                  <Zap className="h-5 w-5 text-indigo-600" />
-                </div>
+            ].map(({ icon: Icon, title, body }) => (
+              <div key={title} className="rounded-2xl border border-border bg-card p-6">
+                <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" aria-hidden />
+                </span>
                 <h3 className="mb-1.5 text-base font-bold text-foreground">{title}</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
               </div>
@@ -454,18 +483,14 @@ export default function HomePage() {
       </section>
 
       {/* ── Pricing preview ───────────────────────────────────────────── */}
-      <section className="py-24">
+      <section className="py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            Tarifs
-          </p>
-          <h2 className="mb-4 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Des tarifs simples, sans engagement
-          </h2>
-          <p className="mx-auto mb-14 max-w-xl text-center text-muted-foreground">
-            Commencez gratuitement. Passez au Pro quand vous êtes prêt.
-          </p>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <SectionHeading
+            kicker="Tarifs"
+            title="Des tarifs simples, sans engagement."
+            intro="Commencez gratuitement. Passez au Pro quand vous êtes prêt."
+          />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 name: 'Gratuit',
@@ -525,12 +550,12 @@ export default function HomePage() {
                 key={name}
                 className={
                   highlighted
-                    ? 'relative flex flex-col rounded-xl border border-primary/40 bg-card p-8 ring-2 ring-primary shadow-lg shadow-indigo-100/60'
-                    : 'flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm'
+                    ? 'relative flex flex-col rounded-2xl border-2 border-primary bg-card p-7 shadow-lg shadow-primary/10'
+                    : 'flex flex-col rounded-2xl border border-border bg-card p-7'
                 }
               >
                 {highlighted && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1 text-xs font-semibold text-white">
+                  <span className="absolute -top-3.5 left-7 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
                     Populaire
                   </span>
                 )}
@@ -551,18 +576,14 @@ export default function HomePage() {
                 <Button
                   asChild
                   variant={highlighted ? 'default' : 'outline'}
-                  className={
-                    highlighted
-                      ? 'mt-8 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity'
-                      : 'mt-8 rounded-lg'
-                  }
+                  className="mt-8 rounded-lg"
                 >
                   <Link href={price === 0 ? '/signup' : '/pricing'}>{cta}</Link>
                 </Button>
               </div>
             ))}
           </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          <p className="mt-6 text-sm text-muted-foreground">
             1 analyse complète = 400 crédits. Chaque plan inclut des crédits mensuels, utilisables
             librement entre analyses et questions au Coach IA.{' '}
             <Link href="/pricing" className="underline hover:text-foreground">
@@ -573,15 +594,13 @@ export default function HomePage() {
       </section>
 
       {/* ── FAQ ───────────────────────────────────────────────────────── */}
-      <section className="bg-muted/50 py-24">
+      <section className="bg-slate-50 py-20 sm:py-24">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
         />
         <div className="mx-auto max-w-3xl px-4">
-          <h2 className="mb-12 text-center text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-            Questions fréquentes
-          </h2>
+          <SectionHeading kicker="FAQ" title="Questions fréquentes." />
           <div className="divide-y divide-border">
             {FAQ_ITEMS.map(({ q, a }) => (
               <details key={q} className="group py-5">
@@ -598,22 +617,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA final ─────────────────────────────────────────────────── */}
-      <section className="py-24 text-center">
-        <div className="mx-auto max-w-2xl px-4">
-          <div className="rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-16 shadow-xl shadow-indigo-200">
-            <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+      {/* ── CTA final — second moment navy ────────────────────────────── */}
+      <section className="px-4 py-20 sm:py-24">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-[#16304B] px-8 py-16 sm:px-14">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-24 left-1/3 h-72 w-96 -translate-x-1/2 rounded-full bg-primary/30 blur-3xl"
+          />
+          <div className="relative max-w-xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Prêt à savoir où vous en êtes&nbsp;?
             </h2>
-            <p className="mb-8 text-indigo-100">
+            <p className="mt-4 text-lg text-[#B2C8DE]">
               Créez votre compte gratuitement et lancez votre premier audit en moins de 5 minutes.
             </p>
             <Button
               size="lg"
               asChild
-              className="rounded-lg bg-white px-8 text-indigo-700 shadow-sm hover:bg-indigo-50 transition-colors font-semibold"
+              className="mt-8 gap-2 rounded-lg bg-[#34D399] px-8 font-semibold text-[#0B3B2E] shadow-lg shadow-black/20 hover:bg-[#2bbd88]"
             >
-              <Link href="/signup">Analyser mon site gratuitement</Link>
+              <Link href="/signup">
+                Analyser mon site gratuitement
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

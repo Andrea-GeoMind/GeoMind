@@ -70,13 +70,13 @@ export default function Sidebar({ userEmail, credits }: Props) {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-indigo-500/15 text-indigo-400'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200',
+                    ? 'bg-[#31649B] text-white'
+                    : 'text-[#B2C8DE] hover:bg-white/10 hover:text-white',
                   locked && 'opacity-50'
                 )}
               >
                 <Icon
-                  className={cn('h-4 w-4 shrink-0 transition-colors', isActive ? 'text-indigo-400' : '')}
+                  className={cn('h-4 w-4 shrink-0 transition-colors', isActive ? 'text-white' : '')}
                 />
                 {label}
               </Link>
@@ -86,13 +86,13 @@ export default function Sidebar({ userEmail, credits }: Props) {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-slate-800 p-3">
+      <div className="border-t border-white/10 p-3">
         {credits && (
           <div className={cn(locked && 'pointer-events-none opacity-50')}>
             <Link
               href="/settings/usage"
               title={credits.usage}
-              className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
+              className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-xs font-medium text-[#B2C8DE] transition-colors hover:bg-white/10 hover:text-white"
             >
               <Coins className="h-4 w-4 shrink-0 text-amber-400" />
               <span className="truncate">
@@ -102,10 +102,10 @@ export default function Sidebar({ userEmail, credits }: Props) {
           </div>
         )}
         <div className="mb-1 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-400">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#31649B] text-xs font-bold text-white">
             {initial}
           </div>
-          <p className="min-w-0 truncate text-xs text-slate-400">{userEmail}</p>
+          <p className="min-w-0 truncate text-xs text-[#B2C8DE]">{userEmail}</p>
         </div>
         <form action={signOut}>
           <Button
@@ -113,7 +113,7 @@ export default function Sidebar({ userEmail, credits }: Props) {
             variant="ghost"
             size="sm"
             disabled={locked}
-            className="w-full justify-start gap-3 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            className="w-full justify-start gap-3 text-[#B2C8DE] hover:bg-white/10 hover:text-white"
             title={locked ? 'Analyse en cours…' : undefined}
           >
             <LogOut className="h-4 w-4 shrink-0" />
