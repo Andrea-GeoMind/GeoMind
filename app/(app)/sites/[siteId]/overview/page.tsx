@@ -132,8 +132,8 @@ export default async function OverviewPage({ params }: Props) {
 
       {/* Méthodologie enrichie (§18.3) */}
       {methodologyChanged && deltas !== null && (
-        <div className="flex items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 text-sm text-indigo-800">
-          <Info size={15} className="shrink-0" />
+        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
+          <Info size={15} className="shrink-0 text-primary" />
           <span>
             <strong>Méthodologie enrichie</strong> — notre audit analyse désormais plus de
             critères qu&apos;avant. Une variation de score peut refléter ce changement plutôt
@@ -156,17 +156,21 @@ export default async function OverviewPage({ params }: Props) {
 
       {/* Running banner */}
       {isInProgress && (
-        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 px-4 py-3 text-sm font-medium text-primary">
+        <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-medium text-primary">
           <RefreshCw size={15} className="shrink-0 animate-spin" />
           Analyse en cours — la page se met à jour automatiquement…
         </div>
       )}
 
-      {/* Score global hero card */}
-      <section className="rounded-xl border border-border bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-          {/* Gauge — left */}
-          <div className="flex shrink-0 items-center justify-center">
+      {/* Score global hero card — surface navy premium */}
+      <section className="relative overflow-hidden rounded-2xl bg-[#16304B] p-6 shadow-sm sm:p-7">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 right-0 h-64 w-80 rounded-full bg-primary/30 blur-3xl"
+        />
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
+          {/* Gauge — encart blanc */}
+          <div className="flex shrink-0 items-center justify-center rounded-2xl bg-white p-4">
             {isInProgress ? (
               <Skeleton className="h-40 w-40 rounded-full" />
             ) : globalScore !== null ? (
@@ -181,8 +185,8 @@ export default async function OverviewPage({ params }: Props) {
           {/* Info — right */}
           <div className="flex flex-1 flex-col gap-3">
             <div>
-              <h2 className="text-base font-semibold text-foreground">Score GEO Global</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <h2 className="text-lg font-semibold text-white">Score GEO Global</h2>
+              <p className="mt-0.5 text-xs text-[#B2C8DE]">
                 Moyenne de vos scores Autorité, Technique et Contenu
               </p>
             </div>
@@ -190,9 +194,9 @@ export default async function OverviewPage({ params }: Props) {
             {isInProgress ? (
               <Skeleton className="h-3 w-28 rounded-full" />
             ) : globalMaturity ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-[#B2C8DE]">
                 Niveau :{' '}
-                <span className="font-semibold text-foreground">{globalMaturity.label}</span>
+                <span className="font-semibold text-white">{globalMaturity.label}</span>
               </p>
             ) : null}
 
@@ -204,7 +208,7 @@ export default async function OverviewPage({ params }: Props) {
                     ? 'bg-[--score-good-50] text-[--score-good-600]'
                     : deltas.globalDelta < 0
                       ? 'bg-[--score-bad-50] text-[--score-bad-600]'
-                      : 'bg-muted text-muted-foreground',
+                      : 'bg-white/10 text-[#B2C8DE]',
                 ].join(' ')}
               >
                 {deltas.globalDelta > 0 ? (
@@ -274,9 +278,9 @@ export default async function OverviewPage({ params }: Props) {
           {showTrendSummary && (
             <Link
               href={`/sites/${siteId}/trends` as Route}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Radar size={20} className="text-primary" aria-hidden />
               </div>
               <div className="min-w-0 flex-1">
@@ -300,9 +304,9 @@ export default async function OverviewPage({ params }: Props) {
           {showPixelSummary && (
             <Link
               href={`/sites/${siteId}/pixel` as Route}
-              className="group flex items-center gap-4 rounded-xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+              className="group flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Radio size={20} className="text-primary" aria-hidden />
               </div>
               <div className="min-w-0 flex-1">
@@ -334,13 +338,13 @@ export default async function OverviewPage({ params }: Props) {
       {priorityAction && !isInProgress && (
         <Link
           href={priorityAction.href(siteId) as Route}
-          className="group flex items-start gap-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-4 transition-all hover:border-indigo-200 hover:shadow-sm"
+          className="group flex items-start gap-4 rounded-2xl border border-primary/15 bg-primary/5 p-4 transition-all hover:border-primary/30 hover:shadow-sm"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
-            <Lightbulb size={16} className="text-indigo-600" aria-hidden />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Lightbulb size={16} className="text-primary" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
               Action prioritaire
             </p>
             <p className="mt-1 text-sm font-semibold leading-snug text-foreground">
@@ -352,7 +356,7 @@ export default async function OverviewPage({ params }: Props) {
           </div>
           <ArrowRight
             size={15}
-            className="mt-1 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-600"
+            className="mt-1 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
             aria-hidden
           />
         </Link>
