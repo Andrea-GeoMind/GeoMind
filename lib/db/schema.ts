@@ -558,6 +558,35 @@ export const publisherCategoryEnum = pgEnum('publisher_category', [
 
 export const coachRoleEnum = pgEnum('coach_role', ['user', 'assistant'])
 
+// ─── off_site_presence ────────────────────────────────────────────────────────
+// Diagnostic de présence off-site (le cœur du GEO) : pour chaque plateforme clé
+// du registre lib/analysis/offsite-platforms.ts, le client y est-il présent ?
+// 1 record = 1 plateforme × 1 analyse. platformId référence le registre (codé).
+
+export const offSitePresenceStatusEnum = pgEnum('off_site_presence_status', [
+  'present',
+  'absent',
+  'unknown',
+])
+
+export const offSitePresence = pgTable('off_site_presence', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  analysisId: uuid('analysis_id')
+    .notNull()
+    .references(() => analyses.id, { onDelete: 'cascade' }),
+  siteId: uuid('site_id')
+    .notNull()
+    .references(() => sites.id, { onDelete: 'cascade' }),
+  /** id du registre OFF_SITE_PLATFORMS (ex : 'linkedin', 'wikidata') */
+  platformId: text('platform_id').notNull(),
+  status: offSitePresenceStatusEnum('status').notNull().default('unknown'),
+  /** URL du profil/fiche détecté si présent */
+  profileUrl: text('profile_url'),
+  /** courte justification renvoyée par la détection */
+  evidence: text('evidence'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const publishers = pgTable('publishers', {
   id: uuid('id').primaryKey().defaultRandom(),
   analysisId: uuid('analysis_id')
@@ -643,6 +672,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   prompts: many(prompts),
   analyses: many(analyses),
   publishers: many(publishers),
+  offSitePresence: many(offSitePresence),
   coachMessages: many(coachMessages),
 }))
 
@@ -689,6 +719,7 @@ export const analysesRelations = relations(analyses, ({ one, many }) => ({
   contentIssues: many(contentIssues),
   recommendations: many(recommendations),
   publishers: many(publishers),
+  offSitePresence: many(offSitePresence),
 }))
 
 export const publishersRelations = relations(publishers, ({ one }) => ({
@@ -698,6 +729,17 @@ export const publishersRelations = relations(publishers, ({ one }) => ({
   }),
   site: one(sites, {
     fields: [publishers.siteId],
+    references: [sites.id],
+  }),
+}))
+
+export const offSitePresenceRelations = relations(offSitePresence, ({ one }) => ({
+  analysis: one(analyses, {
+    fields: [offSitePresence.analysisId],
+    references: [analyses.id],
+  }),
+  site: one(sites, {
+    fields: [offSitePresence.siteId],
     references: [sites.id],
   }),
 }))

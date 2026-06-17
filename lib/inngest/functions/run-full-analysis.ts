@@ -6,6 +6,7 @@ import { runTechnicalAnalysis } from '@/lib/analysis/technical'
 import { runContentAnalysis } from '@/lib/analysis/content'
 import { generateRecommendations } from '@/lib/analysis/recommendations'
 import { detectPublishers } from '@/lib/analysis/publishers'
+import { detectOffSitePresence } from '@/lib/analysis/off-site-presence'
 import { computeAuthorityScore, computeScores } from '@/lib/analysis/scoring'
 import {
   updateAnalysisStatus,
@@ -94,6 +95,15 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
       // 6. Publishers (stub for now)
       await step.run('run-publishers', () => detectPublishers(siteId, analysisId))
+
+      // 6bis. Présence off-site (cœur du GEO) : détection par recherche web,
+      // coûteuse → réservée aux plans payants. En gratuit, l'onglet affiche le
+      // registre des plateformes + démarches, statut « à vérifier » (upsell).
+      if (tier === 'full') {
+        await step.run('run-offsite-presence', () =>
+          detectOffSitePresence(siteId, analysisId)
+        )
+      }
 
       // 7. Compute global score + persist all 4 scores atomically, mark success
       const scores = computeScores(

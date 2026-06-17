@@ -4,7 +4,7 @@ import type { Route } from 'next'
 import type { LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, TrendingUp, ListTodo, Swords, Radio, MessageSquareQuote, MapPin, Shield, Wrench, FileText, BookOpen, Sparkles } from 'lucide-react'
+import { LayoutDashboard, TrendingUp, ListTodo, Swords, Radio, MessageSquareQuote, MapPin, Shield, Wrench, FileText, Globe, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
 
@@ -39,7 +39,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { label: 'Concurrents', segment: 'competitors', icon: Swords },
       { label: 'Réputation', segment: 'reputation', icon: MessageSquareQuote },
-      { label: 'Publishers', segment: 'publishers', icon: BookOpen },
+      { label: 'Présence', segment: 'presence', icon: Globe },
     ],
   },
   {
