@@ -30,7 +30,7 @@ export function SiteLogo({ url, name, className, iconClassName }: Props) {
   return (
     <div
       className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/15',
+        'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-border',
         className,
       )}
     >
