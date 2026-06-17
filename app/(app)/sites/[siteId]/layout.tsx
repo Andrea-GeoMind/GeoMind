@@ -54,12 +54,12 @@ export default async function SiteLayout({ children, params }: Props) {
         contentScore={latestSuccess?.contentScore ?? null}
       />
 
-      {/* Site header */}
-      <div className="border-b border-border bg-card px-6 py-4">
+      {/* Site header — bandeau navy, cohérent avec la sidebar (chrome premium) */}
+      <div className="border-b border-white/10 bg-[#16304B] px-6 py-5">
         {/* Breadcrumb */}
         <Link
           href="/dashboard"
-          className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#B2C8DE] transition-colors hover:text-white"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
           Tableau de bord
@@ -70,16 +70,18 @@ export default async function SiteLayout({ children, params }: Props) {
           <SiteLogo
             url={site.url}
             name={site.name}
-            className="ring-primary/20"
+            className="ring-white/15"
             iconClassName="h-5 w-5 text-primary"
           />
           <div className="min-w-0">
-            <h1 className="truncate text-base font-extrabold tracking-tight">{site.name}</h1>
+            <h1 className="truncate text-lg font-extrabold tracking-tight text-white">
+              {site.name}
+            </h1>
             <a
               href={site.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
+              className="flex items-center gap-1 truncate text-xs text-[#B2C8DE] transition-colors hover:text-white"
             >
               {site.url}
               <ExternalLink className="h-3 w-3 shrink-0" />
@@ -88,7 +90,7 @@ export default async function SiteLayout({ children, params }: Props) {
           {/* Export PDF (PLAN item 24) — la page gère le gate par plan */}
           <Link
             href={`/sites/${siteId}/report`}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-[#B2C8DE] transition-colors hover:bg-white/10 hover:text-white"
           >
             <FileDown className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Rapport PDF</span>
