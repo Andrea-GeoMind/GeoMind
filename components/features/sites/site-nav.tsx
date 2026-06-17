@@ -88,7 +88,7 @@ export function SiteNav({ siteId }: Props) {
               className={cn(
                 'relative inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-150',
                 active
-                  ? 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-t-full after:bg-gradient-to-r after:from-indigo-600 after:to-violet-600'
+                  ? 'text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-t-full after:bg-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -122,7 +122,7 @@ export function SiteNav({ siteId }: Props) {
                     className={cn(
                       'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150',
                       active
-                        ? 'bg-indigo-500/10 text-primary'
+                        ? 'bg-primary/10 text-primary'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
                   >

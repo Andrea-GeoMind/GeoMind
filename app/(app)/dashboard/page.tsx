@@ -45,7 +45,7 @@ export default async function DashboardPage() {
       {siteList.length === 0 ? (
         /* Empty state */
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/30 py-24 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
             <Globe size={28} className="text-primary" />
           </div>
           <h2 className="mt-5 text-xl font-bold">Analysez votre premier site</h2>
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
           </p>
           <Button
             asChild
-            className="mt-6 gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200 hover:from-indigo-500 hover:to-violet-500 dark:shadow-indigo-900/30"
+            className="mt-6 gap-2 bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
           >
             <Link href="/onboarding">
               <Sparkles className="h-4 w-4" />

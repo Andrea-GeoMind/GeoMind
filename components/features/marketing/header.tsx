@@ -45,7 +45,7 @@ export default function Header() {
           <Button
             asChild
             size="sm"
-            className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity rounded-lg"
+            className="rounded-lg bg-primary text-primary-foreground shadow-sm shadow-primary/20 transition-colors hover:bg-primary/90"
           >
             <Link href="/signup">Commencer</Link>
           </Button>

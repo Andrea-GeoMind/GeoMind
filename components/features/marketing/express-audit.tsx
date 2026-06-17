@@ -105,7 +105,7 @@ export function ExpressAudit() {
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200/60 transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#34D399] px-6 py-3 text-sm font-semibold text-[#0B3B2E] shadow-lg shadow-black/20 transition-colors hover:bg-[#2bbd88] disabled:opacity-60"
         >
           {status === 'loading' ? (
             <Loader2 size={15} className="animate-spin" />
@@ -117,7 +117,7 @@ export function ExpressAudit() {
           )}
         </button>
       </form>
-      <p className="mt-2 text-center text-xs text-muted-foreground sm:text-left">
+      <p className="mt-2 text-center text-xs text-[#7C92AC] sm:text-left">
         Gratuit, sans inscription — 11 vérifications en quelques secondes
       </p>
 
@@ -187,7 +187,7 @@ export function ExpressAudit() {
 
           <Link
             href="/signup"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-200/60 transition-opacity hover:opacity-90"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
           >
             Voir si ChatGPT me cite — audit complet offert
             <ArrowRight size={15} />
