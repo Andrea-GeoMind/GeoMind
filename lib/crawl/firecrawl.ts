@@ -17,6 +17,26 @@ function getClient(): FirecrawlApp {
   return _client
 }
 
+// ─── Bornes anti-blocage ────────────────────────────────────────────────────────
+// Sans timeout, une seule page lente à scraper fait attendre tout le
+// Promise.allSettled (qui attend la plus lente) → découverte bloquée à 90 %.
+const MAP_TIMEOUT_MS = 15_000
+const SCRAPE_TIMEOUT_MS = 20_000
+
+/**
+ * Borne une promesse : rejette après `ms` si elle n'a pas résolu. Ne coupe pas la
+ * requête sous-jacente (Firecrawl finira par se résoudre, ignorée), mais arrête de
+ * l'attendre — suffisant pour garantir le temps de mur de la découverte.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}: timeout après ${ms / 1000} s`)), ms)
+    ),
+  ])
+}
+
 // ─── scrapeForDiscovery ────────────────────────────────────────────────────────
 // Utilisé pour la découverte initiale (site.crawl.requested).
 // Stratégie : map() pour lister les URLs (< 2s), puis scrape() en parallèle sur
@@ -38,7 +58,11 @@ export async function scrapeForDiscovery({
   // 1. Lister les URLs présentes sur le site (rapide — pas de contenu scrappé)
   let urlsToScrape: string[] = [site.url]
   try {
-    const mapResult = await client.map(site.url, { limit: maxPages + 5 })
+    const mapResult = await withTimeout(
+      client.map(site.url, { limit: maxPages + 5 }),
+      MAP_TIMEOUT_MS,
+      'map'
+    )
     if (mapResult.links && mapResult.links.length > 0) {
       const discovered = mapResult.links
         .map((l) => l.url)
@@ -57,7 +81,11 @@ export async function scrapeForDiscovery({
   await Promise.allSettled(
     urlsToScrape.map(async (url) => {
       try {
-        const doc = await client.scrape(url, { formats: ['markdown'] })
+        const doc = await withTimeout(
+          client.scrape(url, { formats: ['markdown'] }),
+          SCRAPE_TIMEOUT_MS,
+          `scrape ${url}`
+        )
         if (!doc) return
         const parsed = firecrawlDocumentSchema.safeParse(doc)
         if (!parsed.success) return
