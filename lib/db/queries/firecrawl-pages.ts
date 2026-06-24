@@ -1,20 +1,17 @@
 import { count, desc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { firecrawlPages } from '@/lib/db/schema'
+import { dedupeFirecrawlPages, type FirecrawlPageInsert } from '@/lib/crawl/pages'
 
-export type FirecrawlPageInsert = {
-  siteId: string
-  url: string
-  markdown: string | null
-  metadata: Record<string, unknown> | null
-  statusCode: number | null
-}
+// Re-export pour compat des imports existants (firecrawl.ts, etc.)
+export { dedupeFirecrawlPages, type FirecrawlPageInsert }
 
 export async function upsertFirecrawlPages(pages: FirecrawlPageInsert[]) {
-  if (pages.length === 0) return []
+  const deduped = dedupeFirecrawlPages(pages)
+  if (deduped.length === 0) return []
   return db
     .insert(firecrawlPages)
-    .values(pages)
+    .values(deduped)
     .onConflictDoUpdate({
       target: [firecrawlPages.siteId, firecrawlPages.url],
       set: {
