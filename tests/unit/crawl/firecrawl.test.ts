@@ -1,6 +1,50 @@
 import { describe, it, expect, vi } from 'vitest'
 import { withRetry } from '@/lib/crawl/retry'
 import { firecrawlDocumentSchema } from '@/lib/crawl/schemas'
+import { dedupeFirecrawlPages } from '@/lib/crawl/pages'
+
+// ─── dedupeFirecrawlPages ─────────────────────────────────────────────────────
+// Régression : un site builder (eatbu/DISH) sert `/`, le domaine nu et `?lang=xx`
+// qui se canonicalisent vers la même metadata.url → doublons (siteId, url) dans le
+// batch → Postgres rejette l'ON CONFLICT → 0 page écrite → découverte bloquée à 90 %.
+
+describe('dedupeFirecrawlPages', () => {
+  const page = (url: string, markdown: string) => ({
+    siteId: 's1',
+    url,
+    markdown,
+    metadata: null,
+    statusCode: 200,
+  })
+
+  it('supprime les doublons (siteId, url) en gardant la dernière occurrence', () => {
+    const pages = [
+      page('https://x.fr/?lang=fr', 'A'),
+      page('https://x.fr/?lang=en', 'B'),
+      page('https://x.fr/?lang=en', 'C'), // doublon de la ligne précédente
+    ]
+    const result = dedupeFirecrawlPages(pages)
+    expect(result).toHaveLength(2)
+    expect(result.find((p) => p.url === 'https://x.fr/?lang=en')?.markdown).toBe('C')
+  })
+
+  it('ne dédoublonne pas entre sites différents pour la même url', () => {
+    const pages = [
+      { ...page('https://x.fr/', 'A'), siteId: 's1' },
+      { ...page('https://x.fr/', 'B'), siteId: 's2' },
+    ]
+    expect(dedupeFirecrawlPages(pages)).toHaveLength(2)
+  })
+
+  it('laisse une liste sans doublon intacte', () => {
+    const pages = [page('https://x.fr/a', 'A'), page('https://x.fr/b', 'B')]
+    expect(dedupeFirecrawlPages(pages)).toHaveLength(2)
+  })
+
+  it('gère une liste vide', () => {
+    expect(dedupeFirecrawlPages([])).toEqual([])
+  })
+})
 
 // ─── withRetry ────────────────────────────────────────────────────────────────
 
