@@ -1,0 +1,23 @@
+#!/bin/sh
+# Pre-commit : scan des secrets avec gitleaks sur les fichiers stagés.
+# Installé via : git config core.hooksPath .githooks
+# Ce hook BLOQUE le commit si un secret est détecté ou si gitleaks est absent —
+# les clés service_role commitées en mai 2026 ne doivent jamais se reproduire.
+
+# Homebrew n'est pas toujours dans le PATH d'un hook (sh non-interactif)
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+export PATH
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "❌ gitleaks n'est pas installé — commit bloqué par sécurité."
+  echo "   Installation : brew install gitleaks"
+  exit 1
+fi
+
+if ! gitleaks git --pre-commit --staged --redact -v; then
+  echo ""
+  echo "❌ Secret potentiel détecté dans les fichiers stagés — commit bloqué."
+  echo "   Retirez la valeur du fichier (variable d'env) puis recommittez."
+  exit 1
+fi
+exit 0
