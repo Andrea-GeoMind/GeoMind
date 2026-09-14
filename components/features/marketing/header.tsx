@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
+import { MobileMenu } from '@/components/features/marketing/mobile-menu'
 
 export default function Header() {
   return (
@@ -38,8 +39,8 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" asChild size="sm">
+        <div className="flex items-center gap-2 md:gap-3">
+          <Button variant="ghost" asChild size="sm" className="hidden md:inline-flex">
             <Link href="/login">Se connecter</Link>
           </Button>
           <Button
@@ -49,6 +50,7 @@ export default function Header() {
           >
             <Link href="/signup">Commencer</Link>
           </Button>
+          <MobileMenu />
         </div>
       </div>
     </header>
