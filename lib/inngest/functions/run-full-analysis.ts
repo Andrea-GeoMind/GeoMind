@@ -24,6 +24,7 @@ import { reconcileActionStates } from '@/lib/db/queries/action-states'
 import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
+import { captureJobFailure } from '@/lib/monitoring'
 
 const DEFAULT_MAX_PAGES = 20
 
@@ -139,6 +140,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
       const message = err instanceof Error ? err.message : String(err)
       // Message humanisé pour l'UI (PLAN item 17) — le brut part dans les logs
       console.error(`[run-full-analysis] ${analysisId}:`, message)
+      captureJobFailure('run-full-analysis', err, { analysisId, siteId, userId })
       await step.run('mark-error', () =>
         updateAnalysisStatus(analysisId, 'error', humanizeAnalysisError(message))
       )

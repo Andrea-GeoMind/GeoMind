@@ -14,6 +14,7 @@ import { getSiteById } from '@/lib/db/queries/sites'
 import { callStructured } from '@/lib/ai/structured'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { ReputationExtractSchema } from '@/lib/ai/schemas'
+import { captureEngineFailure, captureJobFailure } from '@/lib/monitoring'
 import {
   buildReputationQuery,
   REPUTATION_EXTRACT_SYSTEM_PROMPT,
@@ -80,6 +81,7 @@ export async function runReputationCheck(
       costUsd = raw.cost_usd
     } catch (err) {
       console.error(`[reputation] ${engine.name} requête échouée:`, err)
+      captureEngineFailure(engine.name, err, { step: 'reputation', siteId: site.id })
       continue
     }
     totalCostUsd += costUsd
@@ -97,6 +99,8 @@ export async function runReputationCheck(
       extracted = res.data
     } catch (err) {
       console.error(`[reputation] extraction ${engine.name} échouée:`, err)
+      // Extraction Haiku, pas le moteur testé : c'est notre pipeline qui casse.
+      captureJobFailure('reputation-extract', err, { engine: engine.name, siteId: site.id })
       extracted = { knows_business: true, sentiment: 'neutral', claims: [] }
     }
 

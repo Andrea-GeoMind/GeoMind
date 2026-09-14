@@ -2,6 +2,7 @@ import { inngest } from '@/lib/inngest/client'
 import { runReputationCheck } from '@/lib/analysis/reputation-runner'
 import { updateReputationRunStatus } from '@/lib/db/queries/reputation'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
+import { captureJobFailure } from '@/lib/monitoring'
 
 /**
  * Analyse de réputation (PLAN item 31) — déclenchée par site.reputation.requested.
@@ -24,6 +25,7 @@ export const runReputationCheckFunction = inngest.createFunction(
       await step.run('mark-success', () => updateReputationRunStatus(runId, 'success'))
       return result
     } catch (err) {
+      captureJobFailure('run-reputation-check', err, { ...(event.data as Record<string, unknown>) })
       const message = err instanceof Error ? err.message : String(err)
       console.error(`[run-reputation-check] ${runId}:`, message)
       await step.run('mark-error', () =>

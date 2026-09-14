@@ -5,8 +5,7 @@
  * Envoyés uniquement si profiles.email_notifications = true.
  */
 
-import { resend } from '@/lib/email/client'
-import { env } from '@/lib/env'
+import { sendEmail } from '@/lib/email/send'
 
 const FOOTER = (reason: string) => `
   <p style="font-size: 12px; color: #64748b; margin: 32px 0 0;">
@@ -35,8 +34,7 @@ export async function sendFirstCitationEmail(params: {
   siteName: string
   siteId: string
 }): Promise<void> {
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+  await sendEmail('first-citation', {
     to: params.to,
     subject: `🎉 ${params.siteName} vient d'être cité par une IA`,
     html: wrap(`
@@ -64,8 +62,7 @@ export async function sendVisibilityDropEmail(params: {
   siteId: string
   previousRate: number
 }): Promise<void> {
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+  await sendEmail('visibility-drop', {
     to: params.to,
     subject: `⚠️ ${params.siteName} a disparu des réponses IA cette semaine`,
     html: wrap(`
@@ -98,8 +95,7 @@ export async function sendAnalysisCompleteEmail(params: {
     params.globalScore !== null
       ? `Votre note GEO globale : <strong>${params.globalScore}/100</strong>.`
       : 'Vos résultats sont prêts.'
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+  await sendEmail('analysis-complete', {
     to: params.to,
     subject: `Votre analyse GEO de ${params.siteName} est prête`,
     html: wrap(`

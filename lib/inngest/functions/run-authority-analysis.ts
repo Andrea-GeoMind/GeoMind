@@ -1,6 +1,7 @@
 import { inngest } from '@/lib/inngest/client'
 import { runAuthorityAnalysis } from '@/lib/analysis/authority'
 import { updateAnalysisStatus } from '@/lib/db/queries/analyses'
+import { captureJobFailure } from '@/lib/monitoring'
 
 export const runAuthorityAnalysisFunction = inngest.createFunction(
   { id: 'run-authority-analysis', triggers: [{ event: 'site.analysis.requested' }] },
@@ -16,6 +17,7 @@ export const runAuthorityAnalysisFunction = inngest.createFunction(
 
       return result
     } catch (err) {
+      captureJobFailure('run-authority-analysis', err, { ...(event.data as Record<string, unknown>) })
       const message = err instanceof Error ? err.message : String(err)
       await step.run('mark-error', () =>
         updateAnalysisStatus(analysisId, 'error', message)

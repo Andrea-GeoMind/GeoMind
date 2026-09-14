@@ -3,8 +3,7 @@
  * Envoyé une seule fois par cycle quand le solde mensuel passe sous 20 %.
  */
 
-import { resend } from '@/lib/email/client'
-import { env } from '@/lib/env'
+import { sendEmail } from '@/lib/email/send'
 
 interface LowCreditsEmailInput {
   to: string
@@ -17,8 +16,7 @@ export async function sendLowCreditsEmail({
   remaining,
   allowance,
 }: LowCreditsEmailInput): Promise<void> {
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+  await sendEmail('low-credits', {
     to,
     subject: 'GeoMind — vos crédits sont bientôt épuisés',
     html: lowCreditsEmailHtml({ remaining, allowance }),

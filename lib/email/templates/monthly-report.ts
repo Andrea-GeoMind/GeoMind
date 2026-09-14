@@ -4,8 +4,7 @@
  * Volontairement simple : un patron doit tout comprendre en 20 secondes.
  */
 
-import { resend } from '@/lib/email/client'
-import { env } from '@/lib/env'
+import { sendEmail } from '@/lib/email/send'
 
 export interface MonthlySiteReport {
   siteId: string
@@ -57,8 +56,7 @@ export async function sendMonthlyReportEmail(params: {
   sites: MonthlySiteReport[]
 }): Promise<void> {
   const month = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-  await resend.emails.send({
-    from: env.EMAIL_FROM,
+  await sendEmail('monthly-report', {
     to: params.to,
     subject: `Votre visibilité IA — rapport de ${month}`,
     html: `

@@ -16,6 +16,7 @@ import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { extractDomain } from '@/lib/ai/parse'
 import { CITATION_SUFFIX } from '@/lib/analysis/authority'
 import { IAResponseSchema } from '@/lib/ai/schemas'
+import { captureEngineFailure } from '@/lib/monitoring'
 import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
 import { ClaudeConnector } from '@/lib/ai/connectors/claude'
 import { GeminiConnector } from '@/lib/ai/connectors/gemini'
@@ -88,6 +89,7 @@ export async function runMonitoringCheck(
         if (clientIndex >= 0) citedCalls++
       } catch (err) {
         console.error(`[GeoMind/monitoring] ${engine.name} erreur sur site ${siteId}:`, err)
+        captureEngineFailure(engine.name, err, { step: 'monitoring', siteId })
       }
     }
   }

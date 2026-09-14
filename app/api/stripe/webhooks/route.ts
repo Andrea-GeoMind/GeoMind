@@ -19,6 +19,7 @@ import { claimWebhookEvent, releaseWebhookEvent } from '@/lib/db/queries/webhook
 import { logAudit } from '@/lib/db/queries/audit-log'
 import { CREDIT_PACKS, PLAN_LIMITS, type CreditPackId } from '@/lib/plans'
 import { trackEvent } from '@/lib/posthog'
+import { capturePaymentFailure } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(body, sig, env.STRIPE_WEBHOOK_SECRET)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
+    // Secret mal configuré côté Vercel, ou requête forgée : les deux méritent une alerte.
+    capturePaymentFailure('signature_verification', err)
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 })
   }
 
@@ -65,6 +68,7 @@ export async function POST(req: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[stripe-webhook] Error handling ${event.type}:`, message)
+    capturePaymentFailure('handle_event', err, { eventType: event.type, eventId: event.id })
     // Libère le claim pour que le retry Stripe puisse reprocesser l'événement.
     await releaseWebhookEvent(event.id)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

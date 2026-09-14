@@ -14,8 +14,9 @@ import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
 import { ClaudeConnector } from '@/lib/ai/connectors/claude'
 import { GeminiConnector } from '@/lib/ai/connectors/gemini'
 import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
-import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
+import type { IAEngine, IAEngineName, IAResponse } from '@/lib/ai/connectors/base'
 import { IAResponseSchema } from '@/lib/ai/schemas'
+import { captureEngineFailure, captureEngineOutage } from '@/lib/monitoring'
 
 const MAX_CONCURRENCY = 8
 
@@ -175,6 +176,8 @@ export async function runAuthorityAnalysis(
   let totalCostUsd = 0
   let citationsFound = 0
   let clientCitationsFound = 0
+  /** Échecs par moteur — sert à distinguer une panne d'un aléa réseau isolé. */
+  const failuresByEngine = new Map<IAEngineName, number>()
 
   const runnableTasks = tasks.map((task) => async () => {
     let response: IAResponse
@@ -188,6 +191,12 @@ export async function runAuthorityAnalysis(
         `[GeoMind/authority] IA ${task.engine.name} erreur sur prompt ${task.promptId}:`,
         err
       )
+      captureEngineFailure(task.engine.name, err, {
+        step: 'authority',
+        analysisId,
+        promptId: task.promptId,
+      })
+      failuresByEngine.set(task.engine.name, (failuresByEngine.get(task.engine.name) ?? 0) + 1)
       return
     }
 
@@ -244,6 +253,16 @@ export async function runAuthorityAnalysis(
   })
 
   await runWithConcurrency(runnableTasks, MAX_CONCURRENCY)
+
+  // Un moteur qui a raté 100 % de ses appels est en panne, pas victime du réseau.
+  for (const [engineName, failed] of failuresByEngine) {
+    captureEngineOutage(engineName, {
+      attempted: tasks.filter((t) => t.engine.name === engineName).length,
+      failed,
+      step: 'authority',
+      analysisId,
+    })
+  }
 
   return {
     totalCalls: tasks.length,
