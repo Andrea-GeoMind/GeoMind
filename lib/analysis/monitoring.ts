@@ -3,7 +3,7 @@
  *
  * Surveillance récurrente de la visibilité (PLAN item 12). Contrairement à une
  * analyse complète (déclenchée et payée par le client), un check de
- * surveillance est léger : un échantillon de prompts neutres × 4 moteurs, en
+ * surveillance est léger : un échantillon de prompts neutres × tous les moteurs, en
  * mode forcé, écrit uniquement dans citation_checks (pas d'analysis).
  * Coût interne assumé par GeoMind (~0,03-0,06 €/site/passage) — c'est le
  * moteur de la rétention, pas un service facturé en crédits.
@@ -17,11 +17,7 @@ import { extractDomain } from '@/lib/ai/parse'
 import { CITATION_SUFFIX } from '@/lib/analysis/authority'
 import { IAResponseSchema } from '@/lib/ai/schemas'
 import { captureEngineFailure } from '@/lib/monitoring'
-import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
-import { ClaudeConnector } from '@/lib/ai/connectors/claude'
-import { GeminiConnector } from '@/lib/ai/connectors/gemini'
-import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
-import type { IAEngine } from '@/lib/ai/connectors/base'
+import { createEngines } from '@/lib/ai/engines'
 
 export interface MonitoringCheckResult {
   totalCalls: number
@@ -31,7 +27,7 @@ export interface MonitoringCheckResult {
 
 /**
  * Exécute un passage de surveillance sur un site : `promptCount` prompts
- * neutres × 4 moteurs, en série (pas de pic de charge — le cron a le temps).
+ * neutres × tous les moteurs, en série (pas de pic de charge — le cron a le temps).
  */
 export async function runMonitoringCheck(
   siteId: string,
@@ -46,12 +42,7 @@ export async function runMonitoringCheck(
     return { totalCalls: 0, successfulCalls: 0, citedCalls: 0 }
   }
 
-  const engines: IAEngine[] = [
-    new ChatGPTConnector(),
-    new ClaudeConnector(),
-    new GeminiConnector(),
-    new PerplexityConnector(),
-  ]
+  const engines = createEngines()
 
   const clientDomain = extractDomain(site.url)
 

@@ -9,6 +9,7 @@ import {
   prompts,
 } from '@/lib/db/schema'
 import { createClient } from '@/lib/supabase/server'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 // Calcule la progression réelle à partir des données effectivement écrites en base.
 // Étapes réelles (run-full-analysis) :
@@ -64,8 +65,9 @@ export async function GET(
     db.select({ promptsTotal: count() }).from(prompts).where(eq(prompts.siteId, analysis.siteId)),
   ])
 
-  // Total de réponses attendues = prompts neutres × 4 moteurs IA
-  const expectedAuthority = Math.max(promptsTotal * 4, 1)
+  // Total de réponses attendues = prompts neutres × nombre de moteurs.
+  // Dérivé du registre : un moteur ajouté ou retiré ne fausse plus la barre.
+  const expectedAuthority = Math.max(promptsTotal * ENGINE_COUNT, 1)
 
   let progress: number
   let step: string

@@ -27,20 +27,24 @@ vi.mock('@/lib/ai/cost', () => ({
 
 // ─── Mocks connecteurs ────────────────────────────────────────────────────────
 
-vi.mock('@/lib/ai/connectors/chatgpt', () => ({ ChatGPTConnector: vi.fn() }))
-vi.mock('@/lib/ai/connectors/claude', () => ({ ClaudeConnector: vi.fn() }))
-vi.mock('@/lib/ai/connectors/gemini', () => ({ GeminiConnector: vi.fn() }))
-vi.mock('@/lib/ai/connectors/perplexity', () => ({ PerplexityConnector: vi.fn() }))
+// On mocke le registre plutôt que chaque connecteur : le test ne dépend plus
+// de la composition exacte de la liste des moteurs.
+vi.mock('@/lib/ai/engines', () => ({
+  createEngines: vi.fn(() => []),
+  ENGINE_MODELS: {
+    chatgpt: 'openai/gpt-5-mini',
+    claude: 'anthropic/claude-haiku-4-5:beta',
+    gemini: 'google/gemini-2.5-flash',
+    perplexity: 'perplexity/sonar',
+  },
+}))
 
 import { getAnalysisById } from '@/lib/db/queries/analyses'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
 import { insertAuthorityResult } from '@/lib/db/queries/authority-results'
 import { insertAuthoritySources } from '@/lib/db/queries/authority-sources'
-import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
-import { ClaudeConnector } from '@/lib/ai/connectors/claude'
-import { GeminiConnector } from '@/lib/ai/connectors/gemini'
-import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
+import { createEngines } from '@/lib/ai/engines'
 import { runAuthorityAnalysis } from '@/lib/analysis/authority'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -64,7 +68,7 @@ function makeEngine(name: IAEngineName, response: IAResponse): IAEngine {
 }
 
 // Import after mocks
-import type { IAEngineName } from '@/lib/ai/connectors/base'
+import { ENGINE_COUNT, type IAEngineName } from '@/lib/ai/connectors/base'
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -135,17 +139,14 @@ describe('runAuthorityAnalysis', () => {
       makeEngine('perplexity', mockResponse),
     ] as IAEngine[]
 
-    vi.mocked(ChatGPTConnector).mockImplementation(() => engines[0] as unknown as InstanceType<typeof ChatGPTConnector>)
-    vi.mocked(ClaudeConnector).mockImplementation(() => engines[1] as unknown as InstanceType<typeof ClaudeConnector>)
-    vi.mocked(GeminiConnector).mockImplementation(() => engines[2] as unknown as InstanceType<typeof GeminiConnector>)
-    vi.mocked(PerplexityConnector).mockImplementation(() => engines[3] as unknown as InstanceType<typeof PerplexityConnector>)
+    vi.mocked(createEngines).mockReturnValue(engines)
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    // 1 prompt × 4 IAs × 2 modes (forcé + spontané, prompt dans l'échantillon)
-    expect(result.totalCalls).toBe(8)
-    expect(result.successfulCalls).toBe(4) // forcés uniquement (dénominateur du score)
-    expect(result.spontaneousSuccessfulCalls).toBe(4)
+    // 1 prompt × N moteurs × 2 modes (forcé + spontané, prompt dans l'échantillon)
+    expect(result.totalCalls).toBe(ENGINE_COUNT * 2)
+    expect(result.successfulCalls).toBe(ENGINE_COUNT) // forcés uniquement (dénominateur du score)
+    expect(result.spontaneousSuccessfulCalls).toBe(ENGINE_COUNT)
   })
 
   it('détecte le domaine client dans les sources', async () => {
@@ -161,16 +162,13 @@ describe('runAuthorityAnalysis', () => {
     })
 
     const engine = makeEngine('chatgpt', mockResponse)
-    vi.mocked(ChatGPTConnector).mockImplementation(() => engine as unknown as InstanceType<typeof ChatGPTConnector>)
-    vi.mocked(ClaudeConnector).mockImplementation(() => engine as unknown as InstanceType<typeof ClaudeConnector>)
-    vi.mocked(GeminiConnector).mockImplementation(() => engine as unknown as InstanceType<typeof GeminiConnector>)
-    vi.mocked(PerplexityConnector).mockImplementation(() => engine as unknown as InstanceType<typeof PerplexityConnector>)
+    vi.mocked(createEngines).mockReturnValue(Array.from({ length: ENGINE_COUNT }, () => engine))
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    // 4 IAs × 2 sources = 8 citations ; 4 sont le domaine client (monsite.fr)
-    expect(result.citationsFound).toBe(8)
-    expect(result.clientCitationsFound).toBe(4)
+    // N moteurs × 2 sources ; une par moteur est le domaine client (monsite.fr)
+    expect(result.citationsFound).toBe(ENGINE_COUNT * 2)
+    expect(result.clientCitationsFound).toBe(ENGINE_COUNT)
   })
 
   it('continue si une IA échoue (partial failure)', async () => {
@@ -184,16 +182,17 @@ describe('runAuthorityAnalysis', () => {
       query: vi.fn().mockRejectedValue(new Error('Timeout')),
     }
 
-    vi.mocked(ChatGPTConnector).mockImplementation(() => okEngine as unknown as InstanceType<typeof ChatGPTConnector>)
-    vi.mocked(ClaudeConnector).mockImplementation(() => failEngine as unknown as InstanceType<typeof ClaudeConnector>)
-    vi.mocked(GeminiConnector).mockImplementation(() => okEngine as unknown as InstanceType<typeof GeminiConnector>)
-    vi.mocked(PerplexityConnector).mockImplementation(() => okEngine as unknown as InstanceType<typeof PerplexityConnector>)
+    // Un seul moteur en panne, les autres opérationnels — quel que soit leur nombre.
+    vi.mocked(createEngines).mockReturnValue([
+      failEngine,
+      ...Array.from({ length: ENGINE_COUNT - 1 }, () => okEngine),
+    ])
 
     const result = await runAuthorityAnalysis('analysis-1')
 
-    expect(result.totalCalls).toBe(8) // 4 forcés + 4 spontanés
-    // 3 IAs OK, 1 en erreur — en mode forcé
-    expect(result.successfulCalls).toBe(3)
+    expect(result.totalCalls).toBe(ENGINE_COUNT * 2) // forcés + spontanés
+    // Tous les moteurs OK sauf un, en mode forcé
+    expect(result.successfulCalls).toBe(ENGINE_COUNT - 1)
   })
 
   it('exclut les prompts non-neutres de l analyse', async () => {
@@ -203,10 +202,7 @@ describe('runAuthorityAnalysis', () => {
     ])
 
     const engine = makeEngine('chatgpt', makeIAResponse())
-    vi.mocked(ChatGPTConnector).mockImplementation(() => engine as unknown as InstanceType<typeof ChatGPTConnector>)
-    vi.mocked(ClaudeConnector).mockImplementation(() => engine as unknown as InstanceType<typeof ClaudeConnector>)
-    vi.mocked(GeminiConnector).mockImplementation(() => engine as unknown as InstanceType<typeof GeminiConnector>)
-    vi.mocked(PerplexityConnector).mockImplementation(() => engine as unknown as InstanceType<typeof PerplexityConnector>)
+    vi.mocked(createEngines).mockReturnValue(Array.from({ length: ENGINE_COUNT }, () => engine))
 
     const result = await runAuthorityAnalysis('analysis-1')
 

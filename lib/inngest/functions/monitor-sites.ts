@@ -18,8 +18,8 @@ import { PLAN_LIMITS, computeFrozenSiteIds, type Plan } from '@/lib/plans'
 import { runMonitoringCheck } from '@/lib/analysis/monitoring'
 import { evaluateMonitoringAlerts } from '@/lib/analysis/alerts'
 
-// Taille de l'échantillon par passage : 3 prompts × 4 moteurs = 12 mesures
-// hebdo pour les payants ; 2 × 4 = 8 mesures mensuelles pour le gratuit.
+// Taille de l'échantillon par passage : 3 prompts × tous les moteurs par semaine
+// pour les payants ; 2 prompts × tous les moteurs par mois pour le gratuit.
 const PAID_PROMPT_SAMPLE = 3
 const FREE_PROMPT_SAMPLE = 2
 
@@ -94,7 +94,7 @@ export const monitorFreeSitesFunction = inngest.createFunction(
   }
 )
 
-/** Traite un site : échantillon de prompts × 4 moteurs → citation_checks. */
+/** Traite un site : échantillon de prompts × tous les moteurs → citation_checks. */
 export const monitorSiteFunction = inngest.createFunction(
   {
     id: 'monitor-site',

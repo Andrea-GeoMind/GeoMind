@@ -3,7 +3,7 @@ import { parseSources, extractAnswerText, extractTokenUsage } from '@/lib/ai/par
 import { computeCost } from '@/lib/ai/cost'
 import { env } from '@/lib/env'
 
-const MODEL = 'google/gemini-2.5-flash'
+export const GEMINI_MODEL = 'google/gemini-2.5-flash'
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 type Fetcher = typeof fetch
@@ -28,7 +28,7 @@ export class GeminiConnector implements IAEngine {
         'X-Title': 'GeoMind',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: GEMINI_MODEL,
         messages: [{ role: 'user', content: prompt }],
         // Plugin OpenRouter pour activer le grounding Google Search
         plugins: [{ id: 'web', max_results: 5 }],
@@ -51,7 +51,7 @@ export class GeminiConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(MODEL, input, output),
+      cost_usd: computeCost(GEMINI_MODEL, input, output),
       raw,
     }
   }

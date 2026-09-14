@@ -5,7 +5,7 @@ import { env } from '@/lib/env'
 
 // gpt-4o-mini-search-preview a été retiré d'OpenRouter (404 « No endpoints found ») ;
 // le plugin `web` fournit la recherche + annotations url_citation sur le modèle éco courant.
-const MODEL = 'openai/gpt-5-mini'
+export const CHATGPT_MODEL = 'openai/gpt-5-mini'
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 // Injectable pour les tests
@@ -31,7 +31,7 @@ export class ChatGPTConnector implements IAEngine {
         'X-Title': 'GeoMind',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: CHATGPT_MODEL,
         plugins: [{ id: 'web' }],
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -53,7 +53,7 @@ export class ChatGPTConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(MODEL, input, output),
+      cost_usd: computeCost(CHATGPT_MODEL, input, output),
       raw,
     }
   }

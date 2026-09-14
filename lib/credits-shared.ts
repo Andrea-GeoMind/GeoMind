@@ -11,7 +11,7 @@ import { PLAN_LIMITS, type Plan } from '@/lib/plans'
 // ─── Coûts par opération ──────────────────────────────────────────────────────
 
 export const CREDIT_COSTS = {
-  /** Analyse complète : crawl + 4 IAs × prompts neutres + scoring */
+  /** Analyse complète : crawl + tous les moteurs × prompts neutres + scoring */
   fullAnalysis: 400,
   /** Relance de l'analyse autorité seule */
   authorityOnly: 150,
@@ -27,7 +27,7 @@ export const CREDIT_COSTS = {
   coachMessagePremium: 30,
   /** Génération de recommandation complète via Sonnet */
   completeRecommendation: 50,
-  /** Analyse de réputation : 4 moteurs interrogés + 4 extractions Haiku (PLAN item 31) */
+  /** Analyse de réputation : tous les moteurs interrogés + autant d'extractions Haiku (PLAN item 31) */
   reputationCheck: 150,
 } as const
 

@@ -1,8 +1,9 @@
 // lib/analysis/authority-table.ts
 
-import type { IAEngineName } from '@/lib/ai/connectors/base'
+import { IA_ENGINE_NAMES, type IAEngineName } from '@/lib/ai/connectors/base'
 
-export const IA_ENGINES: IAEngineName[] = ['chatgpt', 'claude', 'gemini', 'perplexity']
+/** Dérivé du registre canonique — ne jamais redéclarer la liste ici. */
+export const IA_ENGINES: readonly IAEngineName[] = IA_ENGINE_NAMES
 
 export const ENGINE_LABELS: Record<IAEngineName, string> = {
   chatgpt: 'ChatGPT',
@@ -10,6 +11,9 @@ export const ENGINE_LABELS: Record<IAEngineName, string> = {
   gemini: 'Gemini',
   perplexity: 'Perplexity',
 }
+
+/** « ChatGPT, Claude, Gemini, Perplexity » — pour le texte affiché. */
+export const ENGINE_LIST = IA_ENGINES.map((e) => ENGINE_LABELS[e]).join(', ')
 
 export type AuthoritySource = {
   id: string

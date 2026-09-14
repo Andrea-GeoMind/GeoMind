@@ -1,5 +1,5 @@
 // Orchestration de la phase Autorité GEO.
-// Pour chaque prompt neutre du site, interroge les 4 IAs en parallèle bornée (max 8 concurrents),
+// Pour chaque prompt neutre du site, interroge tous les moteurs en parallèle bornée (max 8 concurrents),
 // parse les citations, détecte le domaine client, stocke authority_results + authority_sources.
 
 import { getSiteById } from '@/lib/db/queries/sites'
@@ -10,10 +10,7 @@ import { insertAuthoritySources } from '@/lib/db/queries/authority-sources'
 import { insertCitationChecks } from '@/lib/db/queries/citation-checks'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { extractDomain } from '@/lib/ai/parse'
-import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
-import { ClaudeConnector } from '@/lib/ai/connectors/claude'
-import { GeminiConnector } from '@/lib/ai/connectors/gemini'
-import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
+import { createEngines, ENGINE_MODELS } from '@/lib/ai/engines'
 import type { IAEngine, IAEngineName, IAResponse } from '@/lib/ai/connectors/base'
 import { IAResponseSchema } from '@/lib/ai/schemas'
 import { captureEngineFailure, captureEngineOutage } from '@/lib/monitoring'
@@ -34,7 +31,7 @@ export const CITATION_SUFFIX =
 //   bruité, donc limité à un échantillon, stocké en citation_checks uniquement.
 const SPONTANEOUS_SAMPLE_SIZE = 3
 
-// Analyse offerte (plan gratuit) : on garde les 4 IA mais on limite à 3 questions
+// Analyse offerte (plan gratuit) : on garde tous les moteurs mais on limite à 3 questions
 // et on saute le mode spontané (la 2ᵉ salve), ce qui divise le coût API par ~4.
 // Les plans payants (et admin) gardent l'analyse complète.
 const FREE_TIER_FORCED_PROMPTS = 3
@@ -106,22 +103,9 @@ export async function runAuthorityAnalysis(
     }
   }
 
-  const engines: IAEngine[] = [
-    new ChatGPTConnector(),
-    new ClaudeConnector(),
-    new GeminiConnector(),
-    new PerplexityConnector(),
-  ]
+  const engines = createEngines()
 
   const clientDomain = extractDomain(site.url)
-
-  // Modèles réels par engine (doit rester synchronisé avec les connecteurs)
-  const ENGINE_MODELS: Record<string, string> = {
-    chatgpt: 'openai/gpt-4o-mini-search-preview',
-    claude: 'anthropic/claude-haiku-4-5:beta',
-    gemini: 'google/gemini-2.5-flash',
-    perplexity: 'sonar',
-  }
 
   // Plan gratuit : pas de 2ᵉ salve « spontanée » (mesure de citation naturelle) —
   // c'est elle qui re-pose les questions une seconde fois. Payants : conservée.

@@ -3,8 +3,9 @@
 // et leurs URLs — pas des réponses informatives génériques.
 // Règle fondamentale GEO : un LLM cite ce qu'il liste. Un prompt qui force une liste de ≥10
 // entreprises avec URLs est 10× plus susceptible de produire une citation mesurable.
-// PLAN item 10 : 10 prompts (et non 3) — à 3 prompts × 4 moteurs = 12 mesures, l'intervalle
-// de confiance du score était de ±25 pts ; à 10 prompts × 4 moteurs = 40 mesures, ±8 pts.
+// PLAN item 10 : 10 prompts (et non 3) — mesuré à 4 moteurs, l'intervalle de confiance du
+// score passait de ±25 pts (3 prompts, 12 mesures) à ±8 pts (10 prompts, 40 mesures).
+// Le dimensionnement dépend du nombre de mesures, donc du nombre de moteurs configurés.
 // Utilisé par lib/analysis/discovery.ts — appelé via lib/ai/structured.ts.
 
 /** Nombre de prompts neutres générés à la découverte — fiabilité statistique du score. */

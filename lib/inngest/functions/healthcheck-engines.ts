@@ -12,10 +12,7 @@
  */
 
 import { inngest } from '@/lib/inngest/client'
-import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
-import { ClaudeConnector } from '@/lib/ai/connectors/claude'
-import { GeminiConnector } from '@/lib/ai/connectors/gemini'
-import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
+import { createEngines } from '@/lib/ai/engines'
 import type { IAEngine, IAEngineName } from '@/lib/ai/connectors/base'
 import { captureEngineFailure, captureEngineOutage, captureJobFailure } from '@/lib/monitoring'
 
@@ -70,12 +67,7 @@ export async function runEngineHealthcheck(): Promise<{
   total: number
   results: EngineHealth[]
 }> {
-  const engines: IAEngine[] = [
-    new ChatGPTConnector(),
-    new ClaudeConnector(),
-    new GeminiConnector(),
-    new PerplexityConnector(),
-  ]
+  const engines = createEngines()
 
   const results = await Promise.all(engines.map(probeEngine))
 

@@ -39,7 +39,7 @@ export const runFullAnalysisFunction = inngest.createFunction(
 
     await step.run('mark-running', () => updateAnalysisStatus(analysisId, 'running'))
 
-    // Plan gratuit → analyse offerte allégée (4 IA mais 3 questions, sans 2ᵉ salve)
+    // Plan gratuit → analyse offerte allégée (tous les moteurs mais 3 questions, sans 2ᵉ salve)
     // pour ne pas brûler ~2€ d'API sur un compte sans revenu. Les abonnés payants
     // (solo/pro/business) et les comptes admin gardent l'analyse complète.
     const tier = await step.run('check-plan-tier', async () => {

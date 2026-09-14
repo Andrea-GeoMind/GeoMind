@@ -20,16 +20,12 @@ import {
   REPUTATION_EXTRACT_SYSTEM_PROMPT,
   buildReputationExtractMessage,
 } from '@/lib/ai/prompts/reputation'
-import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
-import { ClaudeConnector } from '@/lib/ai/connectors/claude'
-import { GeminiConnector } from '@/lib/ai/connectors/gemini'
-import { PerplexityConnector } from '@/lib/ai/connectors/perplexity'
+import { createEngines } from '@/lib/ai/engines'
 import { IAResponseSchema } from '@/lib/ai/schemas'
 import {
   createReputationResult,
   type ReputationResultRow,
 } from '@/lib/db/queries/reputation'
-import type { IAEngine } from '@/lib/ai/connectors/base'
 
 const HAIKU_MODEL = 'anthropic/claude-haiku-4-5'
 
@@ -46,12 +42,7 @@ export async function runReputationCheck(
   const site = await getSiteById(siteId)
   if (!site) throw new Error(`Site introuvable : ${siteId}`)
 
-  const engines: IAEngine[] = [
-    new ChatGPTConnector(),
-    new ClaudeConnector(),
-    new GeminiConnector(),
-    new PerplexityConnector(),
-  ]
+  const engines = createEngines()
 
   // Estimation coût (règle §10) : 4 requêtes moteur + 4 extractions Haiku
   logEstimatedBatchCost([

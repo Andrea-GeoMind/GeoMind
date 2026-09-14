@@ -4,7 +4,7 @@ import { computeCost } from '@/lib/ai/cost'
 import { env } from '@/lib/env'
 
 // Modèle beta pour activer l'outil web_search natif Anthropic via OpenRouter
-const MODEL = 'anthropic/claude-haiku-4-5:beta'
+export const CLAUDE_MODEL = 'anthropic/claude-haiku-4-5:beta'
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 type Fetcher = typeof fetch
@@ -31,7 +31,7 @@ export class ClaudeConnector implements IAEngine {
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: CLAUDE_MODEL,
         messages: [{ role: 'user', content: prompt }],
         tools: [
           {
@@ -59,7 +59,7 @@ export class ClaudeConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(MODEL, input, output),
+      cost_usd: computeCost(CLAUDE_MODEL, input, output),
       raw,
     }
   }

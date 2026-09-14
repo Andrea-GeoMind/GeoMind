@@ -1,6 +1,22 @@
-// Interface commune pour les 4 moteurs IA interrogés lors d'une analyse GEO.
+// Interface commune aux moteurs IA interrogés lors d'une analyse GEO.
 
-export type IAEngineName = 'chatgpt' | 'claude' | 'gemini' | 'perplexity'
+/**
+ * Source de vérité UNIQUE de la liste des moteurs.
+ *
+ * Tout le reste en dérive : le type, le nombre affiché dans l'interface, les
+ * dénominateurs de progression et de scoring, les colonnes du tableau croisé.
+ * Ajouter ou retirer un moteur ici suffit — aucun « 4 » n'est écrit en dur
+ * ailleurs dans le code.
+ *
+ * Ce fichier ne contient que des types et des constantes (aucun import de
+ * `env`), il reste donc importable depuis un composant client.
+ */
+export const IA_ENGINE_NAMES = ['chatgpt', 'claude', 'gemini', 'perplexity'] as const
+
+export type IAEngineName = (typeof IA_ENGINE_NAMES)[number]
+
+/** Nombre de moteurs interrogés — à utiliser partout plutôt qu'un littéral. */
+export const ENGINE_COUNT = IA_ENGINE_NAMES.length
 
 export interface IASource {
   url: string
