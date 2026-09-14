@@ -15,7 +15,8 @@ export const MODEL_PRICING = {
   // OpenRouter — Gemini
   'google/gemini-2.5-flash': { input: 0.075, output: 0.3 },
   'google/gemini-2.5-flash:thinking': { input: 0.075, output: 0.3 },
-  // Perplexity — Sonar
+  // Perplexity — Sonar (via OpenRouter ; tarif identique à l'API directe)
+  'perplexity/sonar': { input: 1.0, output: 1.0 },
   'sonar': { input: 1.0, output: 1.0 },
   'sonar-pro': { input: 3.0, output: 15.0 },
 } as const

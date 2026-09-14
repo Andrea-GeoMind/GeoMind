@@ -87,9 +87,14 @@ const envSchema = z.object({
   OPENROUTER_API_KEY: z
     .string()
     .startsWith('sk-or-', { message: 'OPENROUTER_API_KEY doit commencer par sk-or-' }),
+  /**
+   * Optionnelle : Sonar passe désormais par OpenRouter. Conservée pour
+   * permettre un retour à l'API Perplexity directe sans changer le schéma.
+   */
   PERPLEXITY_API_KEY: z
     .string()
-    .startsWith('pplx-', { message: 'PERPLEXITY_API_KEY doit commencer par pplx-' }),
+    .startsWith('pplx-', { message: 'PERPLEXITY_API_KEY doit commencer par pplx-' })
+    .optional(),
 
   // ── Crawl ────────────────────────────────────────────────────────────────────
   FIRECRAWL_API_KEY: z

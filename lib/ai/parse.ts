@@ -129,7 +129,11 @@ export function parseSources(
   let sources: IASource[] = []
 
   if (engine === 'perplexity') {
-    sources = parsePerplexityCitations(raw)
+    // Sonar passe par OpenRouter (format annotations). Le tableau `citations`
+    // reste accepté en repli : c'est ce que renvoie l'API Perplexity directe,
+    // vers laquelle on peut revenir sans toucher au parsing.
+    sources = parseOpenRouterAnnotations(raw)
+    if (sources.length === 0) sources = parsePerplexityCitations(raw)
   } else {
     // ChatGPT, Claude, Gemini via OpenRouter
     sources = parseOpenRouterAnnotations(raw)
