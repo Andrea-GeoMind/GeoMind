@@ -1,0 +1,20 @@
+# Configuration gitleaks — utilisée par le hook .githooks/pre-commit.
+# On étend la configuration par défaut et on neutralise les faux positifs
+# connus, pour que le hook ne crie jamais au loup : une alerte qu'on apprend
+# à ignorer ne protège plus de rien.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Clés de rôle métier (ruleKey) prises pour des secrets génériques"
+regexTarget = "match"
+regexes = [
+  '''ruleKey:\s*['"][a-z0-9_]+['"]''',
+]
+
+[[allowlists]]
+description = "Fixtures de test — valeurs factices volontairement au format d'une vraie clé"
+paths = [
+  '''tests/unit/env\.test\.ts''',
+]
