@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { env } from '@/lib/env'
 import { trackEvent } from '@/lib/posthog'
+import { humanizeAuthError } from '@/lib/auth-errors'
 
 export async function signUp(
   email: string,
@@ -18,7 +19,10 @@ export async function signUp(
     },
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[auth] Supabase error:', error.code, error.message)
+    return { error: humanizeAuthError(error) }
+  }
 
   if (data.user) {
     trackEvent(data.user.id, 'signup', { method: 'email' })
@@ -34,7 +38,10 @@ export async function signIn(
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[auth] Supabase error:', error.code, error.message)
+    return { error: humanizeAuthError(error) }
+  }
 
   redirect('/dashboard')
 }
@@ -50,7 +57,10 @@ export async function signInWithGoogle(): Promise<{ error: string } | void> {
     },
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[auth] Supabase error:', error.code, error.message)
+    return { error: humanizeAuthError(error) }
+  }
   // data.url est l'URL externe de consentement Google — redirect typé refuse
   // une route inconnue, on caste comme pour le checkout Stripe.
   if (data.url) (redirect as (url: string) => never)(data.url)
@@ -70,7 +80,10 @@ export async function resetPassword(
     redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password%3Fmode%3Dupdate`,
   })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[auth] Supabase error:', error.code, error.message)
+    return { error: humanizeAuthError(error) }
+  }
 
   redirect('/reset-password?sent=true')
 }
@@ -81,7 +94,10 @@ export async function updatePassword(
   const supabase = await createClient()
   const { error } = await supabase.auth.updateUser({ password })
 
-  if (error) return { error: error.message }
+  if (error) {
+    console.error('[auth] Supabase error:', error.code, error.message)
+    return { error: humanizeAuthError(error) }
+  }
 
   redirect('/dashboard')
 }
