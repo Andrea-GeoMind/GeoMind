@@ -6,6 +6,7 @@
 
 export const MODEL_PRICING = {
   // OpenRouter — ChatGPT
+  'openai/gpt-5-mini': { input: 0.25, output: 2.0 },
   'openai/gpt-4o-mini-search-preview': { input: 0.15, output: 0.6 },
   'openai/gpt-4o-mini': { input: 0.15, output: 0.6 },
   // OpenRouter — Claude
