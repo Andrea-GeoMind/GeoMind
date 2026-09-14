@@ -49,7 +49,9 @@ export function RunAuthorityButton({ siteId }: RunAuthorityButtonProps) {
         className="shrink-0 gap-2"
       >
         <RefreshCw size={13} className={isPending ? 'animate-spin' : ''} />
-        {isPending ? 'Lancement…' : `Relancer (${CREDIT_COSTS.fullAnalysis} crédits)`}
+        {isPending
+          ? 'Lancement…'
+          : `Relancer l'analyse complète (${CREDIT_COSTS.fullAnalysis} crédits)`}
       </Button>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

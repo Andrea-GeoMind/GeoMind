@@ -203,9 +203,9 @@ export default async function AuthorityPage({ params }: Props) {
       {/* Relaunch section */}
       <section className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/40 px-5 py-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">Relancer l&apos;analyse Autorité</p>
+          <p className="text-sm font-semibold text-foreground">Mettre à jour vos citations</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Relance uniquement la phase Autorité (prompts × moteurs IA).
+            Relance une analyse complète du site — autorité, technique et contenu.
           </p>
         </div>
         <RunAuthorityButton siteId={siteId} />
