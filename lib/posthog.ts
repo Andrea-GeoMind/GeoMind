@@ -26,6 +26,7 @@ export type PostHogEvent =
   | 'credit_pack_checkout_started'
   | 'credit_pack_purchased'
   | 'reputation_started'
+  | 'waitlist_joined'
 
 export function trackEvent(
   userId: string,

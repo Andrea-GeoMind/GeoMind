@@ -6,6 +6,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PLAN_LIMITS, PLAN_PRICES, type BillingPeriod } from '@/lib/plans'
+import { WaitlistForm } from '@/components/features/marketing/waitlist-form'
 import {
   WELCOME_BONUS_CREDITS,
   formatCreditsAmount,
@@ -13,6 +14,8 @@ import {
 } from '@/lib/credits-shared'
 
 interface PlanCardData {
+  /** null = plan gratuit (inscription normale), sinon liste d'attente */
+  waitlistPlan: 'solo' | 'pro' | 'business' | null
   name: string
   description: string
   monthly: number
@@ -27,6 +30,7 @@ interface PlanCardData {
 
 const PLANS: PlanCardData[] = [
   {
+    waitlistPlan: null,
     name: 'Gratuit',
     description: 'Pour découvrir votre visibilité IA',
     monthly: 0,
@@ -42,6 +46,7 @@ const PLANS: PlanCardData[] = [
     cta: 'Commencer gratuitement',
   },
   {
+    waitlistPlan: 'solo',
     name: 'Solo',
     description: 'Pour les indépendants',
     monthly: PLAN_PRICES.solo.monthly,
@@ -57,6 +62,7 @@ const PLANS: PlanCardData[] = [
     cta: 'Essayer Solo',
   },
   {
+    waitlistPlan: 'pro',
     name: 'Pro',
     description: 'Pour les TPE/PME qui veulent agir',
     monthly: PLAN_PRICES.pro.monthly,
@@ -74,6 +80,7 @@ const PLANS: PlanCardData[] = [
     highlighted: true,
   },
   {
+    waitlistPlan: 'business',
     name: 'Business',
     description: 'Pour les agences et équipes',
     monthly: PLAN_PRICES.business.monthly,
@@ -177,21 +184,20 @@ export function PricingPlans() {
                 )}
               </div>
 
-              <Button
-                asChild
-                variant={plan.highlighted ? 'default' : 'outline'}
-                className={cn(
-                  'mt-5 rounded-lg',
-                  plan.highlighted &&
-                    'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-200 hover:opacity-90 transition-opacity'
-                )}
-              >
-                <Link href="/signup">{plan.cta}</Link>
-              </Button>
-              {plan.trialNote && (
-                <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                  {plan.trialNote}
-                </p>
+              {plan.waitlistPlan === null ? (
+                <Button
+                  asChild
+                  variant={plan.highlighted ? 'default' : 'outline'}
+                  className="mt-5 rounded-lg"
+                >
+                  <Link href="/signup">{plan.cta}</Link>
+                </Button>
+              ) : (
+                <WaitlistForm
+                  plan={plan.waitlistPlan}
+                  source="pricing"
+                  highlighted={plan.highlighted}
+                />
               )}
 
               <ul className="mt-6 flex-1 space-y-3 text-sm">
@@ -208,8 +214,8 @@ export function PricingPlans() {
       </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Déjà abonné et besoin d&apos;un coup de pouce ponctuel ? Des packs de crédits
-        complémentaires sont disponibles à partir de 5 € — ils n&apos;expirent jamais.
+        Les plans payants ouvrent très bientôt — inscrivez-vous à la liste d&apos;attente pour
+        être prévenu en premier. Le plan Gratuit est disponible dès maintenant.
       </p>
     </div>
   )

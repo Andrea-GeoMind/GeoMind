@@ -6,20 +6,9 @@ import {
   formatCreditsAmount,
   formatCreditsAsUsage,
 } from '@/lib/credits-shared'
-import {
-  createCheckoutSession,
-  createPortalSession,
-  createCreditPackCheckout,
-} from '@/app/actions/stripe'
-import {
-  PLAN_LABELS,
-  PLAN_LIMITS,
-  PLAN_PRICES,
-  CREDIT_PACKS,
-  type CreditPackId,
-  type PaidPlan,
-} from '@/lib/plans'
-import { CREDIT_PACK_PRICE_IDS, STRIPE_PLAN_PRICE_IDS } from '@/lib/stripe'
+import { createPortalSession } from '@/app/actions/stripe'
+import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICES, type PaidPlan } from '@/lib/plans'
+import { WaitlistButton } from '@/components/features/billing/waitlist-button'
 
 interface PageProps {
   searchParams: Promise<{ success?: string; canceled?: string; pack_success?: string }>
@@ -175,72 +164,27 @@ export default async function BillingPage({ searchParams }: PageProps) {
         )}
       </div>
 
-      {/* Packs de crédits — seuls les packs réellement achetables sont affichés
-          (PLAN item 25 : « Bientôt disponible » interdit, pas d'UI morte) */}
-      {plan !== 'free' &&
-        (Object.keys(CREDIT_PACKS) as CreditPackId[]).some(
-          (packId) => !!CREDIT_PACK_PRICE_IDS[packId]
-        ) && (
-        <div className="rounded-xl border border-border bg-white shadow-sm p-6">
-          <p className="text-base font-semibold mb-1">Acheter des crédits</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Besoin d&apos;un coup de pouce ponctuel ? Les crédits achetés n&apos;expirent jamais.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {(Object.keys(CREDIT_PACKS) as CreditPackId[])
-              .filter((packId) => !!CREDIT_PACK_PRICE_IDS[packId])
-              .map((packId) => {
-                const pack = CREDIT_PACKS[packId]
-                return (
-                  <div
-                    key={packId}
-                    className="rounded-lg border border-border p-4 text-center"
-                  >
-                    <p className="text-sm font-semibold">{pack.label}</p>
-                    <p className="mt-1 text-2xl font-extrabold tracking-tight">
-                      {formatCreditsAmount(pack.credits)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">crédits</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {formatCreditsAsUsage(pack.credits)}
-                    </p>
-                    <form action={createCreditPackCheckout.bind(null, packId)} className="mt-3">
-                      <button
-                        type="submit"
-                        className="w-full rounded-lg bg-foreground px-3 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
-                      >
-                        {pack.priceEur} €
-                      </button>
-                    </form>
-                  </div>
-                )
-              })}
-          </div>
-        </div>
-      )}
-
-      {/* Offres disponibles (upgrades depuis le plan courant) — seuls les plans
-          réellement souscriptibles sont affichés (PLAN item 25) */}
-      {availableUpgradeTargets(plan).length > 0 && (
+      {/* Plans payants — lancement freemium : checkout Stripe désactivé,
+          inscription à la liste d'attente à la place */}
+      {upgradeTargets(plan).length > 0 && (
         <div
           className={`grid gap-4 ${
-            availableUpgradeTargets(plan).length >= 3
+            upgradeTargets(plan).length >= 3
               ? 'sm:grid-cols-3'
-              : availableUpgradeTargets(plan).length === 2
+              : upgradeTargets(plan).length === 2
                 ? 'sm:grid-cols-2'
                 : 'sm:grid-cols-1'
           }`}
         >
-          {availableUpgradeTargets(plan).map((target) => (
+          {upgradeTargets(plan).map((target) => (
             <PlanCard
               key={target}
+              plan={target}
               name={PLAN_LABELS[target]}
               price={String(PLAN_PRICES[target].monthly)}
               annualPrice={String(PLAN_PRICES[target].annual)}
               sites={PLAN_LIMITS[target].sites}
               creditsPerMonth={PLAN_LIMITS[target].creditsPerMonth}
-              action={createCheckoutSession.bind(null, target, 'monthly')}
-              available
               highlighted={target === 'pro'}
             />
           ))}
@@ -264,28 +208,21 @@ function upgradeTargets(plan: string): PaidPlan[] {
   }
 }
 
-/** Upgrades dont le price ID Stripe est configuré — pas de bouton mort. */
-function availableUpgradeTargets(plan: string): PaidPlan[] {
-  return upgradeTargets(plan).filter((target) => !!STRIPE_PLAN_PRICE_IDS[target].monthly)
-}
-
 function PlanCard({
+  plan,
   name,
   price,
   annualPrice,
   sites,
   creditsPerMonth,
-  action,
-  available,
   highlighted = false,
 }: {
+  plan: PaidPlan
   name: string
   price: string
   annualPrice: string
   sites: number
   creditsPerMonth: number
-  action: () => Promise<void>
-  available: boolean
   highlighted?: boolean
 }) {
   return (
@@ -320,20 +257,7 @@ function PlanCard({
           {formatCreditsAsUsage(creditsPerMonth)}
         </li>
       </ul>
-      <form action={action} className="mt-5">
-        <button
-          type="submit"
-          disabled={!available}
-          title={available ? undefined : 'Bientôt disponible'}
-          className={`w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${
-            highlighted
-              ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm'
-              : 'bg-foreground text-background'
-          }`}
-        >
-          Passer {name}
-        </button>
-      </form>
+      <WaitlistButton plan={plan} highlighted={highlighted} />
     </div>
   )
 }

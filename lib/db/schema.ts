@@ -447,6 +447,25 @@ export const publicAudits = pgTable(
   ]
 )
 
+// Liste d'attente des plans payants (lancement freemium : Stripe désactivé).
+// Insertion server-side uniquement (Drizzle) ; RLS activée sans policy = aucune
+// lecture/écriture possible via l'API REST Supabase avec la clé publique.
+export const waitlistSignups = pgTable(
+  'waitlist_signups',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: text('email').notNull(),
+    /** Plan qui intéresse le prospect : solo | pro | business | pack */
+    plan: text('plan').notNull(),
+    /** D'où vient l'inscription : pricing | billing */
+    source: text('source').notNull(),
+    /** Renseigné quand l'inscription vient d'un utilisateur connecté */
+    userId: uuid('user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('waitlist_email_plan_unique').on(t.email, t.plan)]
+)
+
 // ─── action_states ────────────────────────────────────────────────────────────
 // État durable du Plan d'action (PLAN item 16). Les issues sont recréées à
 // chaque analyse ; l'état « j'ai corrigé / vérifié » doit survivre, donc il est
