@@ -9,6 +9,7 @@ import {
   getRollingCitationRate,
 } from '@/lib/db/queries/citation-checks'
 import { TrendLineChart, type TrendSeries } from '@/components/charts/trend-line-chart'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
   title: 'Suivi — GEOMIND',
@@ -145,8 +146,8 @@ export default async function TrendsPage({ params }: Props) {
           Citations au fil des jours
         </h2>
         <p className="mb-5 text-xs text-muted-foreground">
-          Chaque point agrège les mesures du jour (10 questions × 4 moteurs lors d&apos;une
-          analyse, échantillon lors de la surveillance automatique). 90 derniers jours.
+          Chaque point agrège les mesures du jour (10 questions × {ENGINE_COUNT} moteurs lors
+          d&apos;une analyse, échantillon lors de la surveillance automatique). 90 derniers jours.
         </p>
         {citationTrend.length >= 2 ? (
           <TrendLineChart labels={citationLabels} series={citationSeries} height={150} />

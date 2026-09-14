@@ -23,6 +23,8 @@ import {
 import { PLAN_PRICES, PLAN_LIMITS } from '@/lib/plans'
 import { CREDIT_COSTS } from '@/lib/credits-shared'
 import { ExpressAudit } from '@/components/features/marketing/express-audit'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
+import { IA_ENGINES, ENGINE_LABELS, ENGINE_LIST } from '@/lib/analysis/authority-table'
 
 /** Nombre d'analyses complètes couvertes par l'allocation mensuelle d'un plan. */
 function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
@@ -224,8 +226,8 @@ export default function MarketingHome() {
               {/* Social proof — uniquement des faits vérifiables */}
               <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/10 pt-6 text-sm text-[#B2C8DE]">
                 <span>
-                  <strong className="font-semibold text-white">4 IA</strong> interrogées à chaque
-                  audit
+                  <strong className="font-semibold text-white">{ENGINE_COUNT} IA</strong>{' '}
+                  interrogées à chaque audit
                 </span>
                 <span className="text-white/20">·</span>
                 <span>
@@ -252,7 +254,7 @@ export default function MarketingHome() {
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7C92AC]">
               Interrogées à chaque audit
             </span>
-            {['ChatGPT', 'Perplexity', 'Google Gemini', 'Claude'].map((name) => (
+            {IA_ENGINES.map((engine) => ENGINE_LABELS[engine]).map((name) => (
               <span key={name} className="text-sm font-medium text-white">
                 {name}
               </span>
@@ -277,8 +279,8 @@ export default function MarketingHome() {
               {
                 num: '2',
                 icon: Zap,
-                title: 'On interroge les 4 IA',
-                body: 'Des questions neutres envoyées à ChatGPT, Perplexity, Gemini et Claude, puis analysées.',
+                title: `On interroge les ${ENGINE_COUNT} IA`,
+                body: `Des questions neutres envoyées à ${ENGINE_LIST}, puis analysées.`,
               },
               {
                 num: '3',
@@ -335,7 +337,7 @@ export default function MarketingHome() {
               <div className="relative mt-6 flex flex-wrap gap-3">
                 {[
                   { value: '72', label: 'Score GEO', accent: true },
-                  { value: '4/4', label: 'IA suivies', accent: false },
+                  { value: `${ENGINE_COUNT}/${ENGINE_COUNT}`, label: 'IA suivies', accent: false },
                   { value: '+8', label: '30 jours', accent: false },
                 ].map(({ value, label, accent }) => (
                   <div
@@ -416,7 +418,7 @@ export default function MarketingHome() {
                 scenario:
                   '« Mes clients me trouvaient par Google. Maintenant ils demandent à ChatGPT "quel consultant pour…" — et je n\'ai aucune idée de ce qu\'il répond. »',
                 outcome:
-                  'Vous voyez les réponses réelles des 4 moteurs sur les questions de votre métier, et le coach vous guide pas à pas, sans jargon, pour y apparaître.',
+                  `Vous voyez les réponses réelles des ${ENGINE_COUNT} moteurs sur les questions de votre métier, et le coach vous guide pas à pas, sans jargon, pour y apparaître.`,
               },
             ].map(({ icon: Icon, who, scenario, outcome }) => (
               <div key={who} className="flex flex-col rounded-2xl border border-border bg-card p-6">

@@ -17,6 +17,7 @@ import { RetryAnalysisButton } from '@/components/features/overview/retry-analys
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { AuthorityMethodologyNote } from '@/components/features/analysis/methodology-note'
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
   title: 'Autorité — GEOMIND',
@@ -139,7 +140,7 @@ export default async function AuthorityPage({ params }: Props) {
           <div className="flex flex-1 flex-col gap-2">
             <h2 className="text-base font-semibold text-foreground">Score Autorité</h2>
             <p className="text-xs text-muted-foreground">
-              Taux de citation de votre site dans les réponses des 4 moteurs IA testés
+              Taux de citation de votre site dans les réponses des {ENGINE_COUNT} moteurs IA testés
             </p>
             {latest.authorityScore !== null && !isInProgress && (
               <p className="mt-1 text-3xl font-extrabold text-foreground">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
   title: 'À propos — pourquoi GeoMind existe',
@@ -39,7 +40,8 @@ export default function AboutPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground">Notre approche</h2>
           <p>
-            <strong>Mesurer honnêtement.</strong> Nous interrogeons réellement les 4 moteurs IA
+            <strong>Mesurer honnêtement.</strong> Nous interrogeons réellement les {ENGINE_COUNT}{' '}
+            moteurs IA
             avec les questions que vos clients posent. Et parce que les IA ne répondent jamais
             deux fois pareil, nous vous montrons la tendance sur 30 jours plutôt qu&apos;un
             chiffre du jour qui fait paniquer pour rien.

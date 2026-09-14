@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Loader2, Search, XCircle } from 'lucide-react'
+import { ENGINE_LIST } from '@/lib/analysis/authority-table'
 
 /**
  * Audit express sans inscription (PLAN item 20) — le visiteur tape son URL et
@@ -193,7 +194,7 @@ export function ExpressAudit() {
             <ArrowRight size={15} />
           </Link>
           <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Sans carte bancaire · ChatGPT, Perplexity, Gemini et Claude interrogés réellement
+            Sans carte bancaire · {ENGINE_LIST} interrogés réellement
           </p>
         </div>
       )}
