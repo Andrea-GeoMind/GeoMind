@@ -36,6 +36,9 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+# Sauvegardes et variantes : `.env*.local` ne les couvre pas (suffixe après `.local`)
+.env*.local.*
+.env*.bak*
 
 # vercel
 .vercel

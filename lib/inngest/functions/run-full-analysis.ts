@@ -21,7 +21,7 @@ import { humanizeAnalysisError } from '@/lib/analysis/errors'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { reconcileActionStates } from '@/lib/db/queries/action-states'
-import { getLastCrawledAt } from '@/lib/db/queries/firecrawl-pages'
+import { getLastCrawledAt, countFirecrawlPagesBySiteId } from '@/lib/db/queries/firecrawl-pages'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
 import { CREDIT_COSTS, refundCredits } from '@/lib/credits'
 import { captureJobFailure } from '@/lib/monitoring'
@@ -55,7 +55,17 @@ export const runFullAnalysisFunction = inngest.createFunction(
       const crawlIsStale =
         !lastCrawledAt || Date.now() - new Date(lastCrawledAt).getTime() > CRAWL_FRESHNESS_MS
 
-      if (crawlIsStale) {
+      // Quand `map()` échoue, la découverte se rabat sur la seule page d'accueil.
+      // Ce crawl d'une page est « frais », donc jamais remplacé : toute l'analyse
+      // repose alors sur l'accueil, et le site se voit reprocher une page « À propos »
+      // ou des coordonnées absentes qu'il publie en réalité — en plus d'une fausse
+      // « couverture thématique insuffisante ». Constaté sur un site client de 32 pages.
+      const crawledPages = await step.run('count-crawled-pages', () =>
+        countFirecrawlPagesBySiteId(siteId)
+      )
+      const crawlIsTooThin = crawledPages <= 1
+
+      if (crawlIsStale || crawlIsTooThin) {
         await step.run('crawl', () => crawlSite({ siteId, maxPages: DEFAULT_MAX_PAGES }))
       }
 

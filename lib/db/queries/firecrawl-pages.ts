@@ -1,4 +1,4 @@
-import { count, desc, eq } from 'drizzle-orm'
+import { count, desc, eq, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { firecrawlPages } from '@/lib/db/schema'
 import { dedupeFirecrawlPages, type FirecrawlPageInsert } from '@/lib/crawl/pages'
@@ -14,10 +14,16 @@ export async function upsertFirecrawlPages(pages: FirecrawlPageInsert[]) {
     .values(deduped)
     .onConflictDoUpdate({
       target: [firecrawlPages.siteId, firecrawlPages.url],
+      // `excluded` = la ligne qu'on tentait d'insérer. Référencer la colonne
+      // elle-même (`firecrawlPages.markdown`) produit `SET markdown = markdown`,
+      // c'est-à-dire l'ANCIENNE valeur : le re-crawl ne rafraîchissait alors que
+      // `crawled_at`, et une page déjà connue gardait indéfiniment son contenu
+      // d'origine — y compris des métadonnées produites par une version périmée
+      // du pipeline.
       set: {
-        markdown: firecrawlPages.markdown,
-        metadata: firecrawlPages.metadata,
-        statusCode: firecrawlPages.statusCode,
+        markdown: sql`excluded.markdown`,
+        metadata: sql`excluded.metadata`,
+        statusCode: sql`excluded.status_code`,
         crawledAt: new Date(),
       },
     })
