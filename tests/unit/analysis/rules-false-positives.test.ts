@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { checkNoindexOnKeyPages } from '@/lib/analysis/technical/rules/noindex-on-key-pages'
 import { checkNoConclusionOrSummary } from '@/lib/analysis/content/rules/no-conclusion-or-summary'
 import { checkHeadingsTooShort } from '@/lib/analysis/content/rules/headings-too-short'
+import { checkNoTableOfContents } from '@/lib/analysis/content/rules/no-table-of-contents'
 
 const input = { pages: [], siteUrl: 'https://x.fr' }
 const filler = (n: number) => Array.from({ length: n }, (_, i) => `mot${i}`).join(' ')
@@ -68,5 +69,35 @@ describe('checkHeadingsTooShort', () => {
       metadata: { schemaOrgs: [] },
     }
     expect((await checkHeadingsTooShort(page, input))?.ruleKey).toBe('headings_too_short')
+  })
+})
+
+describe('checkNoTableOfContents', () => {
+  const long = (toc: string) => ({
+    url: 'https://x.fr/blog/guide',
+    statusCode: 200,
+    markdown: `# Guide\n\n${toc}\n\n${filler(1600)}`,
+  })
+
+  it('reconnaît un sommaire en ancres relatives', async () => {
+    expect(await checkNoTableOfContents(long('1. [Partie A](#partie-a)\n2. [Partie B](#partie-b)'), input)).toBeNull()
+  })
+
+  it('reconnaît un sommaire dont les ancres ont été résolues en URLs absolues', async () => {
+    // C'est ce que produit Firecrawl : la page avait bien un sommaire, et la
+    // règle le déclarait absent.
+    const toc =
+      '1. [Partie A](https://x.fr/blog/guide#partie-a)\n2. [Partie B](https://x.fr/blog/guide#partie-b)'
+    expect(await checkNoTableOfContents(long(toc), input)).toBeNull()
+  })
+
+  it('signale une page très longue réellement sans sommaire', async () => {
+    const page = long('Un paragraphe d introduction, et [un lien](https://ailleurs.fr/page).')
+    expect((await checkNoTableOfContents(page, input))?.ruleKey).toBe('no_table_of_contents')
+  })
+
+  it('ne compte pas un lien vers une ancre d une AUTRE page', async () => {
+    const toc = '[Voir ailleurs](https://x.fr/blog/autre#section)'
+    expect((await checkNoTableOfContents(long(toc), input))?.ruleKey).toBe('no_table_of_contents')
   })
 })

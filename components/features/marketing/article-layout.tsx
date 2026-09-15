@@ -1,3 +1,4 @@
+import { Children } from 'react'
 import Link from 'next/link'
 import type { Route } from 'next'
 import { Button } from '@/components/ui/button'
@@ -94,6 +95,29 @@ export function ArticleLayout({
 
   const jsonLd = { '@context': 'https://schema.org', '@graph': graph }
 
+  // Le sommaire se glisse APRÈS le paragraphe d'introduction. Placé juste sous
+  // le titre, il s'intercalait entre la question et sa réponse — le défaut même
+  // que la pyramide inversée demande d'éviter, et que les IA sanctionnent.
+  const [intro, ...rest] = Children.toArray(children)
+  const toc =
+    meta.toc && meta.toc.length > 0 ? (
+      // Volontairement pas un <nav> : les extracteurs de contenu (Firecrawl, et
+      // les lecteurs des IA qui fonctionnent pareil) retirent les blocs de
+      // navigation, et le sommaire disparaissait du texte lu par les IA.
+      <div className="not-prose rounded-xl border border-border bg-muted/40 p-5">
+        <p className="text-sm font-bold text-foreground">Au sommaire</p>
+        <ol className="mt-3 space-y-2 text-sm">
+          {meta.toc.map((entry, i) => (
+            <li key={entry.id} className="!ml-0 !list-none">
+              <a href={`#${entry.id}`} className="text-primary hover:underline">
+                {i + 1}. {entry.label}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    ) : null
+
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
       <script
@@ -117,27 +141,10 @@ export function ArticleLayout({
         {meta.title}
       </h1>
 
-      {/* Le sommaire n'est volontairement PAS un <nav> : les extracteurs de
-          contenu (Firecrawl, et les lecteurs des IA qui fonctionnent pareil)
-          retirent les blocs de navigation. Il disparaissait alors du texte lu
-          par les IA — exactement ce qu'il était censé leur donner. */}
-      {meta.toc && meta.toc.length > 0 ? (
-        <div className="mt-8 rounded-xl border border-border bg-muted/40 p-5">
-          <p className="text-sm font-bold text-foreground">Au sommaire</p>
-          <ol className="mt-3 space-y-2 text-sm">
-            {meta.toc.map((entry, i) => (
-              <li key={entry.id}>
-                <a href={`#${entry.id}`} className="text-primary hover:underline">
-                  {i + 1}. {entry.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
-
       <div className="prose-geomind mt-10 space-y-5 text-base leading-relaxed text-foreground/85 [&_h2]:mt-10 [&_h2]:scroll-mt-24 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-foreground">
-        {children}
+        {intro}
+        {toc}
+        {rest}
       </div>
 
       {/* Bloc « À retenir » : c'est le passage que les IA reprennent le plus
