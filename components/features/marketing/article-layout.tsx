@@ -117,8 +117,12 @@ export function ArticleLayout({
         {meta.title}
       </h1>
 
+      {/* Le sommaire n'est volontairement PAS un <nav> : les extracteurs de
+          contenu (Firecrawl, et les lecteurs des IA qui fonctionnent pareil)
+          retirent les blocs de navigation. Il disparaissait alors du texte lu
+          par les IA — exactement ce qu'il était censé leur donner. */}
       {meta.toc && meta.toc.length > 0 ? (
-        <nav aria-label="Sommaire" className="mt-8 rounded-xl border border-border bg-muted/40 p-5">
+        <div className="mt-8 rounded-xl border border-border bg-muted/40 p-5">
           <p className="text-sm font-bold text-foreground">Au sommaire</p>
           <ol className="mt-3 space-y-2 text-sm">
             {meta.toc.map((entry, i) => (
@@ -129,7 +133,7 @@ export function ArticleLayout({
               </li>
             ))}
           </ol>
-        </nav>
+        </div>
       ) : null}
 
       <div className="prose-geomind mt-10 space-y-5 text-base leading-relaxed text-foreground/85 [&_h2]:mt-10 [&_h2]:scroll-mt-24 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-foreground">
@@ -140,7 +144,7 @@ export function ArticleLayout({
           volontiers en citation, parce qu'il condense la réponse. */}
       {meta.takeaways && meta.takeaways.length > 0 ? (
         <section className="mt-12 rounded-xl border border-indigo-100 bg-indigo-50/60 p-6">
-          <h2 className="text-lg font-bold text-foreground">À retenir</h2>
+          <h2 className="text-lg font-bold text-foreground">À retenir de ce guide</h2>
           <ul className="mt-3 space-y-2 text-base text-foreground/85">
             {meta.takeaways.map((t) => (
               <li key={t} className="ml-5 list-disc">
@@ -152,11 +156,13 @@ export function ArticleLayout({
       ) : null}
 
       <section className="mt-12 rounded-xl border border-border p-6">
-        <h2 className="text-base font-bold text-foreground">Rédigé par Andrea Schwertz</h2>
+        <h2 className="text-base font-bold text-foreground">
+          Rédigé par Andrea Schwertz, fondateur de GeoMind
+        </h2>
         <p className="mt-2 text-sm text-foreground/80">
           Fondateur de GEOMIND. Il travaille depuis Cavaillon sur la visibilité des TPE et PME
-          françaises dans les moteurs de réponses IA, et écrit ces guides à partir des audits
-          réels menés avec l&apos;outil.{' '}
+          françaises dans les moteurs de réponses IA, et écrit ces guides à partir des audits réels
+          menés avec l&apos;outil.{' '}
           <Link href="/about" className="font-medium text-primary hover:underline">
             En savoir plus
           </Link>
@@ -164,7 +170,9 @@ export function ArticleLayout({
       </section>
 
       <aside className="mt-12 border-t border-border pt-8">
-        <h2 className="text-base font-bold text-foreground">Continuer la lecture</h2>
+        <h2 className="text-base font-bold text-foreground">
+          Continuer la lecture sur le même sujet
+        </h2>
         <ul className="mt-4 space-y-3">
           {related.map((a) => (
             <li key={a.slug} className="!ml-0 !list-none">

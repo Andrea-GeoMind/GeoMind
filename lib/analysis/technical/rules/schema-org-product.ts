@@ -1,5 +1,5 @@
 import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
 
 const PRODUCT_URL_PATTERNS = ['/produit/', '/product/', '/shop/', '/boutique/', '/catalogue/']
 

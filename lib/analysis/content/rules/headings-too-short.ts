@@ -1,4 +1,14 @@
 import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
+
+/**
+ * Un glossaire porte un titre par terme défini — « llms.txt », « E-E-A-T ».
+ * Ils sont courts par nature et c'est exactement ce qu'on attend d'eux : leur
+ * reprocher de ne pas être des phrases descriptives n'a pas de sens.
+ */
+function isGlossaryPage(page: FirecrawlPage): boolean {
+  return getSchemaTypes(page).some((t) => t === 'DefinedTermSet' || t === 'DefinedTerm')
+}
 
 /** Longueur minimale d'un H2 (en caractères). */
 const MIN_H2_LENGTH = 30
@@ -23,6 +33,7 @@ export async function checkHeadingsTooShort(
   page: FirecrawlPage,
   _input: RuleInput
 ): Promise<ContentIssue | null> {
+  if (isGlossaryPage(page)) return null
   if (page.statusCode != null && page.statusCode !== 200) return null
 
   const h2s = getH2s(page)

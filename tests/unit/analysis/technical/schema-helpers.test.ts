@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getSchemaTypes, typesOf, resolveEntities } from '@/lib/analysis/technical/rules/_schema-helpers'
+import { getSchemaTypes, typesOf, resolveEntities } from '@/lib/analysis/schema-helpers'
 import { checkNoAuthorSchema } from '@/lib/analysis/technical/rules/no-author-schema'
 import { checkSchemaOrgFaq } from '@/lib/analysis/technical/rules/schema-org-faq'
 import type { FirecrawlPage } from '@/lib/analysis/technical/types'

@@ -2,8 +2,10 @@ import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
 
 /** Seuil de longueur (en mots) à partir duquel une conclusion est attendue. */
 const MIN_WORDS_FOR_CONCLUSION = 800
-/** Taille de la section finale inspectée quand la page n'a pas de titres. */
+/** Taille minimale de la fin de page inspectée. */
 const TAIL_WORD_COUNT = 200
+/** Part finale du contenu inspectée : une conclusion vit dans le dernier tiers. */
+const TAIL_RATIO = 0.35
 
 // Appliqué sur du texte normalisé (minuscules, sans accents) — \b ne gère pas
 // les caractères accentués en JavaScript
@@ -21,21 +23,17 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
 
-/** Renvoie la dernière section : du dernier titre à la fin, ou les derniers mots. */
-function lastSection(markdown: string): string {
-  const lines = markdown.split('\n')
-  let lastHeadingIndex = -1
-  for (let i = lines.length - 1; i >= 0; i -= 1) {
-    if (/^#{1,6}\s+\S/.test(lines[i])) {
-      lastHeadingIndex = i
-      break
-    }
-  }
-  if (lastHeadingIndex !== -1) {
-    return lines.slice(lastHeadingIndex).join('\n')
-  }
+/**
+ * Renvoie la fin de la page — dernier tiers du contenu, au minimum les derniers
+ * mots. On n'inspecte plus seulement la toute dernière section : une page qui
+ * conclut puis ajoute une bio d'auteur, des articles liés ou un appel à l'action
+ * a bel et bien sa conclusion. C'est la mise en page de la quasi-totalité des
+ * blogs, et la règle la comptait comme une absence.
+ */
+function pageTail(markdown: string): string {
   const words = markdown.trim().split(/\s+/)
-  return words.slice(Math.max(0, words.length - TAIL_WORD_COUNT)).join(' ')
+  const tailLength = Math.max(TAIL_WORD_COUNT, Math.round(words.length * TAIL_RATIO))
+  return words.slice(Math.max(0, words.length - tailLength)).join(' ')
 }
 
 /**
@@ -51,7 +49,7 @@ export async function checkNoConclusionOrSummary(
   if (!page.markdown) return null
 
   if (countWords(page.markdown) <= MIN_WORDS_FOR_CONCLUSION) return null
-  if (CONCLUSION_PATTERN.test(normalize(lastSection(page.markdown)))) return null
+  if (CONCLUSION_PATTERN.test(normalize(pageTail(page.markdown)))) return null
 
   return {
     ruleKey: 'no_conclusion_or_summary',

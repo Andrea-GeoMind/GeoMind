@@ -1,5 +1,5 @@
 import type { TechnicalPageRuleFn } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
 import { urlDepth } from './_metadata-helpers'
 
 /** Scope page : page profonde (niveau ≥ 2) sans schema BreadcrumbList. */

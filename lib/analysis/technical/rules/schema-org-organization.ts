@@ -1,5 +1,5 @@
 import type { TechnicalIssue, RuleInput } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
 
 const ORG_TYPES = new Set(['Organization', 'LocalBusiness', 'Corporation', 'NGO', 'Store'])
 

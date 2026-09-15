@@ -1,5 +1,5 @@
 import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
 
 /**
  * Détection durcie (V2) : une page est considérée « FAQ » dès qu'elle contient

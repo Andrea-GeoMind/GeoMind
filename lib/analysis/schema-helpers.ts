@@ -1,4 +1,7 @@
-import type { FirecrawlPage } from '../types'
+/** Forme minimale commune aux pages des deux piliers. */
+interface PageWithSchemas {
+  metadata?: { schemaOrgs?: unknown } | null
+}
 
 /**
  * Helpers de lecture du JSON-LD extrait au crawl (`metadata.schemaOrgs`).
@@ -28,7 +31,7 @@ export function typesOf(entity: unknown): string[] {
 }
 
 /** Toutes les entités Schema.org déclarées sur la page. */
-export function getSchemaEntities(page: FirecrawlPage): Array<Record<string, unknown>> {
+export function getSchemaEntities(page: PageWithSchemas): Array<Record<string, unknown>> {
   const schemas = page.metadata?.schemaOrgs
   if (!Array.isArray(schemas)) return []
   return schemas.flatMap((s) => {
@@ -38,7 +41,7 @@ export function getSchemaEntities(page: FirecrawlPage): Array<Record<string, unk
 }
 
 /** Tous les types Schema.org déclarés sur la page, tableaux aplatis. */
-export function getSchemaTypes(page: FirecrawlPage): string[] {
+export function getSchemaTypes(page: PageWithSchemas): string[] {
   return getSchemaEntities(page).flatMap(typesOf)
 }
 
@@ -48,7 +51,7 @@ export function getSchemaTypes(page: FirecrawlPage): string[] {
  */
 export function resolveEntities(
   value: unknown,
-  page: FirecrawlPage
+  page: PageWithSchemas
 ): Array<Record<string, unknown>> {
   if (Array.isArray(value)) return value.flatMap((v) => resolveEntities(v, page))
   const record = asRecord(value)
@@ -68,7 +71,7 @@ export function propertyHasType(
   entity: Record<string, unknown>,
   key: string,
   type: string,
-  page: FirecrawlPage
+  page: PageWithSchemas
 ): boolean {
   return resolveEntities(entity[key], page).some((e) => typesOf(e).includes(type))
 }

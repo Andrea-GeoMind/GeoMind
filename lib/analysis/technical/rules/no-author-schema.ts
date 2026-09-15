@@ -1,5 +1,5 @@
 import type { TechnicalPageRuleFn, FirecrawlPage } from '../types'
-import { getSchemaTypes, getSchemaEntities, propertyHasType } from './_schema-helpers'
+import { getSchemaTypes, getSchemaEntities, propertyHasType } from '@/lib/analysis/schema-helpers'
 import { isArticleUrl, isSectionIndexUrl } from '@/lib/analysis/url-helpers'
 
 const ARTICLE_SCHEMA_TYPES = new Set(['Article', 'BlogPosting', 'NewsArticle'])

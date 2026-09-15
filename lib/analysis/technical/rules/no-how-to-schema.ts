@@ -1,5 +1,5 @@
 import type { TechnicalPageRuleFn, FirecrawlPage } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
 
 const HOW_TO_PATTERN = /^\s*(comment\b|how\s+to\b)/i
 
