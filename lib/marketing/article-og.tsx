@@ -3,7 +3,8 @@ import { ImageResponse } from 'next/og'
 /**
  * Générateur d'image Open Graph par article de blog (1200×630).
  * Chaque app/(marketing)/blog/<slug>/opengraph-image.tsx réexporte
- * size/contentType/alt et appelle renderArticleOgImage(titre).
+ * size/contentType/alt et appelle renderArticleOgImage(titre). Les pages
+ * secteur s'en servent aussi, avec un pied de page adapté.
  *
  * GEO : une image dédiée par article améliore l'aperçu de lien partagé
  * dans les messageries et certaines réponses IA (vs image générique du site).
@@ -11,7 +12,7 @@ import { ImageResponse } from 'next/og'
 export const OG_SIZE = { width: 1200, height: 630 }
 export const OG_CONTENT_TYPE = 'image/png'
 
-export function renderArticleOgImage(title: string) {
+export function renderArticleOgImage(title: string, footer = 'Guide GEO · geomind.fr') {
   return new ImageResponse(
     (
       <div
@@ -63,7 +64,7 @@ export function renderArticleOgImage(title: string) {
         >
           {title}
         </div>
-        <div style={{ fontSize: 28, opacity: 0.82 }}>Guide GEO · geomind.fr</div>
+        <div style={{ fontSize: 28, opacity: 0.82 }}>{footer}</div>
       </div>
     ),
     OG_SIZE

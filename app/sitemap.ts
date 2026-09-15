@@ -13,6 +13,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog`, lastModified, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/glossaire`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     {
+      url: `${base}/secteurs/cabinets-dentaires`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${base}/outils/generateur-llms-txt`,
       lastModified,
       changeFrequency: 'monthly',

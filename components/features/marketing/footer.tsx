@@ -33,6 +33,12 @@ export default function Footer() {
               À propos
             </Link>
             <Link
+              href="/secteurs/cabinets-dentaires"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Cabinets dentaires
+            </Link>
+            <Link
               href="/outils/generateur-llms-txt"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
