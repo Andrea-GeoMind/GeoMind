@@ -28,6 +28,15 @@ const MAP_TIMEOUT_MS = 15_000
 const SCRAPE_TIMEOUT_MS = 20_000
 
 /**
+ * Désactive le cache de Firecrawl (`maxAge` en ms ; 0 = toujours refaire la
+ * requête). Par défaut, Firecrawl sert une copie vieille de plusieurs jours :
+ * un client qui corrige son site et relance son analyse se verrait alors
+ * reprocher des problèmes qu'il vient de régler — et un audit qui décrit le
+ * site d'avant-hier ne vaut rien.
+ */
+const NO_CACHE_MAX_AGE_MS = 0
+
+/**
  * Borne une promesse : rejette après `ms` si elle n'a pas résolu. Ne coupe pas la
  * requête sous-jacente (Firecrawl finira par se résoudre, ignorée), mais arrête de
  * l'attendre — suffisant pour garantir le temps de mur de la découverte.
@@ -103,7 +112,7 @@ export async function scrapeForDiscovery({
     urlsToScrape.map(async (url) => {
       try {
         const doc = await withTimeout(
-          client.scrape(url, { formats: ['markdown', 'rawHtml'] }),
+          client.scrape(url, { formats: ['markdown', 'rawHtml'], maxAge: NO_CACHE_MAX_AGE_MS }),
           SCRAPE_TIMEOUT_MS,
           `scrape ${url}`
         )
@@ -154,7 +163,7 @@ export async function crawlSite({
   const crawlJob = await withRetry(() =>
     getClient().crawl(site.url, {
       limit: maxPages,
-      scrapeOptions: { formats: ['markdown', 'rawHtml'] },
+      scrapeOptions: { formats: ['markdown', 'rawHtml'], maxAge: NO_CACHE_MAX_AGE_MS },
     })
   )
 
