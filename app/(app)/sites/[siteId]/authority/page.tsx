@@ -132,8 +132,13 @@ export default async function AuthorityPage({ params }: Props) {
             ) : latest.authorityScore !== null ? (
               <ScoreGauge score={latest.authorityScore} size="lg" />
             ) : (
-              <div className="flex h-40 w-40 items-center justify-center rounded-full border border-border bg-muted/30">
-                <p className="text-center text-xs text-muted-foreground">Score non disponible</p>
+              <div className="flex h-40 w-40 flex-col items-center justify-center gap-1 rounded-full border border-border bg-muted/30 px-4">
+                <p className="text-center text-sm font-semibold text-muted-foreground">
+                  Non mesuré
+                </p>
+                <p className="text-center text-[10px] leading-snug text-muted-foreground">
+                  Aucune réponse IA obtenue
+                </p>
               </div>
             )}
           </div>
@@ -146,6 +151,12 @@ export default async function AuthorityPage({ params }: Props) {
               <p className="mt-1 text-3xl font-extrabold text-foreground">
                 {latest.authorityScore}
                 <span className="ml-1 text-base font-medium text-muted-foreground">/100</span>
+              </p>
+            )}
+            {latest.authorityScore === null && !isInProgress && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ce score n&apos;a pas pu être mesuré : aucune réponse exploitable n&apos;a été
+                obtenue des moteurs IA. Relancez l&apos;analyse pour l&apos;obtenir.
               </p>
             )}
             {!isInProgress && (rolling.rate !== null || spontaneous.rate !== null) && (

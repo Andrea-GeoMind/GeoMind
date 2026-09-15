@@ -9,7 +9,8 @@ type Trend = 'up' | 'down' | 'stable'
 
 interface ScoreCardProps {
   pillar: Pillar
-  score: number
+  /** `null` = pilier non mesuré : la carte affiche « Non mesuré », jamais 0/100. */
+  score: number | null
   delta?: number
   trend?: Trend
   className?: string
@@ -73,7 +74,8 @@ export function ScoreCard({
   const sublabel = PILLAR_SUBLABELS[pillar]
   const Icon = PILLAR_ICONS[pillar]
   const isClickable = typeof onClick === 'function' || clickable === true
-  const maturity = getScoreMaturity(score)
+  const measured = score !== null
+  const maturity = getScoreMaturity(score ?? 0)
   const barColor = SCORE_BAR_COLORS[maturity.level] ?? SCORE_BAR_COLORS['beginner']!
   const textColor = SCORE_TEXT_COLORS[maturity.level] ?? SCORE_TEXT_COLORS['beginner']!
   const badgeColor = MATURITY_BADGE_COLORS[maturity.level] ?? MATURITY_BADGE_COLORS['beginner']!
@@ -126,27 +128,42 @@ export function ScoreCard({
         )}
       </div>
 
-      {/* Score + maturity */}
-      <div className="flex items-end justify-between">
-        <div className="flex items-baseline gap-1">
-          <span className={cn('text-3xl font-extrabold tabular-nums leading-none', textColor)}>
-            {Math.round(score)}
-          </span>
-          <span className="text-xs text-muted-foreground">/100</span>
-        </div>
-        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', badgeColor)}>
-          {maturity.label}
-        </span>
-      </div>
+      {/* Score + maturity — ou mention explicite quand rien n'a été mesuré */}
+      {measured ? (
+        <>
+          <div className="flex items-end justify-between">
+            <div className="flex items-baseline gap-1">
+              <span className={cn('text-3xl font-extrabold tabular-nums leading-none', textColor)}>
+                {Math.round(score)}
+              </span>
+              <span className="text-xs text-muted-foreground">/100</span>
+            </div>
+            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', badgeColor)}>
+              {maturity.label}
+            </span>
+          </div>
 
-      {/* Barre de progression */}
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn('h-full rounded-full transition-all duration-700', barColor)}
-          style={{ width: `${Math.min(100, Math.max(0, Math.round(score)))}%` }}
-          aria-label={`${Math.round(score)}%`}
-        />
-      </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn('h-full rounded-full transition-all duration-700', barColor)}
+              style={{ width: `${Math.min(100, Math.max(0, Math.round(score)))}%` }}
+              aria-label={`${Math.round(score)}%`}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-end justify-between">
+            <span className="text-lg font-semibold leading-none text-muted-foreground">
+              Non mesuré
+            </span>
+          </div>
+          <p className="text-[11px] leading-snug text-muted-foreground">
+            Aucune réponse IA exploitable lors de cette analyse — relancez-la pour obtenir ce
+            score.
+          </p>
+        </>
+      )}
 
       {/* Delta */}
       {delta !== undefined && trend && (

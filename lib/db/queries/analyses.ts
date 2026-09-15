@@ -44,7 +44,8 @@ export async function updateAnalysisStatus(
   return row
 }
 
-export async function updateAnalysisAuthorityScore(id: string, authorityScore: number) {
+/** `null` = autorité non mesurée (aucune réponse IA obtenue), pas « score nul ». */
+export async function updateAnalysisAuthorityScore(id: string, authorityScore: number | null) {
   const [row] = await db
     .update(analyses)
     .set({ authorityScore, updatedAt: new Date() })
@@ -72,8 +73,10 @@ export async function updateAnalysisContentScore(id: string, contentScore: numbe
 }
 
 export interface AnalysisScores {
-  globalScore: number
-  authorityScore: number
+  /** null si l'autorité n'a pas pu être mesurée — la moyenne perdrait son sens. */
+  globalScore: number | null
+  /** null = non mesuré (aucune réponse IA exploitable), à distinguer de 0. */
+  authorityScore: number | null
   technicalScore: number
   contentScore: number
 }
