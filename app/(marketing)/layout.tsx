@@ -34,6 +34,9 @@ const ORGANIZATION_JSON_LD = {
         'GEOMIND audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude) et fournit un plan d’action concret. Pensé pour les TPE et PME françaises.',
       slogan: 'Sache où tu es cité dans les IA. Comprends pourquoi pas. Améliore ta visibilité.',
       foundingDate: '2026',
+      // Le fondateur est déclaré en Person et référencé par les articles du blog :
+      // une entité nommée derrière l'organisation renforce le signal E-E-A-T.
+      founder: { '@id': 'https://geomind.fr/#andrea-schwertz' },
       email: 'contact@geomind.fr',
       areaServed: { '@type': 'Country', name: 'France' },
       knowsLanguage: 'fr',
@@ -56,6 +59,14 @@ const ORGANIZATION_JSON_LD = {
         availableLanguage: 'French',
         areaServed: 'FR',
       },
+    },
+    {
+      '@type': 'Person',
+      '@id': 'https://geomind.fr/#andrea-schwertz',
+      name: 'Andrea Schwertz',
+      jobTitle: 'Fondateur de GEOMIND',
+      url: 'https://geomind.fr/about',
+      worksFor: { '@id': 'https://geomind.fr/#organization' },
     },
     {
       '@type': 'WebSite',

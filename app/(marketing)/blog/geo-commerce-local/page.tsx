@@ -26,7 +26,7 @@ export default function Page() {
         champ libre à vos concurrents. Ce guide vous explique exactement comment franchir ce seuil.
       </p>
 
-      <h2>Comment les IA répondent aux recherches locales</h2>
+      <h2 id="comment-les-ia-repondent-aux-recherches-locales">Comment les IA répondent aux recherches locales</h2>
       <p>
         Contrairement à Google qui classe des liens, une IA générative <em>synthétise</em> une
         réponse à partir de plusieurs sources qu&apos;elle a ingérées lors de son entraînement ou
@@ -60,7 +60,7 @@ export default function Page() {
         plus. C&apos;est la <strong>convergence des signaux</strong> qui déclenche la citation.
       </p>
 
-      <h2>Le socle : votre fiche Google Business Profile</h2>
+      <h2 id="le-socle-votre-fiche-google-business-profile">Le socle : votre fiche Google Business Profile</h2>
       <p>
         La fiche Google Business Profile (GBP) est le signal local le plus puissant que les IA
         lisent. Avant toute autre action, vérifiez ces points :
@@ -99,7 +99,7 @@ export default function Page() {
         incontournable de votre GEO local. Tout le reste s&apos;y appuie.
       </p>
 
-      <h2>Les avis clients, carburant des IA</h2>
+      <h2 id="les-avis-clients-carburant-des-ia">Les avis clients, carburant des IA</h2>
       <p>
         Quand une IA choisit entre deux plombiers lyonnais, elle regarde le volume d&apos;avis, la
         note moyenne et la <strong>fraîcheur</strong> de ces avis. Un établissement avec 200 avis
@@ -130,7 +130,7 @@ export default function Page() {
         détecter les patterns anormaux, et une sanction Google efface des mois de travail.
       </p>
 
-      <h2>Les annuaires et plateformes qui comptent</h2>
+      <h2 id="les-annuaires-et-plateformes-qui-comptent">Les annuaires et plateformes qui comptent</h2>
       <p>
         En dehors de Google, plusieurs plateformes sont systématiquement indexées par les IA pour
         les recherches locales françaises. Assurez-vous d&apos;y être présent, avec des informations
@@ -167,7 +167,7 @@ export default function Page() {
         discordance qui affaiblit votre crédibilité auprès des IA.
       </p>
 
-      <h2>Votre site : les pages qui déclenchent une citation</h2>
+      <h2 id="votre-site-les-pages-qui-declenchent-une-citation">Votre site : les pages qui déclenchent une citation</h2>
       <p>
         Un site vitrine générique ne suffit pas à déclencher une citation locale. Les IA cherchent
         des signaux précis que votre site doit émettre clairement.
@@ -209,7 +209,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>Exemple concret</h2>
+      <h2 id="exemple-concret">Exemple concret</h2>
       <p>
         Prenons <strong>Marco, électricien à Nantes</strong>. Avant d&apos;optimiser sa présence
         GEO, voici son état :
@@ -254,7 +254,7 @@ export default function Page() {
         recommandation IA.
       </p>
 
-      <h2>Plan d&apos;action local</h2>
+      <h2 id="plan-d-action-local">Plan d&apos;action local</h2>
       <p>
         Voici les actions à mener, classées par priorité et effort estimé :
       </p>

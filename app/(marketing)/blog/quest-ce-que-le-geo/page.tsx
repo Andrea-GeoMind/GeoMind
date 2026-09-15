@@ -27,7 +27,7 @@ export default function Page() {
         concurrent.
       </p>
 
-      <h2>Pourquoi le GEO apparaît maintenant</h2>
+      <h2 id="pourquoi-le-geo-apparait-maintenant">Pourquoi le GEO apparaît maintenant</h2>
       <p>
         Pendant vingt ans, la question était simple : « Comment être bien placé sur Google ? »
         Aujourd&apos;hui, une part croissante des internautes — et notamment des dirigeants et
@@ -48,7 +48,7 @@ export default function Page() {
         site est bien référencé sur Google.
       </p>
 
-      <h2>GEO vs SEO : la différence en une phrase</h2>
+      <h2 id="geo-vs-seo-la-difference-en-une-phrase">GEO vs SEO : la différence en une phrase</h2>
       <p>
         Le SEO vous place dans une liste de liens ; le GEO vous fait nommer dans une réponse. Ce
         ne sont pas des disciplines opposées — le GEO s&apos;appuie sur les fondations du SEO —
@@ -57,7 +57,7 @@ export default function Page() {
         <Link href="/blog/geo-vs-seo">lisez notre comparatif complet GEO vs SEO</Link>.
       </p>
 
-      <h2>Les 3 piliers du GEO</h2>
+      <h2 id="les-3-piliers-du-geo">Les 3 piliers du GEO</h2>
       <p>
         Le GEO repose sur trois dimensions que l&apos;on peut mesurer et améliorer
         indépendamment. Les négliger l&apos;une après l&apos;autre est la meilleure façon de ne
@@ -109,7 +109,7 @@ export default function Page() {
         détour.
       </p>
 
-      <h2>Comment une IA décide qui citer</h2>
+      <h2 id="comment-une-ia-decide-qui-citer">Comment une IA décide qui citer</h2>
       <p>
         Les modèles d&apos;IA ne fonctionnent pas exactement comme un moteur de recherche. Ils ont
         été entraînés sur de vastes corpus de textes, et ils ont une « mémoire » implicite des
@@ -149,7 +149,7 @@ export default function Page() {
         avec des actions concrètes à mettre en place.
       </p>
 
-      <h2>Par où commencer</h2>
+      <h2 id="par-ou-commencer">Par où commencer</h2>
       <p>
         Le GEO peut sembler intimidant, mais les premières actions sont simples et produisent des
         résultats rapides, surtout sur les requêtes locales et de niche.
@@ -192,7 +192,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>En résumé</h2>
+      <h2 id="en-resume">En résumé</h2>
       <p>
         <strong>
           Le GEO (Generative Engine Optimization) est la discipline qui consiste à optimiser la

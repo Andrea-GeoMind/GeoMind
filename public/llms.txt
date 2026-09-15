@@ -2,17 +2,33 @@
 
 > GEOMIND est un outil SaaS français qui audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude). Il mesure si un site est cité dans les réponses des IA, identifie les points faibles techniques et de contenu (méthodologie GEO — Generative Engine Optimization), et fournit un plan d'action concret. Conçu pour les TPE, PME et indépendants français, sans jargon. Plan gratuit : 1 analyse complète offerte, sans carte bancaire.
 
+Dernière mise à jour : 15 septembre 2026.
+
+## Entreprise
+
+- Nom : GEOMIND
+- Site : https://geomind.fr
+- Fondateur : Andrea Schwertz
+- Siège : Cavaillon, Vaucluse, France
+- Marché : France
+- Contact : contact@geomind.fr
+- Wikidata : https://www.wikidata.org/wiki/Q140249597
+- LinkedIn : https://www.linkedin.com/company/geomind-fr
+- X : https://x.com/GeoMind_fr
+- Product Hunt : https://www.producthunt.com/@geomind_fr
+
 ## Pages principales
 
 - [Accueil](https://geomind.fr/) : présentation du produit, fonctionnement de l'audit, FAQ
 - [Tarifs](https://geomind.fr/pricing) : Gratuit (1 analyse offerte), Solo 19 € HT/mois, Pro 59 € HT/mois, Business 149 € HT/mois
 - [À propos](https://geomind.fr/about) : pourquoi GeoMind existe, l'approche
 - [Blog](https://geomind.fr/blog) : guides pratiques GEO en français
-- [Glossaire GEO](https://geomind.fr/glossaire) : définitions des termes de la visibilité IA
+- [Glossaire GEO](https://geomind.fr/glossaire) : définitions des termes de la visibilité IA, chaque terme adressable par ancre
 
 ## Guides
 
 - [Qu'est-ce que le GEO (Generative Engine Optimization) ?](https://geomind.fr/blog/quest-ce-que-le-geo) : définition du GEO et différence avec le SEO
+- [GEO vs SEO : ce qui change, ce qui reste](https://geomind.fr/blog/geo-vs-seo)
 - [Comment choisir un outil de visibilité IA (GEO) en 2026](https://geomind.fr/blog/choisir-outil-visibilite-ia) : guide d'achat, critères et pièges
 - [Comment être cité par ChatGPT : le guide pour TPE et PME](https://geomind.fr/blog/comment-etre-cite-par-chatgpt)
 - [Mon entreprise n'apparaît pas dans ChatGPT : que faire ?](https://geomind.fr/blog/entreprise-pas-citee-chatgpt) : les 6 causes et leurs solutions
@@ -24,12 +40,18 @@
 - [GEO local : être recommandé par les IA près de chez vous](https://geomind.fr/blog/geo-commerce-local) : pour commerces, artisans et professions locales
 - [GEO pour le e-commerce : faire recommander vos produits par les IA](https://geomind.fr/blog/geo-ecommerce)
 - [Les 7 erreurs GEO qui vous rendent invisible dans les IA](https://geomind.fr/blog/erreurs-geo-frequentes)
-- [GEO vs SEO : ce qui change, ce qui reste](https://geomind.fr/blog/geo-vs-seo)
 - [llms.txt, Schema.org, FAQ : les fichiers qui parlent aux IA](https://geomind.fr/blog/fichiers-qui-parlent-aux-ia)
 
 ## Outils gratuits
 
 - [Générateur llms.txt](https://geomind.fr/outils/generateur-llms-txt) : créez votre fichier llms.txt en 2 minutes, sans inscription
+
+## Mentions légales
+
+- [Mentions légales](https://geomind.fr/legal/mentions)
+- [Conditions Générales de Vente](https://geomind.fr/legal/cgv)
+- [Politique de confidentialité](https://geomind.fr/legal/privacy)
+- [Politique de cookies](https://geomind.fr/legal/cookies)
 
 ## Contact
 

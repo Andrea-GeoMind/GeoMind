@@ -21,7 +21,7 @@ export default function Page() {
         abandonner — il faut ajouter une couche.
       </p>
 
-      <h2>Ce qui ne change pas</h2>
+      <h2 id="ce-qui-ne-change-pas">Ce qui ne change pas</h2>
       <p>
         Les fondamentaux du SEO restent la base du GEO. Un site rapide, en HTTPS, bien structuré
         (titres clairs, sitemap, pages accessibles), avec du contenu original qui répond à de
@@ -29,7 +29,7 @@ export default function Page() {
         l&apos;est aussi pour les IA — leurs robots lisent le web de façon très similaire.
       </p>
 
-      <h2>Ce qui change vraiment</h2>
+      <h2 id="ce-qui-change-vraiment">Ce qui change vraiment</h2>
       <h3>1. Le résultat n&apos;est plus une liste de liens, c&apos;est une réponse</h3>
       <p>
         Sur Google, être 4<sup>e</sup> rapporte encore des clics. Dans ChatGPT, l&apos;IA donne
@@ -57,7 +57,7 @@ export default function Page() {
         vous promettent un chiffre exact.
       </p>
 
-      <h2>Par quoi commencer, concrètement</h2>
+      <h2 id="par-quoi-commencer-concretement">Par quoi commencer, concrètement</h2>
       <ul>
         <li>
           <strong>Semaine 1 :</strong> mesurez. Posez aux IA les 5 questions que vos clients
@@ -77,7 +77,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Faut-il un outil ?</h2>
+      <h2 id="faut-il-un-outil">Faut-il un outil ?</h2>
       <p>
         Vous pouvez tout faire à la main : poser les questions aux 4 IA chaque mois, noter les
         réponses dans un tableur, auditer votre site règle par règle. Comptez quelques heures

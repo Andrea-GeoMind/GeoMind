@@ -5,6 +5,9 @@ import { SignupForm } from '@/components/features/auth/signup-form'
 
 export const metadata: Metadata = {
   title: 'Créer un compte — GEOMIND',
+  description:
+    'Créez votre compte GEOMIND et lancez votre première analyse de visibilité IA, offerte et sans carte bancaire.',
+  robots: { index: false, follow: false },
 }
 
 export default function SignupPage() {

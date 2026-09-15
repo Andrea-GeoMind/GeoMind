@@ -22,7 +22,7 @@ export default function Page() {
         donne les critères qui comptent vraiment — sans jargon, sans surenchère commerciale.
       </p>
 
-      <h2>Pourquoi un outil plutôt que le faire à la main</h2>
+      <h2 id="pourquoi-un-outil-plutot-que-le-faire">Pourquoi un outil plutôt que le faire à la main</h2>
       <p>
         Techniquement, rien ne vous oblige à acheter un logiciel. Vous pouvez ouvrir ChatGPT,
         Perplexity, Gemini et Claude dans quatre onglets, taper vos questions une par une, noter les
@@ -46,7 +46,7 @@ export default function Page() {
         Vous comprendrez mieux ce que vous automatisez ensuite.
       </p>
 
-      <h2>Les 6 critères qui comptent vraiment</h2>
+      <h2 id="les-6-criteres-qui-comptent-vraiment">Les 6 critères qui comptent vraiment</h2>
 
       <h3>1. Couvre-t-il plusieurs IA — ChatGPT, Perplexity, Gemini et Claude ?</h3>
       <p>
@@ -111,7 +111,7 @@ export default function Page() {
         par mois, nombre de sites, accès à l&apos;historique, support en français.
       </p>
 
-      <h2>Les pièges à éviter</h2>
+      <h2 id="les-pieges-a-eviter">Les pièges à éviter</h2>
       <ul>
         <li>
           <strong>L&apos;outil qui promet un « score exact ».</strong> Comme expliqué plus haut,
@@ -147,7 +147,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Les questions à poser avant de vous engager</h2>
+      <h2 id="les-questions-a-poser-avant-de-vous-engager">Les questions à poser avant de vous engager</h2>
       <ul>
         <li>Quelles IA sont testées, et combien de fois par analyse ?</li>
         <li>Les prompts utilisés sont-ils neutres (sans ma marque) ? Puis-je les voir ?</li>
@@ -160,7 +160,7 @@ export default function Page() {
         <li>Que se passe-t-il si je résilie — mes données sont-elles exportables ?</li>
       </ul>
 
-      <h2>Et GeoMind dans tout ça ?</h2>
+      <h2 id="et-geomind-dans-tout-ca">Et GeoMind dans tout ça ?</h2>
       <p>
         Nous avons conçu GeoMind pour répondre précisément aux besoins des TPE et PME françaises —
         et il est normal que vous nous évaluiez avec les mêmes critères qu&apos;un autre outil.
@@ -201,7 +201,7 @@ export default function Page() {
         fonctionnalités sont critiques pour vous, il est honnête de le dire.
       </p>
 
-      <h2>En résumé</h2>
+      <h2 id="en-resume">En résumé</h2>
       <p>
         Un bon outil de visibilité IA coche six cases : couverture multi-IA, mesure de tendance,
         prompts neutres, plan d&apos;action concret, audit technique et contenu, prix accessible.

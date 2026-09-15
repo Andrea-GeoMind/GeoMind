@@ -23,7 +23,7 @@ export default function Page() {
         guide vous explique comment y accéder.
       </p>
 
-      <h2>Comment Perplexity choisit ses sources</h2>
+      <h2 id="comment-perplexity-choisit-ses-sources">Comment Perplexity choisit ses sources</h2>
       <p>
         Contrairement à ChatGPT ou Gemini, Perplexity effectue une vraie recherche web en temps
         réel à chaque question posée. Il interroge plusieurs sources simultanément, compare leur
@@ -52,7 +52,7 @@ export default function Page() {
         d&apos;un budget publicitaire ni d&apos;un service SEO externalisé pour les satisfaire.
       </p>
 
-      <h2>Ce qui vous rend « citable » par Perplexity</h2>
+      <h2 id="ce-qui-vous-rend-citable-par-perplexity">Ce qui vous rend « citable » par Perplexity</h2>
 
       <h3>Une réponse directe en tête de page</h3>
       <p>
@@ -98,7 +98,7 @@ export default function Page() {
         effectivement accessibles à tous les robots.
       </p>
 
-      <h2>Les erreurs qui vous excluent</h2>
+      <h2 id="les-erreurs-qui-vous-excluent">Les erreurs qui vous excluent</h2>
       <p>
         Certains problèmes courants suffisent à vous éliminer des sources de Perplexity, même
         si votre contenu est bon sur le fond :
@@ -127,7 +127,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>La présence hors de votre site compte</h2>
+      <h2 id="la-presence-hors-de-votre-site-compte">La présence hors de votre site compte</h2>
       <p>
         Perplexity ne se contente pas de lire votre site. Il recoupé l&apos;information avec
         d&apos;autres sources pour évaluer votre crédibilité. Votre présence en dehors de votre
@@ -163,7 +163,7 @@ export default function Page() {
         clients cherchent des conseils.
       </p>
 
-      <h2>Comment mesurer votre présence dans Perplexity</h2>
+      <h2 id="comment-mesurer-votre-presence-dans-perplexity">Comment mesurer votre présence dans Perplexity</h2>
       <p>
         La méthode la plus simple, et la plus immédiate, est aussi la plus directe : posez à
         Perplexity les questions que vos clients lui posent, puis regardez qui est cité.
@@ -202,7 +202,7 @@ export default function Page() {
         vous guidera pas à pas.
       </p>
 
-      <h2>Plan d&apos;action pour apparaître dans Perplexity</h2>
+      <h2 id="plan-d-action-pour-apparaitre-dans-perplexity">Plan d&apos;action pour apparaître dans Perplexity</h2>
       <ul>
         <li>
           <strong>Cette semaine :</strong> posez vos 5 questions clients à Perplexity et notez

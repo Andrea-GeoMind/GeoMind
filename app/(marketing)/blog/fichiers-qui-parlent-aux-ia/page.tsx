@@ -21,7 +21,7 @@ export default function Page() {
         Aucun des trois ne demande de refondre votre site.
       </p>
 
-      <h2>llms.txt — votre carte de visite pour les IA</h2>
+      <h2 id="llms-txt-votre-carte-de-visite">llms.txt — votre carte de visite pour les IA</h2>
       <p>
         Le llms.txt est un simple fichier texte placé à la racine de votre site
         (votresite.fr/llms.txt). Il se présente aux IA : qui vous êtes en une phrase, vos pages
@@ -36,7 +36,7 @@ export default function Page() {
         <li>Vos coordonnées et votre zone d&apos;intervention.</li>
       </ul>
 
-      <h2>Schema.org — vos infos en langage machine</h2>
+      <h2 id="schema-org-vos-infos-en-langage-machine">Schema.org — vos infos en langage machine</h2>
       <p>
         Les données structurées sont des étiquettes JSON-LD glissées dans le code de vos pages.
         Invisibles à l&apos;écran, elles transforment « on devine que c&apos;est un restaurant »
@@ -63,7 +63,7 @@ export default function Page() {
         d&apos;enrichissement de Google que tout est valide.
       </p>
 
-      <h2>La FAQ balisée — vos réponses prêtes à citer</h2>
+      <h2 id="la-faq-balisee-vos-reponses-pretes-a-citer">La FAQ balisée — vos réponses prêtes à citer</h2>
       <p>
         Quand une IA construit sa réponse, le format question/réponse est ce qu&apos;elle reprend
         le plus volontiers : la question correspond à celle de l&apos;utilisateur, la réponse est
@@ -75,7 +75,7 @@ export default function Page() {
         <li>est balisée FAQPage en Schema.org — sinon elle reste du texte comme un autre.</li>
       </ul>
 
-      <h2>Et le robots.txt dans tout ça ?</h2>
+      <h2 id="et-le-robots-txt-dans-tout-ca">Et le robots.txt dans tout ça ?</h2>
       <p>
         Le robots.txt ne « parle » pas aux IA, mais il leur ouvre (ou ferme) la porte. Vérifiez
         qu&apos;il n&apos;interdit pas GPTBot, ClaudeBot ou PerplexityBot — certains modèles de
@@ -84,7 +84,7 @@ export default function Page() {
         questions.
       </p>
 
-      <h2>Checklist finale</h2>
+      <h2 id="checklist-finale">Checklist finale</h2>
       <ul>
         <li>votresite.fr/llms.txt existe et vous décrit en une phrase.</li>
         <li>votresite.fr/robots.txt n&apos;interdit pas les robots des IA.</li>

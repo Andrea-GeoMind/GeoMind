@@ -23,7 +23,7 @@ export default function Page() {
         savoir en quelques minutes, et ce qu&apos;il faut faire ensuite.
       </p>
 
-      <h2>Méthode manuelle, en 15 minutes</h2>
+      <h2 id="methode-manuelle-en-15-minutes">Méthode manuelle, en 15 minutes</h2>
       <p>
         Pas besoin d&apos;outil pour un premier test. Voici une procédure simple que vous pouvez
         appliquer dès aujourd&apos;hui, avec la version gratuite de ChatGPT.
@@ -66,7 +66,7 @@ export default function Page() {
         rendre visible.
       </p>
 
-      <h2>Les pièges du test manuel</h2>
+      <h2 id="les-pieges-du-test-manuel">Les pièges du test manuel</h2>
       <p>
         Cette méthode donne une première image utile, mais elle a des limites importantes à connaître
         avant d&apos;en tirer des conclusions définitives.
@@ -98,7 +98,7 @@ export default function Page() {
         dit spontanément, sans la guider.
       </p>
 
-      <h2>Que faire si ce sont vos concurrents qui apparaissent</h2>
+      <h2 id="que-faire-si-ce-sont-vos-concurrents">Que faire si ce sont vos concurrents qui apparaissent</h2>
       <p>
         Ne paniquez pas, mais ne minimisez pas non plus. Si vos concurrents sont cités et pas vous,
         c&apos;est le signal que les IA jugent leurs contenus et leur présence en ligne plus
@@ -127,7 +127,7 @@ export default function Page() {
         de contenu suffisent pour apparaître sur les requêtes de niche ou locales.
       </p>
 
-      <h2>Pourquoi un suivi régulier change tout</h2>
+      <h2 id="pourquoi-un-suivi-regulier-change-tout">Pourquoi un suivi régulier change tout</h2>
       <p>
         Un test ponctuel vous dit où vous en êtes aujourd&apos;hui. Mais la visibilité dans les IA
         évolue : les moteurs IA mettent à jour leurs index, vos concurrents publient du nouveau
@@ -149,7 +149,7 @@ export default function Page() {
         Sans mesure dans le temps, vous ne saurez jamais ce qui a vraiment fonctionné.
       </p>
 
-      <h2>Faire ça à la main ou avec un outil</h2>
+      <h2 id="faire-ca-a-la-main-ou-avec">Faire ça à la main ou avec un outil</h2>
       <p>
         Soyons honnêtes : la méthode manuelle décrite plus haut est faisable. Elle vous coûtera
         environ une heure la première fois, puis 30 à 45 minutes par mois si vous voulez suivre
@@ -172,7 +172,7 @@ export default function Page() {
         commencer par vous-même, la méthode ci-dessus est un bon point de départ.
       </p>
 
-      <h2>Par où commencer</h2>
+      <h2 id="par-ou-commencer">Par où commencer</h2>
       <ul>
         <li>
           <strong>Aujourd&apos;hui :</strong> ouvrez une fenêtre de navigation privée, activez la

@@ -23,7 +23,7 @@ export default function Page() {
         Voici comment construire votre visibilité dans Gemini, pas à pas.
       </p>
 
-      <h2>Comment Gemini choisit ses sources</h2>
+      <h2 id="comment-gemini-choisit-ses-sources">Comment Gemini choisit ses sources</h2>
       <p>
         Contrairement à ChatGPT, qui s&apos;appuie principalement sur sa base de connaissance
         interne, Gemini est profondément ancré dans l&apos;index Google. Il consulte les pages
@@ -36,7 +36,7 @@ export default function Page() {
         vous cite. Si Google vous ignore, Gemini vous ignore aussi.
       </p>
 
-      <h2>Votre socle : un SEO Google solide</h2>
+      <h2 id="votre-socle-un-seo-google-solide">Votre socle : un SEO Google solide</h2>
       <p>
         Gemini hérite directement de votre référencement naturel. Un site que Google ne
         comprend pas, ne crawle pas ou ne valorise pas sera invisible dans les réponses
@@ -66,7 +66,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Les données structurées, langage natif de Google</h2>
+      <h2 id="les-donnees-structurees-langage-natif-de-google">Les données structurées, langage natif de Google</h2>
       <p>
         Les données structurées (schema.org) sont le moyen le plus direct d&apos;indiquer à
         Google — et donc à Gemini — ce que vous êtes, ce que vous faites et pour qui vous
@@ -100,7 +100,7 @@ export default function Page() {
         Google et surveillez leur état dans Search Console.
       </p>
 
-      <h2>Google Business Profile : décisif pour le local</h2>
+      <h2 id="google-business-profile-decisif-pour-le-local">Google Business Profile : décisif pour le local</h2>
       <p>
         Pour une TPE ou une PME avec une clientèle locale, Google Business Profile (GBP) est
         peut-être le levier le plus puissant pour apparaître dans Gemini. Lorsqu&apos;un
@@ -131,7 +131,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Du contenu qui répond aux questions</h2>
+      <h2 id="du-contenu-qui-repond-aux-questions">Du contenu qui répond aux questions</h2>
       <p>
         Gemini est un moteur de réponses, pas un moteur de liens. Il cherche des contenus qui
         répondent directement à une question, avec une réponse claire dès les premières lignes.
@@ -167,7 +167,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>Gemini vs ChatGPT vs Perplexity</h2>
+      <h2 id="gemini-vs-chatgpt-vs-perplexity">Gemini vs ChatGPT vs Perplexity</h2>
       <p>
         Ces trois outils sont complémentaires dans le parcours de vos prospects, mais ils
         fonctionnent différemment. Comprendre ces différences vous aide à prioriser vos efforts.
@@ -204,7 +204,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>Plan d&apos;action</h2>
+      <h2 id="plan-d-action">Plan d&apos;action</h2>
       <ul>
         <li>
           <strong>Semaine 1 — Audit :</strong> posez à Gemini les 5 à 10 questions que vos

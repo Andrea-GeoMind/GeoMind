@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Mentions légales — GEOMIND',
-  description: 'Mentions légales du site geomind.fr.',
+  description:
+    "Mentions légales de geomind.fr : éditeur du site, directeur de la publication, coordonnées de contact, hébergeur et propriété intellectuelle.",
+  alternates: { canonical: '/legal/mentions' },
 }
 
 export default function MentionsPage() {

@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente — GEOMIND',
-  description: 'Conditions Générales de Vente du service GEOMIND.',
+  description:
+    "Conditions Générales de Vente de GEOMIND : plans et tarifs, crédits d'analyse, durée et résiliation de l'abonnement, droit de rétractation et garanties.",
+  alternates: { canonical: '/legal/cgv' },
 }
 
 export default function CgvPage() {

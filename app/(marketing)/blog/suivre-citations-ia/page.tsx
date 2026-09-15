@@ -24,7 +24,7 @@ export default function Page() {
         suivre ses citations dans les IA, c&apos;est précisément la boussole qui manque.
       </p>
 
-      <h2>Pourquoi un score instantané ne veut rien dire</h2>
+      <h2 id="pourquoi-un-score-instantane-ne-veut-rien-dire">Pourquoi un score instantané ne veut rien dire</h2>
       <p>
         La première tentation est de poser une question à ChatGPT, de vérifier si votre
         entreprise apparaît, et d&apos;en conclure que « vous y êtes » ou « vous n&apos;y êtes
@@ -46,7 +46,7 @@ export default function Page() {
         cette courbe qui a de la valeur, pas le chiffre du jour.
       </p>
 
-      <h2>Quoi suivre exactement</h2>
+      <h2 id="quoi-suivre-exactement">Quoi suivre exactement</h2>
       <p>
         Un suivi GEO rigoureux ne se limite pas à « est-ce qu&apos;on me cite ? ». Voici les
         cinq dimensions à mesurer.
@@ -95,7 +95,7 @@ export default function Page() {
         d&apos;identifier où concentrer vos efforts.
       </p>
 
-      <h2>Comment mettre en place un suivi fiable</h2>
+      <h2 id="comment-mettre-en-place-un-suivi-fiable">Comment mettre en place un suivi fiable</h2>
       <p>
         La méthode manuelle est accessible à toute entreprise. Elle demande de la rigueur, pas
         de compétences techniques.
@@ -124,7 +124,7 @@ export default function Page() {
         exploitable.
       </p>
 
-      <h2>À la main ou avec un outil</h2>
+      <h2 id="a-la-main-ou-avec-un-outil">À la main ou avec un outil</h2>
       <p>
         La méthode manuelle décrite ci-dessus est <em>faisable</em>. Elle est aussi chronophage
         et sujette aux erreurs humaines : une fenêtre oubliée en mode normal, une question
@@ -151,7 +151,7 @@ export default function Page() {
         — un outil devient rapidement rentable en temps.
       </p>
 
-      <h2>Transformer le suivi en actions</h2>
+      <h2 id="transformer-le-suivi-en-actions">Transformer le suivi en actions</h2>
       <p>
         Mesurer sans agir, c&apos;est regarder le thermomètre sans ouvrir la fenêtre. Chaque
         signal issu de votre suivi doit se traduire en action concrète.
@@ -185,7 +185,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>Par où commencer</h2>
+      <h2 id="par-ou-commencer">Par où commencer</h2>
       <ul>
         <li>
           <strong>Listez 5 questions</strong> que vos clients posent avant d&apos;acheter votre

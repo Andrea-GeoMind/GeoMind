@@ -22,7 +22,7 @@ export default function AboutPage() {
 
       <div className="mt-10 space-y-8 text-base leading-relaxed text-foreground/85">
         <section className="space-y-3">
-          <h2 className="text-xl font-bold text-foreground">Le constat</h2>
+          <h2 className="text-xl font-bold text-foreground">Le constat : vos clients posent leurs questions aux IA</h2>
           <p>
             En quelques années, une partie des recherches a quitté Google pour ChatGPT,
             Perplexity, Gemini et Claude. Quand quelqu&apos;un demande aujourd&apos;hui « quel
@@ -38,7 +38,7 @@ export default function AboutPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-bold text-foreground">Notre approche</h2>
+          <h2 className="text-xl font-bold text-foreground">Notre approche : mesurer, expliquer, puis corriger</h2>
           <p>
             <strong>Mesurer honnêtement.</strong> Nous interrogeons réellement les {ENGINE_COUNT}{' '}
             moteurs IA
@@ -60,7 +60,7 @@ export default function AboutPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-bold text-foreground">Qui est derrière GeoMind</h2>
+          <h2 className="text-xl font-bold text-foreground">Qui est derrière GeoMind ?</h2>
           <p>
             GeoMind est un produit français, indépendant et auto-financé, développé par une
             petite équipe obsédée par une chose : rendre la visibilité IA accessible à ceux qui

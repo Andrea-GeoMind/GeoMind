@@ -22,7 +22,7 @@ export default function Page() {
         et PME françaises — et ce qu&apos;il faut faire pour les éliminer.
       </p>
 
-      <h2>1. Votre robots.txt bloque les robots des IA</h2>
+      <h2 id="votre-robots-txt-bloque-les-robots-des-ia">1. Votre robots.txt bloque les robots des IA</h2>
       <p>
         Les moteurs d&apos;IA utilisent leurs propres robots pour indexer le web :{' '}
         <strong>GPTBot</strong> (OpenAI), <strong>PerplexityBot</strong>,{' '}
@@ -44,7 +44,7 @@ export default function Page() {
         (Wordfence, iThemes) qui ajoutent parfois ces blocages automatiquement.
       </p>
 
-      <h2>2. Votre contenu est vague et non « citable »</h2>
+      <h2 id="votre-contenu-est-vague-et-non-citable">2. Votre contenu est vague et non « citable »</h2>
       <p>
         « Nous proposons des solutions sur mesure adaptées à vos besoins. » Cette phrase est
         présente sur des dizaines de milliers de sites français. Une IA ne peut pas la citer,
@@ -69,7 +69,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>3. Vos informations sont incohérentes d&apos;une source à l&apos;autre</h2>
+      <h2 id="vos-informations-sont-incoherentes-d-une-source">3. Vos informations sont incohérentes d&apos;une source à l&apos;autre</h2>
       <p>
         Votre nom d&apos;entreprise s&apos;écrit « SARL Dupont » sur votre site, « Dupont SARL »
         sur Google Business Profile, et « Dupont et Fils » sur un annuaire local. Votre numéro de
@@ -89,7 +89,7 @@ export default function Page() {
         fois fait proprement, a un effet durable.
       </p>
 
-      <h2>4. Vous n&apos;avez aucune présence en dehors de votre site</h2>
+      <h2 id="vous-n-avez-aucune-presence-en-dehors">4. Vous n&apos;avez aucune présence en dehors de votre site</h2>
       <p>
         Votre site est parfait, mais vous n&apos;êtes mentionné nulle part ailleurs sur le web.
         Pas d&apos;avis Google, pas de fiche sur les annuaires de votre secteur, pas de mention
@@ -115,7 +115,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>5. Vous n&apos;avez pas de données structurées</h2>
+      <h2 id="vous-n-avez-pas-de-donnees-structurees">5. Vous n&apos;avez pas de données structurées</h2>
       <p>
         Les données structurées (schema.org) sont des balises techniques invisibles pour vos
         visiteurs, mais que les IA lisent en priorité. Elles permettent de dire explicitement à
@@ -145,7 +145,7 @@ export default function Page() {
         d&apos;erreur.
       </p>
 
-      <h2>6. Votre contenu n&apos;est jamais mis à jour</h2>
+      <h2 id="votre-contenu-n-est-jamais-mis-a-jour">6. Votre contenu n&apos;est jamais mis à jour</h2>
       <p>
         Une page rédigée en 2019 et jamais retouchée envoie un signal négatif aux IA : ce site
         est peut-être abandonné, les informations sont peut-être périmées. Les moteurs de réponses
@@ -165,7 +165,7 @@ export default function Page() {
         question réelle posée par vos clients récents. La régularité prime sur le volume.
       </p>
 
-      <h2>7. Vous ne mesurez rien</h2>
+      <h2 id="vous-ne-mesurez-rien">7. Vous ne mesurez rien</h2>
       <p>
         C&apos;est l&apos;erreur la plus silencieuse. Vous ne savez pas si vous êtes cité dans
         ChatGPT ou Perplexity, vous ne savez pas qui est cité à votre place, vous ne savez pas
@@ -187,7 +187,7 @@ export default function Page() {
         les tendances sans intervention de votre part.
       </p>
 
-      <h2>Par où commencer</h2>
+      <h2 id="par-ou-commencer">Par où commencer</h2>
       <ul>
         <li>
           <strong>Aujourd&apos;hui :</strong> vérifiez votre <em>robots.txt</em> et autorisez

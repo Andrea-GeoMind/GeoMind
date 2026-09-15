@@ -23,7 +23,7 @@ export default function Page() {
         et la marche à suivre.
       </p>
 
-      <h2>1. ChatGPT ne connaît tout simplement pas encore votre entreprise</h2>
+      <h2 id="chatgpt-ne-connait-tout-simplement-pas-encore">1. ChatGPT ne connaît tout simplement pas encore votre entreprise</h2>
       <p>
         Les grands modèles de langage sont entraînés sur des données collectées jusqu&apos;à une
         date précise — on parle de « date de coupure ». Si votre entreprise a été créée
@@ -41,7 +41,7 @@ export default function Page() {
         chaque action compte.
       </p>
 
-      <h2>2. Votre site bloque les robots des IA</h2>
+      <h2 id="votre-site-bloque-les-robots-des-ia">2. Votre site bloque les robots des IA</h2>
       <p>
         Votre site existe, votre contenu est bon, mais quelque chose empêche les IA de le lire.
         La cause la plus courante est un fichier <strong>robots.txt</strong> trop restrictif.
@@ -62,7 +62,7 @@ export default function Page() {
         par le passé, vérifiez si ces raisons sont encore valables aujourd&apos;hui.
       </p>
 
-      <h2>3. Votre contenu n&apos;est pas « citable »</h2>
+      <h2 id="votre-contenu-n-est-pas-citable">3. Votre contenu n&apos;est pas « citable »</h2>
       <p>
         Une IA ne reprend pas n&apos;importe quelle formulation. Elle cherche des réponses
         directes, des chiffres précis, des définitions claires, des comparaisons structurées.
@@ -79,7 +79,7 @@ export default function Page() {
         contenu est factuel et direct, plus il est citable.
       </p>
 
-      <h2>4. Vous n&apos;existez pas en dehors de votre site</h2>
+      <h2 id="vous-n-existez-pas-en-dehors">4. Vous n&apos;existez pas en dehors de votre site</h2>
       <p>
         Votre site web est votre vitrine, mais pour une IA il ne représente qu&apos;une source
         parmi d&apos;autres. Ce qui crée la confiance, c&apos;est le{' '}
@@ -97,7 +97,7 @@ export default function Page() {
         à ce qu&apos;elle apporte en SEO traditionnel.
       </p>
 
-      <h2>5. Vos informations sont incohérentes</h2>
+      <h2 id="vos-informations-sont-incoherentes">5. Vos informations sont incohérentes</h2>
       <p>
         Votre entreprise s&apos;appelle « Menuiserie Dupont » sur votre site, « Dupont
         Menuiserie et Rénovation » sur Google My Business, et « Dupont M. » sur un vieil
@@ -115,7 +115,7 @@ export default function Page() {
         l&apos;URL.
       </p>
 
-      <h2>6. Vous testez mal</h2>
+      <h2 id="vous-testez-mal">6. Vous testez mal</h2>
       <p>
         Avant de conclure que vous êtes absent des IA, il faut s&apos;assurer que vous testez
         correctement. Trois erreurs de test sont extrêmement fréquentes.
@@ -150,7 +150,7 @@ export default function Page() {
         .
       </p>
 
-      <h2>Par où commencer concrètement</h2>
+      <h2 id="par-ou-commencer-concretement">Par où commencer concrètement</h2>
       <p>
         Vous avez identifié une ou plusieurs causes dans les sections précédentes. Voici un
         ordre de priorité pour passer à l&apos;action sans vous disperser :

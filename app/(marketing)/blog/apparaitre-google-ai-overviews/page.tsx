@@ -24,7 +24,7 @@ export default function Page() {
         chances d&apos;y apparaître.
       </p>
 
-      <h2>Qu&apos;est-ce qu&apos;un AI Overview</h2>
+      <h2 id="qu-est-ce-qu-un-ai-overview">Qu&apos;est-ce qu&apos;un AI Overview</h2>
       <p>
         Un AI Overview est une réponse synthétique générée par Google, affichée en haut de la page
         de résultats, au-dessus des liens naturels classiques. Google compose cette réponse à
@@ -45,7 +45,7 @@ export default function Page() {
         pures (« acheter un canapé rouge ») les déclenchent moins souvent.
       </p>
 
-      <h2>D&apos;où Google tire ses sources</h2>
+      <h2 id="d-ou-google-tire-ses-sources">D&apos;où Google tire ses sources</h2>
       <p>
         Google ne construit pas ses AI Overviews à partir de rien. Il s&apos;appuie sur le même
         corpus qu&apos;il indexe depuis des années : les pages web qu&apos;il a crawlées,
@@ -61,7 +61,7 @@ export default function Page() {
         sélectionner quelles pages il va citer dans sa réponse rédigée.
       </p>
 
-      <h2>Ce qui augmente vos chances d&apos;être cité</h2>
+      <h2 id="ce-qui-augmente-vos-chances-d-etre-cite">Ce qui augmente vos chances d&apos;être cité</h2>
 
       <h3>Répondre directement à la question en tête de page</h3>
       <p>
@@ -114,7 +114,7 @@ export default function Page() {
         complètes, et des liens vers des sources externes sérieuses.
       </p>
 
-      <h2>Le paradoxe du « zéro clic » et comment en tirer parti</h2>
+      <h2 id="le-paradoxe-du-zero-clic-et-comment">Le paradoxe du « zéro clic » et comment en tirer parti</h2>
       <p>
         L&apos;objection la plus fréquente est celle-ci : « Si Google répond directement, personne
         ne va cliquer sur mon site. » C&apos;est partiellement vrai, et il ne faut pas le nier.
@@ -137,7 +137,7 @@ export default function Page() {
         rester optimisées pour le clic classique.
       </p>
 
-      <h2>AI Overviews et ChatGPT / Perplexity : des logiques complémentaires</h2>
+      <h2 id="ai-overviews-et-chatgpt-perplexity-des-logiques-complementaires">AI Overviews et ChatGPT / Perplexity : des logiques complémentaires</h2>
       <p>
         Google n&apos;est pas le seul moteur à afficher des réponses générées par IA. ChatGPT,
         Perplexity et Gemini font exactement la même chose, avec des sources légèrement différentes.
@@ -156,7 +156,7 @@ export default function Page() {
         <Link href="/blog/quest-ce-que-le-geo">GEO (Generative Engine Optimization)</Link>.
       </p>
 
-      <h2>Plan d&apos;action</h2>
+      <h2 id="plan-d-action">Plan d&apos;action</h2>
       <ul>
         <li>
           <strong>Identifiez vos 10 questions prioritaires.</strong> Listez les questions que vos

@@ -26,7 +26,7 @@ export default function Page() {
         clés concrètes du GEO (Generative Engine Optimization) appliqué au e-commerce.
       </p>
 
-      <h2>Comment les IA recommandent des produits</h2>
+      <h2 id="comment-les-ia-recommandent-des-produits">Comment les IA recommandent des produits</h2>
       <p>
         Les moteurs de réponse IA ne fonctionnent pas comme Google Shopping. Ils ne lisent pas
         votre flux de produits en temps réel. Ils ont été entraînés sur d&apos;énormes volumes
@@ -63,7 +63,7 @@ export default function Page() {
         canaux, plus vous avez de chances d&apos;être cité.
       </p>
 
-      <h2>Vos fiches produits : ce qui les rend citables</h2>
+      <h2 id="vos-fiches-produits-ce-qui-les-rend-citables">Vos fiches produits : ce qui les rend citables</h2>
       <p>
         La fiche produit est votre unité de base en GEO. Une fiche bien construite peut être
         citée directement dans une réponse IA. Une fiche pauvre ne sera jamais mentionnée,
@@ -122,7 +122,7 @@ export default function Page() {
         recommander votre produit avec précision.
       </p>
 
-      <h2>Le contenu éditorial qui déclenche les citations</h2>
+      <h2 id="le-contenu-editorial-qui-declenche-les-citations">Le contenu éditorial qui déclenche les citations</h2>
       <p>
         Au-delà des fiches produits, c&apos;est votre contenu éditorial qui positionne votre
         boutique comme une référence aux yeux des IA. Les sites e-commerce qui sont le plus
@@ -161,7 +161,7 @@ export default function Page() {
         pour les principes généraux de rédaction qui maximisent vos chances de citation.
       </p>
 
-      <h2>La preuve sociale et les avis</h2>
+      <h2 id="la-preuve-sociale-et-les-avis">La preuve sociale et les avis</h2>
       <p>
         Les IA accordent un poids considérable aux signaux de confiance extérieurs à votre
         propre site. Le raisonnement est simple : votre site parle de vous, mais les avis
@@ -188,7 +188,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Les erreurs fréquentes en e-commerce</h2>
+      <h2 id="les-erreurs-frequentes-en-e-commerce">Les erreurs fréquentes en e-commerce</h2>
       <p>
         Les boutiques en ligne commettent souvent les mêmes erreurs qui les rendent invisibles
         aux IA, même quand leur offre produit est excellente.
@@ -231,7 +231,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>Plan d&apos;action e-commerce</h2>
+      <h2 id="plan-d-action-e-commerce">Plan d&apos;action e-commerce</h2>
       <p>
         Voici une liste d&apos;actions concrètes à mener, dans l&apos;ordre de priorité pour
         obtenir des résultats rapides :

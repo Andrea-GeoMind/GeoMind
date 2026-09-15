@@ -21,7 +21,7 @@ export default function Page() {
         avis). Voici les 5 actions, dans l&apos;ordre.
       </p>
 
-      <h2>1. Vérifiez que les IA peuvent lire votre site</h2>
+      <h2 id="verifiez-que-les-ia-peuvent-lire-votre-site">1. Vérifiez que les IA peuvent lire votre site</h2>
       <p>
         Avant d&apos;optimiser quoi que ce soit : les robots des IA (GPTBot pour OpenAI,
         ClaudeBot pour Anthropic, PerplexityBot…) doivent pouvoir visiter vos pages. Trois
@@ -40,7 +40,7 @@ export default function Page() {
         </li>
       </ul>
 
-      <h2>2. Répondez aux questions que vos clients posent vraiment</h2>
+      <h2 id="repondez-aux-questions-que-vos-clients-posent-vraiment">2. Répondez aux questions que vos clients posent vraiment</h2>
       <p>
         Les IA ne citent pas les sites qui « parlent d&apos;eux » — elles citent les sites qui{' '}
         <strong>répondent</strong>. Demandez-vous : qu&apos;est-ce que mes clients tapent dans
@@ -57,7 +57,7 @@ export default function Page() {
         <li>Des chiffres, des fourchettes de prix, des délais : le concret se cite.</li>
       </ul>
 
-      <h2>3. Étiquetez vos informations (Schema.org)</h2>
+      <h2 id="etiquetez-vos-informations-schema-org">3. Étiquetez vos informations (Schema.org)</h2>
       <p>
         Les données structurées sont des étiquettes invisibles qui disent aux machines « ceci est
         mon adresse, ceci est une FAQ, ceci est un avis client ». Sans elles, l&apos;IA devine ;
@@ -67,7 +67,7 @@ export default function Page() {
         une heure — ou GeoMind vous génère le code prêt à coller.
       </p>
 
-      <h2>4. Existez ailleurs que chez vous</h2>
+      <h2 id="existez-ailleurs-que-chez">4. Existez ailleurs que chez vous</h2>
       <p>
         Quand une IA répond « les meilleurs plombiers de Lyon », elle s&apos;appuie sur des
         sources qu&apos;elle juge fiables : annuaires reconnus, presse locale, forums, fiches
@@ -77,7 +77,7 @@ export default function Page() {
         présente.
       </p>
 
-      <h2>5. Mesurez, corrigez, recommencez</h2>
+      <h2 id="mesurez-corrigez-recommencez">5. Mesurez, corrigez, recommencez</h2>
       <p>
         La visibilité IA n&apos;est pas un coup d&apos;un soir : c&apos;est une tendance.
         Posez les questions de vos clients aux IA une fois par mois (ou laissez un outil le
@@ -86,7 +86,7 @@ export default function Page() {
         corrections sérieuses — et chaque citation en amène d&apos;autres.
       </p>
 
-      <h2>Les erreurs qui vous coûtent des citations</h2>
+      <h2 id="les-erreurs-qui-vous-coutent-des-citations">Les erreurs qui vous coûtent des citations</h2>
       <ul>
         <li>Un site uniquement en images ou en animations (les IA lisent du texte).</li>
         <li>Aucune page « À propos » ni mention de qui vous êtes (signal de confiance).</li>
