@@ -1,4 +1,5 @@
 import type { FirecrawlPage, RuleInput, ContentIssue } from '../types'
+import { isSectionIndexUrl } from '@/lib/analysis/url-helpers'
 
 // Pages éditoriales : articles de blog, actualités, guides
 const ARTICLE_URL_PATTERN = /\/(blog|articles?|actualites?|actualités?|guides?)(\/|$)/i
@@ -19,6 +20,8 @@ export async function checkNoAuthorBio(
 ): Promise<ContentIssue | null> {
   if (page.statusCode != null && page.statusCode !== 200) return null
   if (!ARTICLE_URL_PATTERN.test(page.url)) return null
+  // L'index /blog/ n'est pas un article : il n'a pas d'auteur à signer.
+  if (isSectionIndexUrl(page.url)) return null
   if (!page.markdown) return null
 
   if (AUTHOR_BY_NAME_PATTERN.test(page.markdown)) return null

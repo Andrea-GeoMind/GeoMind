@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { extractHeadings } from '@/lib/crawl/headings'
-import { isArticleUrl, isSectionIndexUrl } from '@/lib/analysis/technical/rules/_url-helpers'
+import { isArticleUrl, isSectionIndexUrl } from '@/lib/analysis/url-helpers'
 
 describe('extractHeadings', () => {
   it('extrait H1 et H2 du HTML', () => {
     const out = extractHeadings('<h1>Tous les articles</h1><h2>Strip technique</h2><h2>Greffe</h2>')
-    expect(out).toEqual({ h1: ['Tous les articles'], h2: ['Strip technique', 'Greffe'] })
+    expect(out).toEqual({ h1: ['Tous les articles'], h2: ['Strip technique', 'Greffe'], levels: [1, 2, 2] })
   })
 
   it('retire les balises internes et décode les entités', () => {
@@ -19,7 +19,7 @@ describe('extractHeadings', () => {
   })
 
   it('renvoie des tableaux vides sur une page réellement sans titre', () => {
-    expect(extractHeadings('<div>rien</div>')).toEqual({ h1: [], h2: [] })
+    expect(extractHeadings('<div>rien</div>')).toEqual({ h1: [], h2: [], levels: [] })
   })
 
   it('ignore les titres vides', () => {
@@ -51,5 +51,16 @@ describe('isArticleUrl / isSectionIndexUrl', () => {
 
   it('tolère une URL invalide', () => {
     expect(isArticleUrl('pas-une-url')).toBe(false)
+  })
+})
+
+describe('plan des niveaux de titres', () => {
+  it('rend les niveaux dans l ordre du document', () => {
+    const html = '<h1>T</h1><h2>A</h2><h3>a1</h3><h3>a2</h3><h2>B</h2>'
+    expect(extractHeadings(html)?.levels).toEqual([1, 2, 3, 3, 2])
+  })
+
+  it('ignore les titres vides dans le plan', () => {
+    expect(extractHeadings('<h1>T</h1><h2>  </h2><h3>x</h3>')?.levels).toEqual([1, 3])
   })
 })

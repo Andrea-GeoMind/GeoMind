@@ -10,7 +10,9 @@
  * « H1 manquant » sur trois pages qui en servent chacune exactement un.
  */
 
-const HEADING_RE = (level: 1 | 2) => new RegExp(`<h${level}\\b[^>]*>([\\s\\S]*?)</h${level}>`, 'gi')
+const HEADING_RE = (level: number) => new RegExp(`<h${level}\\b[^>]*>([\\s\\S]*?)</h${level}>`, 'gi')
+/** Tous les titres dans l'ordre du document, avec leur niveau. */
+const ANY_HEADING_RE = /<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi
 
 const ENTITIES: Record<string, string> = {
   '&nbsp;': ' ',
@@ -44,13 +46,25 @@ function extractLevel(html: string, level: 1 | 2): string[] {
     .filter((text) => text !== '')
 }
 
+export interface PageHeadings {
+  h1: string[]
+  h2: string[]
+  /**
+   * Niveaux des titres dans l'ordre du document (`[1, 2, 3, 3]`). Le markdown de
+   * Firecrawl réordonne et perd des titres : sur un index de blog, il ne rend que
+   * les H3 des vignettes, ce qui faisait conclure à tort à un « saut de niveau ».
+   */
+  levels: number[]
+}
+
 /**
- * Titres H1 et H2 d'une page. Renvoie `null` quand il n'y a pas de HTML à lire —
- * les règles retombent alors sur leur analyse du markdown, comme avant.
+ * Titres d'une page lus dans le HTML. Renvoie `null` quand il n'y a pas de HTML à
+ * lire — les règles retombent alors sur leur analyse du markdown, comme avant.
  */
-export function extractHeadings(
-  html: string | null | undefined
-): { h1: string[]; h2: string[] } | null {
+export function extractHeadings(html: string | null | undefined): PageHeadings | null {
   if (!html) return null
-  return { h1: extractLevel(html, 1), h2: extractLevel(html, 2) }
+  const levels = [...html.matchAll(ANY_HEADING_RE)]
+    .filter((m) => toText(m[2] ?? '') !== '')
+    .map((m) => Number(m[1]))
+  return { h1: extractLevel(html, 1), h2: extractLevel(html, 2), levels }
 }

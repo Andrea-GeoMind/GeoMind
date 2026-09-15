@@ -1,4 +1,11 @@
 import type { TechnicalPageRuleFn, FirecrawlPage } from '../types'
+import { isSectionIndexUrl } from '@/lib/analysis/url-helpers'
+
+/** Plan des niveaux de titres lu dans le HTML, quand le crawl l'a fourni. */
+function headingLevels(page: FirecrawlPage): number[] | null {
+  const levels = page.metadata?.headingLevels
+  return Array.isArray(levels) && levels.every((l) => typeof l === 'number') ? levels : null
+}
 
 function isContentPage(url: string): boolean {
   try {
@@ -14,15 +21,21 @@ function hasH2(page: FirecrawlPage): boolean {
   return /^## .+/m.test(page.markdown ?? '')
 }
 
-/** Détecte un saut de niveau dans le markdown : un H3 qui apparaît avant tout H2. */
-function hasLevelSkip(markdown: string): boolean {
-  const headingLevels = [...markdown.matchAll(/^(#{2,6}) .+/gm)].map((m) => m[1].length)
+/** Détecte un saut de niveau : un H3 qui apparaît avant tout H2. */
+function isLevelSkip(levels: number[]): boolean {
   let h2Seen = false
-  for (const level of headingLevels) {
+  for (const level of levels) {
     if (level === 2) h2Seen = true
     else if (level === 3 && !h2Seen) return true
   }
   return false
+}
+
+function hasLevelSkip(page: FirecrawlPage): boolean {
+  const fromHtml = headingLevels(page)
+  if (fromHtml) return isLevelSkip(fromHtml)
+  const markdown = page.markdown ?? ''
+  return isLevelSkip([...markdown.matchAll(/^(#{2,6}) .+/gm)].map((m) => m[1].length))
 }
 
 /**
@@ -31,9 +44,11 @@ function hasLevelSkip(markdown: string): boolean {
  */
 export const checkHierarchyMissing: TechnicalPageRuleFn = async (page) => {
   if (!isContentPage(page.url)) return null
+  // Un index de section liste des vignettes : sa hiérarchie n'est pas celle d'un contenu.
+  if (isSectionIndexUrl(page.url)) return null
   const markdown = page.markdown ?? ''
   const missingH2 = !hasH2(page) && markdown.trim().length > 0
-  const levelSkip = hasLevelSkip(markdown)
+  const levelSkip = hasLevelSkip(page)
   if (!missingH2 && !levelSkip) return null
   const detail = missingH2
     ? "Cette page de contenu n'a aucun sous-titre (H2)."

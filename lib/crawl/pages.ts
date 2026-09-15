@@ -45,6 +45,7 @@ export function buildPageMetadata(doc: FirecrawlDocument): Record<string, unknow
   if (headings) {
     metadata.h1 = headings.h1
     metadata.h2 = headings.h2
+    metadata.headingLevels = headings.levels
   }
   return metadata
 }

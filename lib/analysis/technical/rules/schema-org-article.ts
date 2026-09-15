@@ -1,6 +1,6 @@
 import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
 import { getSchemaTypes } from './_schema-helpers'
-import { isArticleUrl } from './_url-helpers'
+import { isArticleUrl } from '@/lib/analysis/url-helpers'
 
 const ARTICLE_SCHEMA_TYPES = new Set(['Article', 'BlogPosting', 'NewsArticle'])
 
