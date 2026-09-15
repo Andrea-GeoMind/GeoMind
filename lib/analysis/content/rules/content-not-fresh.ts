@@ -56,9 +56,13 @@ function extractDates(markdown: string): Date[] {
  * proches comptent aussi, ex. une année en cours mentionnée en janvier).
  */
 export async function checkContentNotFreshAt(
-  { pages }: RuleInput,
+  { pages, crawlTruncated }: RuleInput,
   now: Date
 ): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
+
   const contentPages = pages.filter(
     (p) => (p.statusCode === 200 || p.statusCode == null) && p.markdown
   )

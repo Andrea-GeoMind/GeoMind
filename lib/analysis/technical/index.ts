@@ -5,6 +5,7 @@ import { computeIssuesScore } from '@/lib/analysis/scoring'
 import { penaltyForSeverity } from '@/lib/analysis/geo-rules'
 import { selectPagesForAnalysis } from '@/lib/analysis/page-selection'
 import { analysablePages } from '@/lib/analysis/page-health'
+import { crawlWasTruncated } from '@/lib/analysis/crawl-coverage'
 import { completeTechnicalOpportunities } from '@/lib/analysis/opportunities'
 import { getPageAnalysisLimit } from '@/lib/quotas'
 import type {
@@ -117,7 +118,7 @@ export async function runTechnicalAnalysis({
     metadata: p.metadata as unknown as FirecrawlPage['metadata'],
   }))
 
-  const ruleInput = { pages, siteUrl: site.url }
+  const ruleInput = { pages, siteUrl: site.url, crawlTruncated: crawlWasTruncated(pages) }
 
   // 1. Règles site
   const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))

@@ -43,6 +43,11 @@ export interface TechnicalIssue {
 export interface RuleInput {
   pages: FirecrawlPage[]
   siteUrl: string
+  /**
+   * Le crawl a atteint son plafond : les pages ne sont qu'un échantillon du site.
+   * Les règles d'existence doivent alors se taire (cf. lib/analysis/crawl-coverage.ts).
+   */
+  crawlTruncated?: boolean
 }
 
 /** Règle à scope site : reçoit toutes les pages, émet au plus une issue globale. */

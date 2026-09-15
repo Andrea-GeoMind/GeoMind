@@ -10,7 +10,11 @@ const MIN_PAGES = 5
 export async function checkLowPageCount({
   pages,
   siteUrl,
+  crawlTruncated,
 }: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   const contentPages = pages.filter((p) => p.statusCode === 200 || p.statusCode == null)
   if (contentPages.length >= MIN_PAGES) return null
 

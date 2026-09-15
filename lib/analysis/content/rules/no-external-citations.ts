@@ -31,7 +31,11 @@ function countExternalLinks(markdown: string, siteHostname: string): number {
 export async function checkNoExternalCitations({
   pages,
   siteUrl,
+  crawlTruncated,
 }: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   const siteHostname = getHostname(siteUrl)
   if (!siteHostname) return null
 

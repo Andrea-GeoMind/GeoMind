@@ -9,7 +9,13 @@ const EMAIL_PATTERN = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i
  * favorisent les sites identifiables, derrière lesquels il y a une vraie
  * organisation joignable.
  */
-export async function checkContactInfoMissing({ pages }: RuleInput): Promise<ContentIssue | null> {
+export async function checkContactInfoMissing({
+  pages,
+  crawlTruncated,
+}: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   if (pages.length === 0) return null
 
   const hasContactPage = pages.some((p) => CONTACT_URL_PATTERN.test(p.url))

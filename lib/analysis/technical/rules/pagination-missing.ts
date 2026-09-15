@@ -17,7 +17,13 @@ function firstSegment(url: string): string | null {
  * catalogue…) mais aucune URL de pagination n'a été découverte au crawl.
  * Soit la pagination n'existe pas, soit elle n'est pas crawlable.
  */
-export async function checkPaginationMissing({ pages }: RuleInput): Promise<TechnicalIssue | null> {
+export async function checkPaginationMissing({
+  pages,
+  crawlTruncated,
+}: RuleInput): Promise<TechnicalIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   if (pages.some((p) => PAGINATION_PATTERN.test(p.url))) return null
 
   const groups = new Map<string, string[]>()

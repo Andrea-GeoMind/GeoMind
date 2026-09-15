@@ -6,6 +6,7 @@ import { computeIssuesScore } from '@/lib/analysis/scoring'
 import { penaltyForSeverity } from '@/lib/analysis/geo-rules'
 import { selectPagesForAnalysis } from '@/lib/analysis/page-selection'
 import { analysablePages } from '@/lib/analysis/page-health'
+import { crawlWasTruncated } from '@/lib/analysis/crawl-coverage'
 import { completeContentOpportunities } from '@/lib/analysis/opportunities'
 import { getPageAnalysisLimit } from '@/lib/quotas'
 import type { ContentRuleFn, ContentPageRuleFn, ContentIssue, FirecrawlPage } from './types'
@@ -105,7 +106,12 @@ export async function runContentAnalysis({
     metadata: p.metadata as unknown as FirecrawlPage['metadata'],
   }))
 
-  const ruleInput = { pages, siteUrl: site.url, keywords: metadata?.keywords ?? [] }
+  const ruleInput = {
+    pages,
+    siteUrl: site.url,
+    keywords: metadata?.keywords ?? [],
+    crawlTruncated: crawlWasTruncated(pages),
+  }
 
   // 1. Règles site
   const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))

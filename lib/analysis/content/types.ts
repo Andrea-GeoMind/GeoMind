@@ -43,6 +43,11 @@ export interface ContentIssue {
 export interface RuleInput {
   pages: FirecrawlPage[]
   siteUrl: string
+  /**
+   * Le crawl a atteint son plafond : les pages ne sont qu'un échantillon du site.
+   * Les règles d'existence doivent alors se taire (cf. lib/analysis/crawl-coverage.ts).
+   */
+  crawlTruncated?: boolean
   /** Mots-clés cibles du site (site_metadata) — pour keyword-not-in-headings */
   keywords?: string[]
 }

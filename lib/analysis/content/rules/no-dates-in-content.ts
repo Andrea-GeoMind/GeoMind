@@ -14,7 +14,13 @@ function hasDateContent(markdown: string | null | undefined): boolean {
  * Les IA privilégient les informations datées : une date signale la fraîcheur
  * et la fiabilité, deux critères clés pour être cité par ChatGPT ou Perplexity.
  */
-export async function checkNoDatesInContent({ pages }: RuleInput): Promise<ContentIssue | null> {
+export async function checkNoDatesInContent({
+  pages,
+  crawlTruncated,
+}: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   if (pages.length === 0) return null
 
   const contentPages = pages.filter(

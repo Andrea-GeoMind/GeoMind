@@ -28,7 +28,13 @@ function countQuestionHeadings(page: FirecrawlPage): number {
  * Les titres interrogatifs (terminés par « ? ») comptent comme du contenu FAQ :
  * ils matchent directement les questions que les utilisateurs posent aux IA.
  */
-export async function checkNoFaqContent({ pages }: RuleInput): Promise<ContentIssue | null> {
+export async function checkNoFaqContent({
+  pages,
+  crawlTruncated,
+}: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   if (pages.length === 0) return null
 
   const totalQuestions = pages.reduce((sum, p) => sum + countQuestionHeadings(p), 0)

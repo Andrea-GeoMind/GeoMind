@@ -6,6 +6,7 @@ import { buildPageMetadata } from '@/lib/crawl/pages'
 import { withRetry } from '@/lib/crawl/retry'
 import { firecrawlDocumentSchema } from '@/lib/crawl/schemas'
 import { measureResponseTimes } from '@/lib/crawl/response-time'
+import { isCrawlTruncated, CRAWL_TRUNCATED_KEY } from '@/lib/analysis/crawl-coverage'
 
 export { withRetry } from '@/lib/crawl/retry'
 export { firecrawlDocumentSchema, firecrawlDocumentMetadataSchema, type FirecrawlDocument } from '@/lib/crawl/schemas'
@@ -40,6 +41,20 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ])
 }
 
+/**
+ * Marque les pages d'un crawl plafonné, pour que les règles d'existence sachent
+ * qu'elles n'ont vu qu'un échantillon (cf. lib/analysis/crawl-coverage.ts).
+ */
+function markCrawlTruncation(
+  pages: FirecrawlPageInsert[],
+  input: { pagesFound: number; maxPages: number; discoveryFailed?: boolean }
+): void {
+  const truncated = isCrawlTruncated(input)
+  for (const page of pages) {
+    page.metadata = { ...(page.metadata ?? {}), [CRAWL_TRUNCATED_KEY]: truncated }
+  }
+}
+
 // ─── scrapeForDiscovery ────────────────────────────────────────────────────────
 // Utilisé pour la découverte initiale (site.crawl.requested).
 // Stratégie : map() pour lister les URLs (< 2s), puis scrape() en parallèle sur
@@ -60,6 +75,7 @@ export async function scrapeForDiscovery({
 
   // 1. Lister les URLs présentes sur le site (rapide — pas de contenu scrappé)
   let urlsToScrape: string[] = [site.url]
+  let discoveryFailed = false
   try {
     const mapResult = await withTimeout(
       client.map(site.url, { limit: maxPages + 5 }),
@@ -76,7 +92,9 @@ export async function scrapeForDiscovery({
       urlsToScrape = discovered.slice(0, maxPages)
     }
   } catch {
-    // map() indisponible → on se rabat sur la homepage uniquement
+    // map() indisponible → on se rabat sur la homepage uniquement. On ne sait
+    // alors rien de la taille du site : le crawl compte comme tronqué.
+    discoveryFailed = true
   }
 
   // 2. Scraper chaque URL en parallèle (requête HTTP directe, pas de polling)
@@ -109,6 +127,11 @@ export async function scrapeForDiscovery({
     throw new Error(`scrapeForDiscovery: aucune page accessible pour ${site.url}`)
   }
 
+  markCrawlTruncation(pages, {
+    pagesFound: urlsToScrape.length,
+    maxPages,
+    discoveryFailed,
+  })
   await measureResponseTimes(pages)
   await upsertFirecrawlPages(pages)
   return { siteId, pagesCount: pages.length }
@@ -157,6 +180,7 @@ export async function crawlSite({
     })
   }
 
+  markCrawlTruncation(pages, { pagesFound: pages.length, maxPages })
   await measureResponseTimes(pages)
   await upsertFirecrawlPages(pages)
 

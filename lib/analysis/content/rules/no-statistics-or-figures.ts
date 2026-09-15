@@ -28,16 +28,17 @@ function countStatSignals(markdown: string): number {
  */
 export async function checkNoStatisticsOrFigures({
   pages,
+  crawlTruncated,
 }: RuleInput): Promise<ContentIssue | null> {
+  // Constat d'existence : une seule page non crawlée suffirait à le démentir.
+  // Sur un crawl plafonné, il décrirait la couverture du crawl, pas le site.
+  if (crawlTruncated) return null
   const contentPages = pages.filter(
     (p) => (p.statusCode === 200 || p.statusCode == null) && p.markdown
   )
   if (contentPages.length === 0) return null
 
-  const totalSignals = contentPages.reduce(
-    (sum, p) => sum + countStatSignals(p.markdown ?? ''),
-    0
-  )
+  const totalSignals = contentPages.reduce((sum, p) => sum + countStatSignals(p.markdown ?? ''), 0)
   if (totalSignals >= MIN_STAT_SIGNALS) return null
 
   return {
