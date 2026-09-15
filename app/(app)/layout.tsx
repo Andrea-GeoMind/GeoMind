@@ -42,7 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AnalysisLockProvider>
       <CoachProvider>
-        <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
+        <div className="app-shell flex flex-col overflow-hidden lg:flex-row">
           {/* Mobile : barre supérieure + drawer (PLAN item 19) */}
           <MobileSidebar>
             <Sidebar userEmail={user.email ?? ''} credits={credits} />

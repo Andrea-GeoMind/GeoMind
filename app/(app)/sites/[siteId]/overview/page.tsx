@@ -98,7 +98,7 @@ export default async function OverviewPage({ params }: Props) {
     currentAnalysis?.contentScore !== null &&
     currentAnalysis !== null
       ? getPriorityAction(
-          currentAnalysis.authorityScore ?? 0,
+          currentAnalysis.authorityScore,
           currentAnalysis.technicalScore ?? 0,
           currentAnalysis.contentScore ?? 0,
         )
@@ -243,7 +243,7 @@ export default async function OverviewPage({ params }: Props) {
               <Link href={`/sites/${siteId}/authority`} className="contents">
                 <ScoreCard
                   pillar="authority"
-                  score={currentAnalysis.authorityScore ?? 0}
+                  score={currentAnalysis.authorityScore}
                   delta={deltas?.authorityDelta}
                   trend={deltas !== null ? deltaTrend(deltas.authorityDelta) : undefined}
                   clickable

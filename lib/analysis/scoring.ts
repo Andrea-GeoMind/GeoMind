@@ -35,12 +35,14 @@ export interface PriorityAction {
  * Utilisé sur la page d'ensemble pour guider l'utilisateur vers un seul point d'action.
  */
 export function getPriorityAction(
-  authorityScore: number,
+  authorityScore: number | null,
   technicalScore: number,
   contentScore: number
 ): PriorityAction {
+  // Un pilier non mesuré n'entre pas dans la comparaison : on ne peut pas le
+  // désigner comme « le plus faible » sans l'avoir mesuré.
   const pillars: Array<{ key: PillarKey; score: number }> = [
-    { key: 'authority', score: authorityScore },
+    ...(authorityScore === null ? [] : [{ key: 'authority' as const, score: authorityScore }]),
     { key: 'technical', score: technicalScore },
     { key: 'content', score: contentScore },
   ]
@@ -79,8 +81,10 @@ export interface AuthorityData {
 }
 
 export interface Scores {
-  globalScore: number
-  authorityScore: number
+  /** null quand l'autorité n'a pas pu être mesurée (voir computeGlobalScore). */
+  globalScore: number | null
+  /** null quand aucune réponse IA n'a été obtenue — « non mesuré », pas « zéro ». */
+  authorityScore: number | null
   technicalScore: number
   contentScore: number
 }
@@ -91,11 +95,19 @@ function clamp(value: number): number {
 
 // Note Autorité : taux de citations client sur les appels IA réussis.
 // successfulCalls = 0 → score 0 (pas de données).
+/**
+ * Note Autorité : part des réponses IA exploitables qui citent le domaine.
+ *
+ * Renvoie `null` — et non 0 — quand aucun appel n'a abouti : sans une seule
+ * réponse, la visibilité n'a pas été *mesurée*. Les confondre revenait à
+ * annoncer « 0/100 — Débutant » à un client dont l'analyse avait simplement
+ * échoué (constaté en QA lors d'une coupure du fournisseur LLM).
+ */
 export function computeAuthorityScore(
   successfulCalls: number,
   clientCitationsFound: number
-): number {
-  if (successfulCalls === 0) return 0
+): number | null {
+  if (successfulCalls === 0) return null
   return clamp((clientCitationsFound / successfulCalls) * 100)
 }
 
@@ -171,12 +183,18 @@ export function computeIssuesScore(issues: ScorableIssue[], pagesAnalyzed: numbe
   return clamp(100 - total)
 }
 
-// Note GEO globale : moyenne des 3 piliers (Autorité, Technique, Contenu).
+/**
+ * Note GEO globale : moyenne des 3 piliers (Autorité, Technique, Contenu).
+ *
+ * `null` si l'autorité n'a pas pu être mesurée : une moyenne sur deux piliers
+ * se présenterait comme une note sur trois, ce qui serait trompeur.
+ */
 export function computeGlobalScore(
-  authorityScore: number,
+  authorityScore: number | null,
   technicalScore: number,
   contentScore: number
-): number {
+): number | null {
+  if (authorityScore === null) return null
   return clamp((authorityScore + technicalScore + contentScore) / 3)
 }
 

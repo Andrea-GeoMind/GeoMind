@@ -12,6 +12,11 @@ import { getAnalysesBySiteId } from '@/lib/db/queries/analyses'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
+import { getAuthorityResultsByAnalysisId } from '@/lib/db/queries/authority-results'
+import { getCompetitorsBySiteId } from '@/lib/db/queries/competitors'
+import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
+import { analyzeCompetitors } from '@/lib/analysis/competitors'
+import type { AuthorityResultRow } from '@/lib/analysis/authority-table'
 import { getScoreMaturity } from '@/lib/analysis/scoring'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { PrintButton } from '@/components/features/report/print-button'
@@ -80,11 +85,53 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const latest = analysesList.find((a) => a.status === 'success')
   if (!latest) return <NoAnalysisState siteId={siteId} />
 
-  const [technical, content, rolling] = await Promise.all([
+  const [technical, content, rolling, authorityRows, declared, actionStates] = await Promise.all([
     getTechnicalIssuesByAnalysisId(latest.id),
     getContentIssuesByAnalysisId(latest.id),
     getRollingCitationRate(siteId, 30, 'forced'),
+    getAuthorityResultsByAnalysisId(latest.id),
+    getCompetitorsBySiteId(siteId),
+    getActionStatesBySiteId(siteId),
   ])
+
+  // Part de voix — mêmes calculs que l'onglet Concurrents, pour que le rapport
+  // et l'application ne puissent pas diverger.
+  const authorityResults: AuthorityResultRow[] = authorityRows.map((r) => ({
+    id: r.id,
+    engine: r.engine,
+    answer: r.answer,
+    promptIsNeutral: r.promptIsNeutral,
+    partialResponse: r.partialResponse,
+    sources: r.sources.map((s) => ({
+      id: s.id,
+      url: s.url,
+      title: s.title,
+      domain: s.domain,
+      isClientDomain: s.isClientDomain,
+    })),
+    prompt: { id: r.prompt.id, text: r.prompt.text, isNeutral: r.prompt.isNeutral },
+  }))
+  const competition = analyzeCompetitors(
+    authorityResults,
+    site.url,
+    declared.map((c) => ({ url: c.url, name: c.name })),
+  )
+  const rivals = competition.standings.filter((st) => st.kind !== 'client').slice(0, 5)
+
+  // Actions prioritaires — même tri « retour sur effort » que le Plan d'action.
+  const doneKeys = new Set(
+    actionStates.filter((st) => st.status !== 'todo').map((st) => `${st.ruleKey}::${st.pageUrl}`),
+  )
+  const priorityActions = [...technical, ...content]
+    .filter((i) => !doneKeys.has(`${i.ruleKey}::${i.pageUrl ?? ''}`))
+    .sort(
+      (a, b) =>
+        b.impact / Math.max(b.effort, 1) - a.impact / Math.max(a.effort, 1) ||
+        b.penalty - a.penalty,
+    )
+    .slice(0, 3)
+
+  const EFFORT_LABEL: Record<number, string> = { 1: 'Rapide', 2: 'Moyen', 3: 'Long' }
 
   const topIssues = (list: { title: string; severity: string; penalty: number }[]) =>
     [...list].sort((a, b) => b.penalty - a.penalty).slice(0, 8)
@@ -181,6 +228,88 @@ export default async function ReportPage({ params, searchParams }: Props) {
             </p>
           )}
         </section>
+
+        {/* Qui est cité à votre place — l'argument le plus parlant du rapport */}
+        {competition.totalResponses > 0 && rivals.length > 0 && (
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              Qui est cité à votre place
+            </h3>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Sur {competition.totalResponses} réponses d&apos;IA analysées à partir de questions
+              que vos clients posent réellement.{' '}
+              {competition.clientStanding
+                ? `Votre site apparaît dans ${competition.clientStanding.citedResponses} d'entre elles (${competition.clientStanding.shareOfVoice} % de part de voix${competition.clientRank !== null ? `, ${competition.clientRank === 1 ? '1ʳᵉ' : `${competition.clientRank}ᵉ`} position` : ''}).`
+                : `Votre site n'apparaît dans aucune d'entre elles.`}
+            </p>
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2 pr-4 font-semibold">Site cité</th>
+                  <th className="py-2 pr-4 font-semibold">Réponses</th>
+                  <th className="py-2 text-right font-semibold">Part de voix</th>
+                </tr>
+              </thead>
+              <tbody>
+                {competition.clientStanding && (
+                  <tr className="border-b border-border/60 bg-muted/40">
+                    <td className="py-2 pr-4 font-semibold text-foreground">
+                      {competition.clientStanding.label}{' '}
+                      <span className="font-normal text-muted-foreground">(vous)</span>
+                    </td>
+                    <td className="py-2 pr-4 text-muted-foreground">
+                      {competition.clientStanding.citedResponses}
+                    </td>
+                    <td className="py-2 text-right font-semibold text-foreground">
+                      {competition.clientStanding.shareOfVoice} %
+                    </td>
+                  </tr>
+                )}
+                {rivals.map((r) => (
+                  <tr key={r.domain} className="border-b border-border/60">
+                    <td className="py-2 pr-4 text-foreground">{r.label}</td>
+                    <td className="py-2 pr-4 text-muted-foreground">{r.citedResponses}</td>
+                    <td className="py-2 text-right text-muted-foreground">{r.shareOfVoice} %</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        {/* Par où commencer — un constat sans direction ne sert à rien */}
+        {priorityActions.length > 0 && (
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+              Par où commencer — vos 3 actions prioritaires
+            </h3>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Classées par retour sur effort : le meilleur gain de visibilité pour le temps
+              investi.
+            </p>
+            <ol className="space-y-3">
+              {priorityActions.map((a, i) => (
+                <li key={`${a.ruleKey}-${i}`} className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-xs font-bold text-foreground">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">
+                      {a.title}
+                      <span className="ml-2 text-[11px] font-normal text-muted-foreground">
+                        {EFFORT_LABEL[a.effort] ?? '—'}
+                        {a.penalty > 0 ? ` · +${a.penalty} pts à récupérer` : ''}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                      {a.description}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {/* Points faibles */}
         {[

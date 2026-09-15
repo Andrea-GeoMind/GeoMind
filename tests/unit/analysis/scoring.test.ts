@@ -24,8 +24,8 @@ describe('computeAuthorityScore', () => {
     expect(computeAuthorityScore(10, 5)).toBe(50)
   })
 
-  it('returns 0 when successfulCalls is 0 (no data)', () => {
-    expect(computeAuthorityScore(0, 0)).toBe(0)
+  it('renvoie null quand aucun appel n’a abouti — « non mesuré », pas « zéro »', () => {
+    expect(computeAuthorityScore(0, 0)).toBeNull()
   })
 
   it('clamps to 100 when clientCitationsFound exceeds successfulCalls', () => {
@@ -125,14 +125,17 @@ describe('computeGlobalScore', () => {
 // ─── computeScores (orchestrateur) ────────────────────────────────────────────
 
 describe('computeScores', () => {
-  it('returns 0 authority score when no IA calls were made', () => {
+  it('ne mesure pas l’autorité quand aucun appel IA n’a abouti', () => {
     const result = computeScores({ successfulCalls: 0, clientCitationsFound: 0 }, 80, 80)
-    expect(result.authorityScore).toBe(0)
+    expect(result.authorityScore).toBeNull()
+    // Et la note globale ne se rabat pas sur une moyenne à deux piliers.
+    expect(result.globalScore).toBeNull()
   })
 
   it('global score is the mean of the 3 pillars', () => {
-    const result = computeScores({ successfulCalls: 0, clientCitationsFound: 0 }, 80, 80)
-    // authority=0, technical=80, content=80 → (0+80+80)/3 ≈ 53
+    const result = computeScores({ successfulCalls: 10, clientCitationsFound: 0 }, 80, 80)
+    // authority=0 (mesuré : 0 citation sur 10 réponses), technical=80, content=80
+    expect(result.authorityScore).toBe(0)
     expect(result.globalScore).toBe(Math.round((0 + 80 + 80) / 3))
   })
 
@@ -223,5 +226,17 @@ describe('getPriorityAction', () => {
   it('returns a valid href function', () => {
     const action = getPriorityAction(30, 50, 80)
     expect(action.href('site-123')).toContain('site-123')
+  })
+})
+
+// ─── Distinction « non mesuré » vs « zéro » (QA 15/09) ────────────────────────
+
+describe('score global quand l’autorité n’est pas mesurée', () => {
+  it('renvoie null plutôt qu’une moyenne sur deux piliers', () => {
+    expect(computeGlobalScore(null, 90, 60)).toBeNull()
+  })
+
+  it('calcule normalement quand l’autorité vaut réellement 0', () => {
+    expect(computeGlobalScore(0, 90, 60)).toBe(50)
   })
 })
