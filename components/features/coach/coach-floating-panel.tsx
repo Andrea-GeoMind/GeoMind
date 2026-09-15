@@ -83,7 +83,7 @@ export function CoachFloatingPanel() {
       aria-label="GEO — assistant IA"
       aria-hidden={!isOpen}
       className={cn(
-        'fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-[400px]',
+        'above-cookie-banner fixed top-0 right-0 z-50 flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-[400px]',
         isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
       )}
     >

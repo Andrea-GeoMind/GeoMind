@@ -169,6 +169,25 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* ─── Bandeau cookies : réservation d'espace ──────────────────────────────────
+   Le bandeau est `fixed bottom-0`. Sans compensation, il recouvre le bas de
+   l'écran et rend incliquables « Déconnexion » (pied de barre latérale) et la
+   zone de saisie du coach. `--cookie-banner-h` est publiée par le composant
+   tant que le bandeau est affiché, et vaut 0px sinon. */
+:root {
+  --cookie-banner-h: 0px;
+}
+
+/* Shell plein écran de l'app : se réduit de la hauteur du bandeau. */
+.app-shell {
+  height: calc(100vh - var(--cookie-banner-h));
+}
+
+/* Panneaux flottants ancrés en bas (coach) : remontent d'autant. */
+.above-cookie-banner {
+  bottom: var(--cookie-banner-h);
+}
+
 /* ─── Export PDF (PLAN item 24) ───────────────────────────────────────────────
    À l'impression, seul le contenu du rapport (.print-report) est visible :
    sidebar, onglets et boutons disparaissent. */

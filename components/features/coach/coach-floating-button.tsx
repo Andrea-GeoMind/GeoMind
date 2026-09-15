@@ -24,7 +24,7 @@ export function CoachFloatingButton({ creditsBadge = null }: CoachFloatingButton
       type="button"
       onClick={() => openPanel('floating')}
       aria-label="Ouvrir GEO, l'assistant IA"
-      className="group fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-white p-1.5 shadow-lg ring-1 ring-border transition-all hover:shadow-xl hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group fixed right-5 z-50 [bottom:calc(1.25rem+var(--cookie-banner-h))] flex items-center gap-2 rounded-full bg-white p-1.5 shadow-lg ring-1 ring-border transition-all hover:shadow-xl hover:ring-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <GeoAvatar size="lg" className="transition-transform group-hover:scale-105" />
       {creditsBadge !== null && (
