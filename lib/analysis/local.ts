@@ -59,19 +59,45 @@ function capitalizeCity(s: string): string {
 }
 
 /**
+ * Retire la ville de l'activité quand elle y figure déjà.
+ *
+ * Les mots-clés de découverte sont souvent géolocalisés (« chirurgien-dentiste
+ * Lyon ») ; injectés tels quels dans un gabarit qui ajoute « à Lyon », ils
+ * produisaient « chirurgien-dentiste Lyon à Lyon ».
+ */
+export function stripCityFromActivity(activity: string, city: string | null): string {
+  if (!city) return activity.trim()
+  const escaped = city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[-\s]/g, '[-\\s]')
+  // La ville, précédée au besoin d'une préposition. On exige un début de chaîne
+  // ou une espace devant la préposition : `\b` ne fonctionne pas devant « à »,
+  // dont l'accent n'est pas un caractère de mot.
+  const cleaned = activity
+    .replace(new RegExp(`(?:^|\\s)(?:(?:à|au|aux|a|de|du|des|sur|en)\\s+)?${escaped}\\b`, 'gi'), ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/^[,\-–—]+|[,\-–—]+$/g, '')
+    .trim()
+  return cleaned.length > 0 ? cleaned : activity.trim()
+}
+
+/**
  * Génère des questions géolocalisées que des clients poseraient à une IA.
  * Si la ville est inconnue, on produit des modèles avec « [votre ville] » à
  * compléter — toujours utile, jamais bloquant.
+ *
+ * Aucun gabarit ne met l'activité au pluriel : un suffixe « s » posé sur un
+ * nom composé donnait « chirurgien-dentiste Lyons ». Les tournures ci-dessous
+ * restent naturelles avec l'activité au singulier, quelle qu'elle soit.
  */
 export function buildLocalPrompts(ctx: LocalContext): string[] {
-  const a = ctx.activity.trim() || 'prestataire'
   const place = ctx.city ?? '[votre ville]'
+  const a = stripCityFromActivity(ctx.activity, ctx.city) || 'prestataire'
   return [
     `Quel est le meilleur ${a} à ${place} ?`,
     `${a} à ${place} : lequel recommandes-tu et pourquoi ?`,
     `Je cherche un ${a} fiable près de ${place}, des suggestions ?`,
-    `Quels sont les ${a}s ouverts le week-end à ${place} ?`,
-    `Donne-moi une liste de ${a}s bien notés à ${place} avec leurs sites web.`,
+    `Y a-t-il un ${a} ouvert le week-end à ${place} ?`,
+    `Quels professionnels recommandes-tu pour « ${a} » à ${place} ? Donne leurs sites web.`,
   ]
 }
 

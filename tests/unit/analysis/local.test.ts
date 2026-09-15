@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectCity, buildLocalPrompts, buildLocalChecklist } from '@/lib/analysis/local'
+import { detectCity, buildLocalPrompts, buildLocalChecklist, stripCityFromActivity } from '@/lib/analysis/local'
 
 describe('detectCity', () => {
   it('détecte une ville depuis « à <Ville> »', () => {
@@ -41,5 +41,57 @@ describe('buildLocalChecklist', () => {
     expect(list.some((i) => i.key === 'google-business')).toBe(true)
     expect(list.some((i) => i.action.includes('Flora'))).toBe(true)
     expect(list.some((i) => i.action.includes('Nantes'))).toBe(true)
+  })
+})
+
+// ─── Français correct dans les questions locales (QA 15/09) ──────────────────
+// Les mots-clés de découverte contiennent souvent la ville ; le gabarit
+// produisait « chirurgien-dentiste Lyon à Lyon » et « chirurgien-dentiste Lyons ».
+
+describe('stripCityFromActivity', () => {
+  it('retire la ville quand le mot-clé la contient déjà', () => {
+    expect(stripCityFromActivity('chirurgien-dentiste Lyon', 'Lyon')).toBe('chirurgien-dentiste')
+    expect(stripCityFromActivity('plombier à Marseille', 'Marseille')).toBe('plombier')
+    expect(stripCityFromActivity('boulangerie de Nantes', 'Nantes')).toBe('boulangerie')
+  })
+
+  it('ignore la casse et les villes composées', () => {
+    expect(stripCityFromActivity('notaire aix-en-provence', 'Aix-en-Provence')).toBe('notaire')
+    expect(stripCityFromActivity('avocat CLERMONT-FERRAND', 'Clermont-Ferrand')).toBe('avocat')
+  })
+
+  it('laisse l’activité intacte quand la ville n’y est pas', () => {
+    expect(stripCityFromActivity('chirurgien-dentiste', 'Lyon')).toBe('chirurgien-dentiste')
+    expect(stripCityFromActivity('plombier', null)).toBe('plombier')
+  })
+
+  it('ne vide jamais l’activité', () => {
+    expect(stripCityFromActivity('Lyon', 'Lyon')).toBe('Lyon')
+  })
+})
+
+describe('buildLocalPrompts — qualité du français', () => {
+  const prompts = buildLocalPrompts({
+    activity: 'chirurgien-dentiste Lyon',
+    city: 'Lyon',
+    siteName: 'Cabinet Dr Venet',
+  })
+
+  it('ne répète jamais la ville', () => {
+    for (const p of prompts) {
+      expect(p.match(/Lyon/g)?.length ?? 0).toBeLessThanOrEqual(1)
+    }
+  })
+
+  it('ne pluralise jamais l’activité', () => {
+    for (const p of prompts) {
+      expect(p).not.toContain('dentiste Lyons')
+      expect(p).not.toContain('dentistes ')
+    }
+  })
+
+  it('produit bien 5 questions géolocalisées', () => {
+    expect(prompts).toHaveLength(5)
+    for (const p of prompts) expect(p).toContain('Lyon')
   })
 })
