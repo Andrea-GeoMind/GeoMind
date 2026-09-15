@@ -224,6 +224,29 @@ export const ARTICLES: ArticleMeta[] = [
   },
   {
     slug: 'etre-visible-perplexity',
+    toc: [
+      {
+        id: 'comment-perplexity-choisit-ses-sources',
+        label: 'Comment Perplexity choisit ses sources',
+      },
+      {
+        id: 'ce-qui-vous-rend-citable-par-perplexity',
+        label: 'Ce qui vous rend « citable » par Perplexity',
+      },
+      { id: 'les-erreurs-qui-vous-excluent', label: 'Les erreurs qui vous excluent' },
+      {
+        id: 'la-presence-hors-de-votre-site-compte',
+        label: 'La présence hors de votre site compte',
+      },
+      {
+        id: 'comment-mesurer-votre-presence-dans-perplexity',
+        label: 'Comment mesurer votre présence dans Perplexity',
+      },
+      {
+        id: 'plan-d-action-pour-apparaitre-dans-perplexity',
+        label: "Plan d'action pour apparaître dans Perplexity",
+      },
+    ],
     howTo: {
       name: 'Apparaître dans les réponses de Perplexity',
       steps: [
@@ -273,6 +296,20 @@ export const ARTICLES: ArticleMeta[] = [
   },
   {
     slug: 'savoir-si-chatgpt-parle-de-mon-entreprise',
+    toc: [
+      { id: 'methode-manuelle-en-15-minutes', label: 'Méthode manuelle, en 15 minutes' },
+      { id: 'les-pieges-du-test-manuel', label: 'Les pièges du test manuel' },
+      {
+        id: 'que-faire-si-ce-sont-vos-concurrents',
+        label: 'Que faire si ce sont vos concurrents qui apparaissent',
+      },
+      {
+        id: 'pourquoi-un-suivi-regulier-change-tout',
+        label: 'Pourquoi un suivi régulier change tout',
+      },
+      { id: 'faire-ca-a-la-main-ou-avec', label: 'Faire ça à la main ou avec un outil' },
+      { id: 'par-ou-commencer', label: 'Par où commencer' },
+    ],
     howTo: {
       name: 'Savoir si ChatGPT parle de votre entreprise',
       steps: [
@@ -353,6 +390,23 @@ export const ARTICLES: ArticleMeta[] = [
   },
   {
     slug: 'apparaitre-google-ai-overviews',
+    toc: [
+      { id: 'qu-est-ce-qu-un-ai-overview', label: "Qu'est-ce qu'un AI Overview" },
+      { id: 'd-ou-google-tire-ses-sources', label: "D'où Google tire ses sources" },
+      {
+        id: 'ce-qui-augmente-vos-chances-d-etre-cite',
+        label: "Ce qui augmente vos chances d'être cité",
+      },
+      {
+        id: 'le-paradoxe-du-zero-clic-et-comment',
+        label: 'Le paradoxe du « zéro clic » et comment en tirer parti',
+      },
+      {
+        id: 'ai-overviews-et-chatgpt-perplexity-des-logiques-complementaires',
+        label: 'AI Overviews et ChatGPT / Perplexity : des logiques complémentaires',
+      },
+      { id: 'plan-d-action', label: "Plan d'action" },
+    ],
     howTo: {
       name: 'Apparaître dans les AI Overviews de Google',
       steps: [
@@ -420,6 +474,34 @@ export const ARTICLES: ArticleMeta[] = [
   },
   {
     slug: 'erreurs-geo-frequentes',
+    toc: [
+      {
+        id: 'votre-robots-txt-bloque-les-robots-des-ia',
+        label: '1. Votre robots.txt bloque les robots des IA',
+      },
+      {
+        id: 'votre-contenu-est-vague-et-non-citable',
+        label: '2. Votre contenu est vague et non « citable »',
+      },
+      {
+        id: 'vos-informations-sont-incoherentes-d-une-source',
+        label: "3. Vos informations sont incohérentes d'une source à l'autre",
+      },
+      {
+        id: 'vous-n-avez-aucune-presence-en-dehors',
+        label: "4. Vous n'avez aucune présence en dehors de votre site",
+      },
+      {
+        id: 'vous-n-avez-pas-de-donnees-structurees',
+        label: "5. Vous n'avez pas de données structurées",
+      },
+      {
+        id: 'votre-contenu-n-est-jamais-mis-a-jour',
+        label: "6. Votre contenu n'est jamais mis à jour",
+      },
+      { id: 'vous-ne-mesurez-rien', label: '7. Vous ne mesurez rien' },
+      { id: 'par-ou-commencer', label: 'Par où commencer' },
+    ],
     takeaways: [
       'Un robots.txt qui bloque GPTBot ou les robots IA annule tout le reste du travail.',
       "Un contenu vague n'est pas citable : les IA reprennent ce qui est net, daté et vérifiable.",
