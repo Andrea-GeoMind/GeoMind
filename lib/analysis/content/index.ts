@@ -5,6 +5,7 @@ import { insertContentIssues } from '@/lib/db/queries/content-issues'
 import { computeIssuesScore } from '@/lib/analysis/scoring'
 import { penaltyForSeverity } from '@/lib/analysis/geo-rules'
 import { selectPagesForAnalysis } from '@/lib/analysis/page-selection'
+import { analysablePages } from '@/lib/analysis/page-health'
 import { completeContentOpportunities } from '@/lib/analysis/opportunities'
 import { getPageAnalysisLimit } from '@/lib/quotas'
 import type { ContentRuleFn, ContentPageRuleFn, ContentIssue, FirecrawlPage } from './types'
@@ -112,7 +113,9 @@ export async function runContentAnalysis({
 
   // 2. Règles page — sur les pages sélectionnées selon le plan (§18.2)
   const pageLimit = await getPageAnalysisLimit(site.userId)
-  const selectedPages = selectPagesForAnalysis(pages, pageLimit)
+  // Les pages dont le scrape a échoué sont écartées : leurs métadonnées vides
+  // feraient remonter de faux points faibles (cf. lib/analysis/page-health.ts).
+  const selectedPages = selectPagesForAnalysis(analysablePages(pages), pageLimit)
   const pageIssues: ContentIssue[] = []
   for (const page of selectedPages) {
     const results = await Promise.all(PAGE_RULES.map((rule) => rule(page, ruleInput)))

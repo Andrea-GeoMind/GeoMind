@@ -1,34 +1,25 @@
 import type { TechnicalPageRuleFn, FirecrawlPage } from '../types'
-import { getSchemaTypes } from './_schema-helpers'
+import { getSchemaTypes, getSchemaEntities, propertyHasType } from './_schema-helpers'
+import { isArticleUrl, isSectionIndexUrl } from './_url-helpers'
 
 const ARTICLE_SCHEMA_TYPES = new Set(['Article', 'BlogPosting', 'NewsArticle'])
-const ARTICLE_URL_PATTERN = /\/blog|\/article|\/actualite/i
 
 function isArticlePage(page: FirecrawlPage): boolean {
+  // Un index de section (/blog/) n'est pas un article : il n'a pas à signer d'auteur.
+  if (isSectionIndexUrl(page.url)) return false
   if (getSchemaTypes(page).some((t) => ARTICLE_SCHEMA_TYPES.has(t))) return true
-  try {
-    return ARTICLE_URL_PATTERN.test(new URL(page.url).pathname)
-  } catch {
-    return false
-  }
+  return isArticleUrl(page.url)
 }
 
-function isPerson(value: unknown): boolean {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    (value as Record<string, unknown>)['@type'] === 'Person'
-  )
-}
-
+/**
+ * L'auteur peut être imbriqué (`author: { "@type": "Person" }`) ou référencé par
+ * `@id` vers une entité Person déclarée ailleurs dans le graphe de la page —
+ * c'est ce que génèrent WordPress/Yoast, et donc une grande part du web.
+ */
 function hasPersonAuthor(page: FirecrawlPage): boolean {
-  const schemas = page.metadata?.schemaOrgs
-  if (!Array.isArray(schemas)) return false
-  return schemas.some((schema) => {
-    const author = schema['author']
-    if (isPerson(author)) return true
-    return Array.isArray(author) && author.some(isPerson)
-  })
+  return getSchemaEntities(page).some((entity) =>
+    propertyHasType(entity, 'author', 'Person', page)
+  )
 }
 
 /** Scope page : page article sans auteur déclaré (schema author de type Person). */

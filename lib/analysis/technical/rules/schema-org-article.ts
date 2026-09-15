@@ -1,11 +1,11 @@
 import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
 import { getSchemaTypes } from './_schema-helpers'
+import { isArticleUrl } from './_url-helpers'
 
-const ARTICLE_URL_PATTERNS = ['/blog/', '/article/', '/actu/', '/news/', '/post/', '/actualite/']
 const ARTICLE_SCHEMA_TYPES = new Set(['Article', 'BlogPosting', 'NewsArticle'])
 
 function isArticlePage(page: FirecrawlPage): boolean {
-  return ARTICLE_URL_PATTERNS.some((p) => page.url.includes(p))
+  return isArticleUrl(page.url)
 }
 
 export async function checkSchemaOrgArticle({ pages }: RuleInput): Promise<TechnicalIssue | null> {

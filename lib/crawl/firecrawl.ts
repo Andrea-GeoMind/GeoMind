@@ -2,11 +2,14 @@ import FirecrawlApp from '@mendable/firecrawl-js'
 import { env } from '@/lib/env'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { upsertFirecrawlPages, type FirecrawlPageInsert } from '@/lib/db/queries/firecrawl-pages'
+import { buildPageMetadata } from '@/lib/crawl/pages'
 import { withRetry } from '@/lib/crawl/retry'
 import { firecrawlDocumentSchema } from '@/lib/crawl/schemas'
+import { measureResponseTimes } from '@/lib/crawl/response-time'
 
 export { withRetry } from '@/lib/crawl/retry'
 export { firecrawlDocumentSchema, firecrawlDocumentMetadataSchema, type FirecrawlDocument } from '@/lib/crawl/schemas'
+export { extractJsonLd } from '@/lib/crawl/json-ld'
 
 // ─── Client Firecrawl (lazy) ───────────────────────────────────────────────────
 
@@ -82,7 +85,7 @@ export async function scrapeForDiscovery({
     urlsToScrape.map(async (url) => {
       try {
         const doc = await withTimeout(
-          client.scrape(url, { formats: ['markdown'] }),
+          client.scrape(url, { formats: ['markdown', 'rawHtml'] }),
           SCRAPE_TIMEOUT_MS,
           `scrape ${url}`
         )
@@ -93,7 +96,7 @@ export async function scrapeForDiscovery({
           siteId,
           url: parsed.data.metadata?.url ?? url,
           markdown: parsed.data.markdown ?? null,
-          metadata: parsed.data.metadata ? (parsed.data.metadata as Record<string, unknown>) : null,
+          metadata: buildPageMetadata(parsed.data),
           statusCode: parsed.data.metadata?.statusCode ?? null,
         })
       } catch {
@@ -106,6 +109,7 @@ export async function scrapeForDiscovery({
     throw new Error(`scrapeForDiscovery: aucune page accessible pour ${site.url}`)
   }
 
+  await measureResponseTimes(pages)
   await upsertFirecrawlPages(pages)
   return { siteId, pagesCount: pages.length }
 }
@@ -127,7 +131,7 @@ export async function crawlSite({
   const crawlJob = await withRetry(() =>
     getClient().crawl(site.url, {
       limit: maxPages,
-      scrapeOptions: { formats: ['markdown'] },
+      scrapeOptions: { formats: ['markdown', 'rawHtml'] },
     })
   )
 
@@ -148,11 +152,12 @@ export async function crawlSite({
       siteId,
       url,
       markdown: doc.markdown ?? null,
-      metadata: doc.metadata ? (doc.metadata as Record<string, unknown>) : null,
+      metadata: buildPageMetadata(doc),
       statusCode: doc.metadata?.statusCode ?? null,
     })
   }
 
+  await measureResponseTimes(pages)
   await upsertFirecrawlPages(pages)
 
   return { siteId, pagesCount: pages.length }

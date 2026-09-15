@@ -12,6 +12,12 @@ export const firecrawlDocumentMetadataSchema = z
 
 export const firecrawlDocumentSchema = z.object({
   markdown: z.string().optional(),
+  /**
+   * HTML brut, demandé au crawl pour en extraire le JSON-LD — jamais persisté.
+   * Impérativement `rawHtml` et non `html` : le format `html` de Firecrawl est
+   * nettoyé et retire les `<script>`, donc tout le JSON-LD avec.
+   */
+  rawHtml: z.string().optional(),
   metadata: firecrawlDocumentMetadataSchema.optional(),
 })
 
