@@ -15,6 +15,8 @@ import { inngest } from '@/lib/inngest/client'
 import { createEngines } from '@/lib/ai/engines'
 import type { IAEngine, IAEngineName } from '@/lib/ai/connectors/base'
 import { captureEngineFailure, captureEngineOutage, captureJobFailure } from '@/lib/monitoring'
+import { probeEmailDelivery } from '@/lib/email/health'
+import { captureEmailFailure } from '@/lib/monitoring'
 
 /** Question courte mais réaliste : doit déclencher une recherche web et des sources. */
 const PROBE_PROMPT =
@@ -112,7 +114,24 @@ export const healthcheckEnginesFunction = inngest.createFunction(
   { id: 'healthcheck-engines', triggers: [{ cron: '30 5 * * *' }] },
   async ({ step }) => {
     try {
-      return await step.run('probe-engines', runEngineHealthcheck)
+      const engines = await step.run('probe-engines', runEngineHealthcheck)
+
+      // Sonde d'envoi d'email : une clé Resend révoquée ne se voit nulle part
+      // ailleurs, `sendEmail` échouant en silence par conception.
+      const email = await step.run('probe-email', async () => {
+        const health = await probeEmailDelivery()
+        if (!health.ok) {
+          console.error('[healthcheck] envoi d’email indisponible :', health.error)
+          captureEmailFailure('healthcheck', new Error(health.error ?? 'échec inconnu'), {
+            to: 'n/a',
+          })
+        } else {
+          console.log('[healthcheck] envoi d’email : ok')
+        }
+        return health
+      })
+
+      return { ...engines, email }
     } catch (err) {
       captureJobFailure('healthcheck-engines', err)
       throw err

@@ -78,9 +78,14 @@ export async function claimExpressAudit(
     },
   })
 
+  // Les deux étapes suivantes échouaient sous le même message générique, ce qui
+  // a rendu illisible une clé Resend révoquée : on les distingue dans les logs.
   const actionLink = data?.properties?.action_link
   if (error || !actionLink) {
-    console.error('[public-audit] génération du lien magique impossible:', error)
+    console.error(
+      '[public-audit] génération du lien magique impossible —',
+      error ? `${error.status ?? ''} ${error.message}` : 'réponse sans action_link'
+    )
     return { error: 'Envoi impossible pour le moment. Réessayez dans un instant.' }
   }
 
@@ -91,6 +96,10 @@ export async function claimExpressAudit(
     score: audit.score,
   })
   if (!sent) {
+    // `sendEmail` a déjà loggé le détail Resend et alerté Sentry.
+    console.error(
+      `[public-audit] lien magique généré mais email non parti (domaine ${audit.domain})`
+    )
     return { error: 'Envoi impossible pour le moment. Réessayez dans un instant.' }
   }
 
