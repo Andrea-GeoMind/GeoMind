@@ -73,21 +73,37 @@ export async function claimExpressAudit(
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: parsed.data.email,
-    options: {
-      redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/claim/${parsed.data.claimToken}`,
-    },
   })
 
   // Les deux étapes suivantes échouaient sous le même message générique, ce qui
   // a rendu illisible une clé Resend révoquée : on les distingue dans les logs.
-  const actionLink = data?.properties?.action_link
-  if (error || !actionLink) {
+  const hashedToken = data?.properties?.hashed_token
+  if (error || !hashedToken) {
     console.error(
       '[public-audit] génération du lien magique impossible —',
-      error ? `${error.status ?? ''} ${error.message}` : 'réponse sans action_link'
+      error ? `${error.status ?? ''} ${error.message}` : 'réponse sans hashed_token'
     )
     return { error: 'Envoi impossible pour le moment. Réessayez dans un instant.' }
   }
+
+  // On n'utilise PAS `properties.action_link` : il pointe vers /auth/v1/verify,
+  // qui fonctionne en flux implicite et renvoie les jetons dans le fragment de
+  // l'URL (#access_token=…). Un fragment n'atteint jamais le serveur, donc le
+  // callback ne voyait aucun code et renvoyait sur /login?error=auth-callback
+  // alors que l'authentification venait de réussir.
+  //
+  // On fabrique le lien vers notre route /auth/confirm, qui vérifie le
+  // token_hash côté serveur. Effet de bord utile : `next` voyage dans notre
+  // propre URL, il ne dépend plus du `redirect_to` de Supabase.
+  //
+  // Le type de vérification vient de la réponse : Supabase répond `signup`
+  // quand le compte vient d'être créé, `magiclink` quand il existait déjà.
+  const verificationType = data?.properties?.verification_type ?? 'magiclink'
+  const actionLink =
+    `${env.NEXT_PUBLIC_SITE_URL}/auth/confirm` +
+    `?token_hash=${encodeURIComponent(hashedToken)}` +
+    `&type=${encodeURIComponent(verificationType)}` +
+    `&next=${encodeURIComponent(`/claim/${parsed.data.claimToken}`)}`
 
   const sent = await sendAuditMagicLinkEmail({
     to: parsed.data.email,
