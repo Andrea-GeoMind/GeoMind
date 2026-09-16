@@ -14,7 +14,7 @@ import { ENGINE_LABELS } from '@/lib/analysis/authority-table'
 import { RunReputationButton } from '@/components/features/reputation/run-reputation-button'
 
 export const metadata: Metadata = {
-  title: 'Réputation — GEOMIND',
+  title: 'Réputation',
 }
 
 type Props = {

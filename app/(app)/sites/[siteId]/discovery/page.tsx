@@ -17,7 +17,7 @@ import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { ENGINE_LIST } from '@/lib/analysis/authority-table'
 
 export const metadata: Metadata = {
-  title: 'Découverte — GEOMIND',
+  title: 'Découverte',
 }
 
 type Props = {

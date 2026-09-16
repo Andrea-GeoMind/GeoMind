@@ -7,7 +7,7 @@ import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { detectCity, buildLocalPrompts, buildLocalChecklist } from '@/lib/analysis/local'
 
 export const metadata: Metadata = {
-  title: 'Local — GEOMIND',
+  title: 'Local',
 }
 
 type Props = {

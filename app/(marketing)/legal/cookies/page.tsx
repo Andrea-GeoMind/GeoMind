@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { CookieConsentButtons } from '@/components/cookie-consent-buttons'
 
 export const metadata: Metadata = {
-  title: 'Politique de cookies — GEOMIND',
+  title: 'Politique de cookies',
   description:
     'Quels cookies GEOMIND dépose sur geomind.fr, à quoi ils servent, combien de temps ils sont conservés, et comment les refuser à tout moment.',
   alternates: { canonical: '/legal/cookies' },

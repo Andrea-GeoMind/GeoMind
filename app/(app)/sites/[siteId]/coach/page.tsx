@@ -15,7 +15,7 @@ import { ClearMemoryButton } from '@/components/features/coach/clear-memory-butt
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Coach — GEOMIND',
+  title: 'Coach',
 }
 
 const PILLAR_LABELS: Record<'authority' | 'technical' | 'content', string> = {

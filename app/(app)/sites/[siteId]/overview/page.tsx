@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb, Info, Radar, Radio } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
@@ -20,7 +21,7 @@ import { NoAnalysisState } from '@/components/features/analysis/no-analysis-stat
 import { CoachAutoOpen } from '@/components/features/coach/coach-auto-open'
 
 export const metadata: Metadata = {
-  title: "Vue d'ensemble — GEOMIND",
+  title: "Vue d'ensemble",
 }
 
 type Props = {
@@ -42,7 +43,15 @@ export default async function OverviewPage({ params }: Props) {
   const latest = await getLatestAnalysis(siteId)
 
   if (!latest) {
-    return <NoAnalysisState siteId={siteId} />
+    // Solde affiché sur le bouton de lancement — Infinity (admin) devient null.
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
   }
 
   // Résumés remontés des onglets Suivi & Pixel : l'info clé sans changer d'onglet.

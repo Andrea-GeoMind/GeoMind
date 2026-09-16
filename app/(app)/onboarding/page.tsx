@@ -6,7 +6,7 @@ import { AddSiteStep } from '@/components/features/onboarding/AddSiteStep'
 import { OnboardingFlowModal } from '@/components/features/onboarding/OnboardingFlowModal'
 
 export const metadata: Metadata = {
-  title: 'Onboarding — GEOMIND',
+  title: 'Onboarding',
 }
 
 type Props = {

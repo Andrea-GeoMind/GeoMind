@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getAuthorityResultsByAnalysisId } from '@/lib/db/queries/authority-results'
@@ -20,7 +21,7 @@ import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
-  title: 'Autorité — GEOMIND',
+  title: 'Autorité',
 }
 
 type Props = {
@@ -50,7 +51,16 @@ export default async function AuthorityPage({ params }: Props) {
   const latest = await getLatestAnalysis(siteId)
 
   if (!latest) {
-    return <NoAnalysisState siteId={siteId} />
+    {
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
+  }
   }
 
   const isInProgress = latest.status === 'pending' || latest.status === 'running'

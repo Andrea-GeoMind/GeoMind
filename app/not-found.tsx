@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Page introuvable — GEOMIND',
+  title: 'Page introuvable',
 }
 
 export default function NotFound() {

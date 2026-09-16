@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Politique de confidentialité — GEOMIND',
+  title: 'Politique de confidentialité',
   description:
     'Comment GEOMIND traite vos données personnelles : données collectées, finalités, durées de conservation, hébergement en Europe et vos droits RGPD.',
   alternates: { canonical: '/legal/privacy' },

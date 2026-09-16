@@ -4,7 +4,7 @@ import { Logo } from '@/components/logo'
 import { SignupForm } from '@/components/features/auth/signup-form'
 
 export const metadata: Metadata = {
-  title: 'Créer un compte — GEOMIND',
+  title: 'Créer un compte',
   description:
     'Créez votre compte GEOMIND et lancez votre première analyse de visibilité IA, offerte et sans carte bancaire.',
   robots: { index: false, follow: false },

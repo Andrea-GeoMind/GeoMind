@@ -5,7 +5,7 @@ import { MailOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Vérifiez votre email — GEOMIND',
+  title: 'Vérifiez votre email',
 }
 
 export default function VerifyEmailPage() {

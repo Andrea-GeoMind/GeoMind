@@ -11,7 +11,7 @@ import { SiteForm } from '@/components/features/sites/site-form'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Tableau de bord — GEOMIND',
+  title: 'Tableau de bord',
 }
 
 export default async function DashboardPage() {

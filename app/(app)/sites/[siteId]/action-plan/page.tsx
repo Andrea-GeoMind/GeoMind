@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { ListTodo, Hammer, CheckCircle2, Info, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issues'
@@ -12,7 +13,7 @@ import { NoAnalysisState } from '@/components/features/analysis/no-analysis-stat
 import { ActionCard, type ActionItem } from '@/components/features/action-plan/action-card'
 
 export const metadata: Metadata = {
-  title: 'Plan d’action — GEOMIND',
+  title: 'Plan d’action',
 }
 
 type Props = {
@@ -32,7 +33,16 @@ export default async function ActionPlanPage({ params }: Props) {
   if (!site || site.userId !== user.id) notFound()
 
   const latest = await getLatestAnalysis(siteId)
-  if (!latest) return <NoAnalysisState siteId={siteId} />
+  if (!latest) {
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
+  }
 
   const [technical, content, states, fixesByRule] = await Promise.all([
     latest.status === 'success'

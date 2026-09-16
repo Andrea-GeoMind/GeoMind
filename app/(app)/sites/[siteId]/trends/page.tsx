@@ -12,7 +12,7 @@ import { TrendLineChart, type TrendSeries } from '@/components/charts/trend-line
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
-  title: 'Suivi — GEOMIND',
+  title: 'Suivi',
 }
 
 type Props = {

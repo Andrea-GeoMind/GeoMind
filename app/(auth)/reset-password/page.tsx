@@ -7,7 +7,7 @@ import { ResetPasswordForm } from '@/components/features/auth/reset-password-for
 import { UpdatePasswordForm } from '@/components/features/auth/update-password-form'
 
 export const metadata: Metadata = {
-  title: 'Mot de passe oublié — GEOMIND',
+  title: 'Mot de passe oublié',
 }
 
 type Props = {

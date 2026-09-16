@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { eq } from 'drizzle-orm'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { db } from '@/lib/db/client'
 import { PLAN_FEATURES } from '@/lib/plans'
 import { subscriptions } from '@/lib/db/schema'
@@ -21,7 +22,7 @@ import { NoAnalysisState } from '@/components/features/analysis/no-analysis-stat
 import type { ContentIssueRow } from '@/components/features/content/content-issue-card'
 
 export const metadata: Metadata = {
-  title: 'Contenu — GEOMIND',
+  title: 'Contenu',
 }
 
 type Props = {
@@ -54,7 +55,16 @@ export default async function ContentPage({ params }: Props) {
   const isBusiness = features.fullRecommendations
 
   if (!latest) {
-    return <NoAnalysisState siteId={siteId} />
+    {
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
+  }
   }
 
   const isInProgress = latest.status === 'pending' || latest.status === 'running'

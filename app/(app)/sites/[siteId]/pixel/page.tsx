@@ -11,7 +11,7 @@ import { summarizePixelEvents, actionLabel, type ActionKind } from '@/lib/analys
 import { PixelInstaller } from '@/components/features/pixel/pixel-installer'
 
 export const metadata: Metadata = {
-  title: 'Pixel — GEOMIND',
+  title: 'Pixel',
 }
 
 type Props = {

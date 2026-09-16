@@ -4,7 +4,7 @@ import { Logo } from '@/components/logo'
 import { LoginForm } from '@/components/features/auth/login-form'
 
 export const metadata: Metadata = {
-  title: 'Connexion — GEOMIND',
+  title: 'Connexion',
   description:
     'Connectez-vous à votre espace GEOMIND pour suivre la visibilité de votre site dans ChatGPT, Perplexity, Gemini et Claude.',
   // Page fonctionnelle : rien à indexer, et sans description propre elle héritait

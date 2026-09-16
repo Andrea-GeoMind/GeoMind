@@ -18,7 +18,7 @@ import { PublishersList } from '@/components/features/publishers/PublishersList'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
 
 export const metadata: Metadata = {
-  title: 'Présence off-site — GEOMIND',
+  title: 'Présence off-site',
 }
 
 type Props = {

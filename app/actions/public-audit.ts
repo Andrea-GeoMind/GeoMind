@@ -4,7 +4,8 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { publicAudits } from '@/lib/db/schema'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { sendAuditMagicLinkEmail } from '@/lib/email/templates/audit-magic-link'
 import { env } from '@/lib/env'
 
 /**
@@ -12,9 +13,14 @@ import { env } from '@/lib/env'
  *
  * Le visiteur laisse son email pour recevoir le rapport : on l'enregistre sur
  * SA ligne d'audit (identifiée par claim_token, jamais partagée entre deux
- * visiteurs), puis Supabase envoie un lien magique qui crée le compte et ouvre
- * la session en un clic. Le retour passe par /claim/<token>, qui crée le site
- * et rattache l'audit.
+ * visiteurs), puis on lui envoie un lien magique qui crée le compte et ouvre
+ * la session en un clic. Le retour passe par /claim/<token>, qui crée le site,
+ * rattache l'audit et lance l'analyse.
+ *
+ * L'email part par Resend et non par Supabase Auth : son objet porte le domaine
+ * audité, ce que les templates Supabase ne permettent pas (objet fixe, sans
+ * variable par envoi). `generateLink` produit le lien sans déclencher l'email
+ * par défaut, et crée l'utilisateur s'il n'existe pas encore.
  *
  * RGPD : finalité unique (envoyer le rapport et ouvrir l'accès au compte),
  * affichée sous le champ. Aucune case marketing, aucune autre exploitation.
@@ -41,7 +47,12 @@ export async function claimExpressAudit(
   }
 
   const [audit] = await db
-    .select({ id: publicAudits.id, claimedByUserId: publicAudits.claimedByUserId })
+    .select({
+      id: publicAudits.id,
+      domain: publicAudits.domain,
+      score: publicAudits.score,
+      claimedByUserId: publicAudits.claimedByUserId,
+    })
     .from(publicAudits)
     .where(eq(publicAudits.claimToken, parsed.data.claimToken))
     .limit(1)
@@ -58,17 +69,28 @@ export async function claimExpressAudit(
     .set({ email: parsed.data.email })
     .where(eq(publicAudits.id, audit.id))
 
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithOtp({
+  const admin = createAdminClient()
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
     email: parsed.data.email,
     options: {
-      shouldCreateUser: true,
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/claim/${parsed.data.claimToken}`,
+      redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/claim/${parsed.data.claimToken}`,
     },
   })
 
-  if (error) {
-    console.error('[public-audit] envoi du lien magique impossible:', error)
+  const actionLink = data?.properties?.action_link
+  if (error || !actionLink) {
+    console.error('[public-audit] génération du lien magique impossible:', error)
+    return { error: 'Envoi impossible pour le moment. Réessayez dans un instant.' }
+  }
+
+  const sent = await sendAuditMagicLinkEmail({
+    to: parsed.data.email,
+    domain: audit.domain,
+    actionLink,
+    score: audit.score,
+  })
+  if (!sent) {
     return { error: 'Envoi impossible pour le moment. Réessayez dans un instant.' }
   }
 

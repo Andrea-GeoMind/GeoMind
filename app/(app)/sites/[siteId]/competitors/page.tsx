@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { Swords, Info, Trophy } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getAuthorityResultsByAnalysisId } from '@/lib/db/queries/authority-results'
@@ -12,7 +13,7 @@ import { ENGINE_LABELS } from '@/lib/analysis/authority-table'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 
 export const metadata: Metadata = {
-  title: 'Concurrents — GEOMIND',
+  title: 'Concurrents',
 }
 
 type Props = {
@@ -32,7 +33,16 @@ export default async function CompetitorsPage({ params }: Props) {
   if (!site || site.userId !== user.id) notFound()
 
   const latest = await getLatestAnalysis(siteId)
-  if (!latest) return <NoAnalysisState siteId={siteId} />
+  if (!latest) {
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
+  }
 
   const [rawResults, declared] = await Promise.all([
     latest.status === 'success'

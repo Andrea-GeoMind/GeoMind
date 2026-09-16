@@ -9,7 +9,7 @@ import { DeleteAccountButton } from '@/components/features/settings/delete-accou
 import { EmailNotificationsToggle } from '@/components/features/settings/email-notifications-toggle'
 
 export const metadata: Metadata = {
-  title: 'Compte — GEOMIND',
+  title: 'Compte',
 }
 
 export default async function AccountSettingsPage() {

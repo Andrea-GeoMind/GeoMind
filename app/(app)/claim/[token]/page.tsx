@@ -5,6 +5,7 @@ import { publicAudits } from '@/lib/db/schema'
 import { createClient } from '@/lib/supabase/server'
 import { createSite, getSitesByUserId } from '@/lib/db/queries/sites'
 import { canAddSite } from '@/lib/quotas'
+import { launchFullAnalysis } from '@/lib/analysis/launch'
 
 /**
  * /claim/<token> — atterrissage du lien magique envoyé en fin d'audit express.
@@ -65,6 +66,20 @@ export default async function ClaimPage({ params }: { params: Promise<{ token: s
     url: `https://${audit.domain}`,
   })
   await markClaimed(audit.id, user.id)
+
+  // L'utilisateur vient de donner son email pour savoir si les IA le citent :
+  // on lance l'analyse tout de suite plutôt que de lui présenter un écran vide
+  // et un bouton « Lancer la découverte », terme qui ne lui dit rien.
+  // `analysis.full.requested` enchaîne crawl → découverte → les trois piliers
+  // (règle métier 13), donc un seul déclenchement suffit.
+  //
+  // Crédits insuffisants ou échec : on n'arrête pas le parcours. La vue
+  // d'ensemble affiche alors son état vide, qui explique ce qui va être mesuré
+  // et propose le lancement avec son coût.
+  const launched = await launchFullAnalysis(user.id, site.id)
+  if ('error' in launched) {
+    console.error('[claim] analyse non lancée:', launched.error)
+  }
 
   redirect(`/sites/${site.id}/overview`)
 }

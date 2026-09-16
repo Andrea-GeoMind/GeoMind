@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getUserCredits } from '@/lib/credits'
 import { db } from '@/lib/db/client'
 import { subscriptions } from '@/lib/db/schema'
 import { PLAN_FEATURES } from '@/lib/plans'
@@ -23,7 +24,7 @@ import { PrintButton } from '@/components/features/report/print-button'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Rapport PDF — GEOMIND',
+  title: 'Rapport PDF',
 }
 
 type Props = {
@@ -83,7 +84,16 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
   const analysesList = await getAnalysesBySiteId(siteId)
   const latest = analysesList.find((a) => a.status === 'success')
-  if (!latest) return <NoAnalysisState siteId={siteId} />
+  if (!latest) {
+    const credits = await getUserCredits(user.id)
+    return (
+      <NoAnalysisState
+        siteId={siteId}
+        siteName={site.name}
+        creditBalance={Number.isFinite(credits.total) ? credits.total : null}
+      />
+    )
+  }
 
   const [technical, content, rolling, authorityRows, declared, actionStates] = await Promise.all([
     getTechnicalIssuesByAnalysisId(latest.id),

@@ -8,7 +8,7 @@ import { PLAN_LABELS, PLAN_UPGRADE_URLS } from '@/lib/plans'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Utilisation — GEOMIND',
+  title: 'Utilisation',
 }
 
 const REASON_LABELS: Record<CreditTransactionReason, string> = {
