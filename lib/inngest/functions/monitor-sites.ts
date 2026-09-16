@@ -12,6 +12,7 @@
 
 import { desc, eq } from 'drizzle-orm'
 import { inngest } from '@/lib/inngest/client'
+import { env } from '@/lib/env'
 import { db } from '@/lib/db/client'
 import { sites, subscriptions } from '@/lib/db/schema'
 import { PLAN_LIMITS, computeFrozenSiteIds, type Plan } from '@/lib/plans'
@@ -62,6 +63,12 @@ async function listMonitorableSites(segment: 'paid' | 'free'): Promise<string[]>
 export const monitorPaidSitesFunction = inngest.createFunction(
   { id: 'monitor-paid-sites-weekly', triggers: [{ cron: '0 6 * * 1' }] },
   async ({ step }) => {
+    // Surveillance en pause : on ne dispatche rien, donc aucun appel LLM.
+    if (env.MONITORING_PAUSED) {
+      console.log('[monitoring] en pause (MONITORING_PAUSED) — aucun site surveillé')
+      return { dispatched: 0, paused: true }
+    }
+
     const siteIds = await step.run('list-paid-sites', () => listMonitorableSites('paid'))
     if (siteIds.length === 0) return { dispatched: 0 }
 
@@ -80,6 +87,12 @@ export const monitorPaidSitesFunction = inngest.createFunction(
 export const monitorFreeSitesFunction = inngest.createFunction(
   { id: 'monitor-free-sites-monthly', triggers: [{ cron: '0 7 1 * *' }] },
   async ({ step }) => {
+    // Surveillance en pause : on ne dispatche rien, donc aucun appel LLM.
+    if (env.MONITORING_PAUSED) {
+      console.log('[monitoring] en pause (MONITORING_PAUSED) — aucun site surveillé')
+      return { dispatched: 0, paused: true }
+    }
+
     const siteIds = await step.run('list-free-sites', () => listMonitorableSites('free'))
     if (siteIds.length === 0) return { dispatched: 0 }
 

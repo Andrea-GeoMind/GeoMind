@@ -104,6 +104,19 @@ const envSchema = z.object({
   // ── Background jobs (Inngest) ─────────────────────────────────────────────
   INNGEST_EVENT_KEY: z.string().min(1, { message: 'INNGEST_EVENT_KEY manquant' }),
   INNGEST_SIGNING_KEY: z.string().min(1, { message: 'INNGEST_SIGNING_KEY manquant' }),
+  /**
+   * Interrupteur de la surveillance automatique (crons hebdo payants et
+   * mensuel gratuits). À « true », les crons se déclenchent mais ne dispatchent
+   * rien : aucun appel LLM, donc aucune consommation.
+   *
+   * Sert à couper la dépense quand le compte OpenRouter est à sec, sans
+   * désenregistrer les fonctions Inngest. Le healthcheck quotidien, lui, reste
+   * actif : c'est lui qui dira quand les moteurs répondent à nouveau.
+   */
+  MONITORING_PAUSED: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
 
   // ── Observabilité ────────────────────────────────────────────────────────────
   SENTRY_DSN: z.url({ message: 'SENTRY_DSN doit être une URL valide' }),

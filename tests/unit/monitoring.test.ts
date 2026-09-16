@@ -114,3 +114,16 @@ describe('captureJobFailure', () => {
     expect(scope.setTag).toHaveBeenCalledWith('job', 'run-full-analysis')
   })
 })
+
+describe('MONITORING_PAUSED', () => {
+  it('coupe la surveillance sans désenregistrer les fonctions', async () => {
+    // Les deux crons restent déclarés (Inngest exige un trigger) mais
+    // retournent avant tout dispatch, donc sans aucun appel LLM.
+    const src = await import('node:fs').then((fs) =>
+      fs.readFileSync('lib/inngest/functions/monitor-sites.ts', 'utf8')
+    )
+    expect(src.match(/env\.MONITORING_PAUSED/g)).toHaveLength(2)
+    // Le garde-fou précède la liste des sites : rien n'est même interrogé.
+    expect(src.indexOf('env.MONITORING_PAUSED')).toBeLessThan(src.indexOf("step.run('list-paid-sites'"))
+  })
+})
