@@ -1,7 +1,7 @@
 import { Children } from 'react'
 import Link from 'next/link'
 import type { Route } from 'next'
-import { Button } from '@/components/ui/button'
+import { ExpressAuditBand } from '@/components/features/marketing/express-audit-band'
 import { ARTICLES, getRelatedArticles, type ArticleMeta } from '@/lib/marketing/articles'
 
 /**
@@ -201,18 +201,10 @@ export function ArticleLayout({
         </p>
       </aside>
 
-      <div className="mt-14 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-10 text-center shadow-xl shadow-indigo-200">
-        <p className="mb-2 text-lg font-bold text-white">Et votre site, les IA le citent-elles ?</p>
-        <p className="mb-5 text-sm text-indigo-100">
-          Analyse complète offerte — ChatGPT, Perplexity, Gemini et Claude, sans carte bancaire.
-        </p>
-        <Button
-          asChild
-          className="rounded-lg bg-white px-8 font-semibold text-indigo-700 hover:bg-indigo-50"
-        >
-          <Link href="/signup">Tester mon site gratuitement</Link>
-        </Button>
-      </div>
+      {/* Fin d'article : l'outil lui-même plutôt qu'un lien vers l'inscription.
+          Le lecteur teste son site sur place, et l'email de fin d'audit ouvre
+          le compte avec l'audit déjà rattaché. */}
+      <ExpressAuditBand />
     </article>
   )
 }

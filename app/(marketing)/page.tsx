@@ -186,67 +186,66 @@ export default function MarketingHome() {
         </div>
 
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-            {/* Left: copy */}
-            <div>
-              <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold text-[#B2C8DE]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#34D399]" />
-                Audit GEO · 100&nbsp;% français
-              </span>
+          {/* L'audit express est le meilleur convertisseur : il occupe le centre
+              du hero, l'aperçu produit passe dessous. */}
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold text-[#B2C8DE]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#34D399]" />
+              Audit GEO · 100&nbsp;% français
+            </span>
 
-              <h1 className="text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-5xl">
-                Vos clients cherchent dans ChatGPT.{' '}
-                <span className="text-[#7FB5E6]">Y êtes-vous&nbsp;?</span>
-              </h1>
+            <h1 className="text-balance text-4xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-5xl">
+              Vos clients cherchent dans ChatGPT.{' '}
+              <span className="text-[#7FB5E6]">Y êtes-vous&nbsp;?</span>
+            </h1>
 
-              <p className="mt-5 max-w-lg text-balance text-lg text-[#B2C8DE]">
-                GEOMIND mesure si votre site est cité par les IA — ChatGPT, Perplexity, Gemini,
-                Claude — et vous donne un plan d&apos;action concret.
+            <p className="mx-auto mt-5 max-w-xl text-balance text-lg text-[#B2C8DE]">
+              GEOMIND mesure si votre site est cité par les IA — ChatGPT, Perplexity, Gemini,
+              Claude — et vous donne un plan d&apos;action concret.
+            </p>
+
+            {/* Audit express sans inscription (PLAN item 20) — l'outil EST le hero */}
+            <div className="mt-8 text-left">
+              <ExpressAudit />
+              <p className="mt-3 text-center text-xs text-[#7C92AC]">
+                Envie d&apos;aller directement à l&apos;audit complet ?{' '}
+                <Link
+                  href="/signup"
+                  className="font-medium text-white underline underline-offset-4"
+                >
+                  Créer un compte gratuit
+                </Link>{' '}
+                ·{' '}
+                <Link
+                  href="/pricing"
+                  className="font-medium text-white underline underline-offset-4"
+                >
+                  Voir les tarifs
+                </Link>
               </p>
-
-              {/* Audit express sans inscription (PLAN item 20) — l'outil EST le hero */}
-              <div className="mt-8">
-                <ExpressAudit />
-                <p className="mt-3 text-xs text-[#7C92AC]">
-                  Envie d&apos;aller directement à l&apos;audit complet ?{' '}
-                  <Link
-                    href="/signup"
-                    className="font-medium text-white underline underline-offset-4"
-                  >
-                    Créer un compte gratuit
-                  </Link>{' '}
-                  ·{' '}
-                  <Link
-                    href="/pricing"
-                    className="font-medium text-white underline underline-offset-4"
-                  >
-                    Voir les tarifs
-                  </Link>
-                </p>
-              </div>
-
-              {/* Social proof — uniquement des faits vérifiables */}
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/10 pt-6 text-sm text-[#B2C8DE]">
-                <span>
-                  <strong className="font-semibold text-white">{ENGINE_COUNT} IA</strong>{' '}
-                  interrogées à chaque audit
-                </span>
-                <span className="text-white/20">·</span>
-                <span>
-                  <strong className="font-semibold text-white">1 analyse offerte</strong>, sans
-                  carte bancaire
-                </span>
-                <span className="text-white/20">·</span>
-                <span>
-                  Données hébergées <strong className="font-semibold text-white">en Europe</strong>
-                </span>
-              </div>
             </div>
 
-            {/* Right: product preview, décalé */}
-            <div className="flex justify-center lg:mt-10 lg:justify-end">
-              <ProductPreview />
+            {/* Social proof — uniquement des faits vérifiables */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t border-white/10 pt-6 text-sm text-[#B2C8DE]">
+              <span>
+                <strong className="font-semibold text-white">{ENGINE_COUNT} IA</strong>{' '}
+                interrogées à chaque audit
+              </span>
+              <span className="text-white/20">·</span>
+              <span>
+                <strong className="font-semibold text-white">1 analyse offerte</strong>, sans
+                carte bancaire
+              </span>
+              <span className="text-white/20">·</span>
+              <span>
+                Données hébergées <strong className="font-semibold text-white">en Europe</strong>
+              </span>
             </div>
+          </div>
+
+          {/* Aperçu produit — sous l'audit, il illustre ce qu'on obtient ensuite */}
+          <div className="mt-14 flex justify-center">
+            <ProductPreview />
           </div>
         </div>
 

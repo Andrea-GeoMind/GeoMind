@@ -21,6 +21,52 @@ export interface ExpressCheck {
   hint: string
 }
 
+/**
+ * Les questions que l'audit express ne peut PAS trancher.
+ *
+ * L'express ne fait que des vérifications HTTP : il couvre le pilier Technique,
+ * et partiellement. L'Autorité (êtes-vous cité) et le Contenu ne sont pas
+ * mesurés du tout — d'où un score express structurellement élevé (la plupart
+ * des sites corrects passent 10 vérifications sur 11) alors que la note
+ * complète, moyenne des trois piliers, est bien plus basse.
+ *
+ * Afficher ces inconnues n'est donc pas un argument commercial : c'est la
+ * partie manquante du périmètre, dite explicitement. On garde le vocabulaire
+ * du produit — « non mesuré », jamais « 0 » (cf. lib/analysis/scoring.ts).
+ */
+export interface ExpressUnknown {
+  key: string
+  question: string
+  detail: string
+}
+
+export const EXPRESS_UNKNOWNS: readonly ExpressUnknown[] = [
+  {
+    key: 'citations',
+    question: 'Les IA vous citent-elles ?',
+    detail:
+      'Non mesuré — il faut poser de vraies questions de clients aux IA et lire les sources qu’elles citent.',
+  },
+  {
+    key: 'competitors',
+    question: 'Qui est cité à votre place ?',
+    detail:
+      'Non mesuré — les concurrents nommés dans les réponses sur votre métier, et ce qu’ils ont que vous n’avez pas.',
+  },
+  {
+    key: 'reputation',
+    question: 'Que disent les IA de vous ?',
+    detail:
+      'Non mesuré — horaires, adresse, activité : ce que les IA racontent sur vous peut être faux sans que vous le sachiez.',
+  },
+] as const
+
+/** Nombre de piliers du score complet (autorité, technique, contenu). */
+export const PILLAR_COUNT = 3
+
+/** Piliers réellement couverts par l'audit express — le technique seul. */
+export const EXPRESS_PILLARS_COVERED = 1
+
 export interface ExpressAuditResult {
   domain: string
   /** 0-100 — pondération simple des checks */

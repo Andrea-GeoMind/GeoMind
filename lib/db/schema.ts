@@ -439,11 +439,30 @@ export const publicAudits = pgTable(
     score: integer('score').notNull(),
     checks: jsonb('checks').notNull().$type<unknown>(),
     ipHash: text('ip_hash').notNull(),
+    // Jeton de rattachement, propre à CE visiteur. Jamais partagé entre deux
+    // audits du même domaine : c'est lui qui autorise à réclamer l'audit, donc
+    // le réutiliser laisserait un visiteur récupérer l'audit (et l'email) d'un
+    // autre. Une ligne est insérée par requête, cache ou pas.
+    claimToken: uuid('claim_token').notNull().defaultRandom().unique(),
+    // Résultats servis depuis le cache 24 h d'un audit précédent du domaine :
+    // aucun fetch n'a été refait. Exclu du comptage de rate limit, qui doit
+    // mesurer le travail réel et non les lignes créées.
+    fromCache: boolean('from_cache').notNull().default(false),
+    // Email laissé pour recevoir le rapport (RGPD : finalité unique, affichée
+    // sous le champ). Null tant que le visiteur ne l'a pas donné.
+    email: text('email'),
+    // Rattachement au compte créé depuis cet audit. onDelete: cascade —
+    // supprimer le compte efface l'audit et l'email (règle métier 7).
+    claimedByUserId: uuid('claimed_by_user_id').references(() => profiles.id, {
+      onDelete: 'cascade',
+    }),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('public_audits_domain_created_idx').on(t.domain, t.createdAt),
     index('public_audits_ip_created_idx').on(t.ipHash, t.createdAt),
+    index('public_audits_claimed_by_idx').on(t.claimedByUserId),
   ]
 )
 

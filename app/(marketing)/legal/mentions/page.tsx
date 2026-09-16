@@ -26,9 +26,10 @@ export default function MentionsPage() {
           <li>
             <strong className="text-foreground">Statut</strong> : Micro-entrepreneur
           </li>
-          <li>
-            <strong className="text-foreground">SIRET</strong> : [à compléter après inscription auto-entrepreneur]
-          </li>
+          {/* TODO(SIRET) : ajouter ici <li><strong>SIRET</strong> : …</li> dès réception
+              de l'immatriculation, et compléter app/(marketing)/legal/privacy/page.tsx.
+              Mention obligatoire (art. R.123-237 code de commerce) — d'ici là on
+              omet la ligne plutôt que d'exposer un marqueur de rédaction. */}
           <li>
             <strong className="text-foreground">Adresse</strong> : France
           </li>

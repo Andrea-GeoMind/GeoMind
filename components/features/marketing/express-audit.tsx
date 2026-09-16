@@ -1,15 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Loader2, Search, XCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCircle2,
+  HelpCircle,
+  Loader2,
+  MailCheck,
+  Search,
+  XCircle,
+} from 'lucide-react'
+import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { ENGINE_LIST } from '@/lib/analysis/authority-table'
+import {
+  EXPRESS_UNKNOWNS,
+  EXPRESS_PILLARS_COVERED,
+  PILLAR_COUNT,
+} from '@/lib/analysis/express-audit'
+import { claimExpressAudit } from '@/app/actions/public-audit'
+import { cn } from '@/lib/utils'
 
 /**
- * Audit express sans inscription (PLAN item 20) — le visiteur tape son URL et
- * voit un mini-score en ~10 s. Teaser honnête : 11 vérifications instantanées,
- * l'audit complet (citations IA réelles, 57 règles, plan d'action) est derrière
- * l'inscription gratuite.
+ * Audit express sans inscription (PLAN item 20) — premier étage du tunnel.
+ *
+ * Le résultat est délibérément en deux temps :
+ *  1. la note technique telle quelle (ce que les 11 vérifications mesurent) ;
+ *  2. « ce qu'on ne sait pas encore » — les deux piliers que l'express ne
+ *     couvre pas du tout.
+ *
+ * Sans le second bloc, un site correct décroche 10/11 et repart rassuré, alors
+ * que la note complète (moyenne des trois piliers) est bien plus basse. Les
+ * inconnues ne sont donc pas un argument de vente : c'est le périmètre
+ * manquant, énoncé. Cf. lib/analysis/express-audit.ts.
  */
 
 interface ExpressCheck {
@@ -23,6 +46,7 @@ interface AuditResponse {
   domain: string
   score: number
   checks: ExpressCheck[]
+  claimToken?: string
   error?: string
 }
 
@@ -32,21 +56,30 @@ const LOADING_STEPS = [
   'Lecture de votre page d’accueil…',
   'Vérification de robots.txt et sitemap…',
   'Recherche des données structurées…',
-  'Calcul de votre score express…',
+  'Calcul de votre note technique…',
 ]
 
-export function ExpressAudit() {
+/** `hero` : posé sur le fond navy. `band` : bandeau autonome sur fond clair. */
+export type ExpressAuditVariant = 'hero' | 'band'
+
+export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVariant }) {
   const [url, setUrl] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [stepIdx, setStepIdx] = useState(0)
   const [result, setResult] = useState<AuditResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Capture d'email en fin d'audit
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [isSending, startSending] = useTransition()
+
+  const onNavy = variant === 'hero'
+
   async function run(e: React.FormEvent) {
     e.preventDefault()
     if (!url.trim() || status === 'loading') return
-    // Validation basique côté client : un domaine a au moins un point.
-    // L'API revalide strictement (anti-SSRF) — ici on évite juste un aller-retour.
     if (!url.includes('.') || url.trim().includes(' ')) {
       setError('Entrez l\'adresse de votre site — exemple : monentreprise.fr')
       setStatus('error')
@@ -55,6 +88,8 @@ export function ExpressAudit() {
     setStatus('loading')
     setError(null)
     setResult(null)
+    setEmailSent(false)
+    setEmailError(null)
     setStepIdx(0)
 
     const ticker = setInterval(
@@ -82,6 +117,17 @@ export function ExpressAudit() {
     } finally {
       clearInterval(ticker)
     }
+  }
+
+  function submitEmail(e: React.FormEvent) {
+    e.preventDefault()
+    if (!result?.claimToken || isSending) return
+    setEmailError(null)
+    startSending(async () => {
+      const res = await claimExpressAudit(email, result.claimToken as string)
+      if (res.error) setEmailError(res.error)
+      else setEmailSent(true)
+    })
   }
 
   const failed = result?.checks.filter((c) => !c.ok) ?? []
@@ -118,7 +164,12 @@ export function ExpressAudit() {
           )}
         </button>
       </form>
-      <p className="mt-2 text-center text-xs text-[#7C92AC] sm:text-left">
+      <p
+        className={cn(
+          'mt-2 text-center text-xs sm:text-left',
+          onNavy ? 'text-[#7C92AC]' : 'text-muted-foreground'
+        )}
+      >
         Gratuit, sans inscription — 11 vérifications en quelques secondes
       </p>
 
@@ -136,66 +187,156 @@ export function ExpressAudit() {
       )}
 
       {status === 'done' && result && (
-        <div className="mt-5 rounded-2xl border border-border bg-card p-6 text-left shadow-lg">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
+        <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-card text-left shadow-lg">
+          {/* ── 1 · La note technique, telle quelle ─────────────────── */}
+          <div className="p-6">
+            <div className="flex items-baseline justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Score express — {result.domain}
+                Technique — {result.domain}
               </p>
-              <p className="mt-1 text-4xl font-extrabold text-foreground">
+              <p className="text-sm font-semibold text-foreground">
                 {result.score}
-                <span className="text-base font-medium text-muted-foreground">/100</span>
+                <span className="font-normal text-muted-foreground">/100</span>
               </p>
             </div>
-            <p className="max-w-[220px] text-xs leading-relaxed text-muted-foreground">
-              {passed.length}/{result.checks.length} vérifications de base réussies — l&apos;audit
-              complet en couvre 57, plus vos citations réelles dans les IA.
+
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-[--score-good-500]"
+                style={{ width: `${result.score}%` }}
+              />
+            </div>
+
+            <p className="mt-2 text-xs text-muted-foreground">
+              {passed.length} des {result.checks.length} vérifications de base passent.{' '}
+              <strong className="font-semibold text-foreground">
+                {EXPRESS_PILLARS_COVERED} pilier sur {PILLAR_COUNT}
+              </strong>{' '}
+              — la note complète est la moyenne des trois.
             </p>
+
+            {failed.length > 0 && (
+              <div className="mt-4 space-y-2.5">
+                {failed.slice(0, 3).map((c) => (
+                  <div key={c.key} className="flex items-start gap-2.5">
+                    <XCircle size={15} className="mt-0.5 shrink-0 text-[--score-bad-500]" />
+                    <div>
+                      <p className="text-sm font-semibold leading-snug text-foreground">{c.label}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground">{c.hint}</p>
+                    </div>
+                  </div>
+                ))}
+                {failed.length > 3 && (
+                  <p className="text-xs text-muted-foreground">
+                    + {failed.length - 3} autre{failed.length - 3 > 1 ? 's' : ''} point
+                    {failed.length - 3 > 1 ? 's' : ''} technique
+                    {failed.length - 3 > 1 ? 's' : ''}.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {failed.length === 0 && (
+              <div className="mt-4 flex items-start gap-2.5">
+                <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[--score-good-500]" />
+                <p className="text-sm text-muted-foreground">
+                  Les bases techniques sont en place.
+                </p>
+              </div>
+            )}
           </div>
 
-          {failed.length > 0 && (
-            <div className="mt-5 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                À corriger en priorité
+          {/* ── 2 · Ce qu'on ne sait pas encore ─────────────────────── */}
+          <div className="border-t border-border bg-muted/40 p-6">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">
+                Ce qu’on ne sait pas encore
               </p>
-              {failed.slice(0, 4).map((c) => (
-                <div key={c.key} className="flex items-start gap-2.5">
-                  <XCircle size={15} className="mt-0.5 shrink-0 text-[--score-bad-500]" />
+              <p className="text-xs font-medium text-muted-foreground">
+                {PILLAR_COUNT - EXPRESS_PILLARS_COVERED} piliers
+              </p>
+            </div>
+
+            <dl className="mt-4 space-y-3.5">
+              {EXPRESS_UNKNOWNS.map(({ key, question, detail }) => (
+                <div key={key} className="flex items-start gap-2.5">
+                  <HelpCircle size={15} className="mt-0.5 shrink-0 text-primary" aria-hidden />
                   <div>
-                    <p className="text-sm font-semibold leading-snug text-foreground">{c.label}</p>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{c.hint}</p>
+                    <dt className="text-sm font-semibold leading-snug text-foreground">
+                      {question}
+                    </dt>
+                    <dd className="text-xs leading-relaxed text-muted-foreground">{detail}</dd>
                   </div>
                 </div>
               ))}
-              {failed.length > 4 && (
-                <p className="text-xs text-muted-foreground">
-                  + {failed.length - 4} autre{failed.length - 4 > 1 ? 's' : ''} point
-                  {failed.length - 4 > 1 ? 's' : ''} détecté
-                  {failed.length - 4 > 1 ? 's' : ''}…
+            </dl>
+
+            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              Ces trois réponses demandent d’interroger réellement les {ENGINE_COUNT} IA — c’est
+              l’analyse complète.
+            </p>
+          </div>
+
+          {/* ── 3 · Capture d'email → compte en un clic ─────────────── */}
+          <div className="border-t border-border p-6">
+            {emailSent ? (
+              <div className="flex items-start gap-3">
+                <MailCheck size={18} className="mt-0.5 shrink-0 text-[--score-good-500]" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Lien envoyé à {email}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    Ouvrez-le pour accéder à votre rapport : votre compte et le site{' '}
+                    {result.domain} sont créés en un clic, sans mot de passe. Pensez à vérifier vos
+                    indésirables.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-foreground">
+                  Recevoir le rapport complet et savoir si les IA vous citent
                 </p>
-              )}
-            </div>
-          )}
+                <form onSubmit={submitEmail} className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="vous@exemple.fr"
+                    autoComplete="email"
+                    aria-label="Votre adresse email"
+                    className="flex-1 rounded-xl border border-border bg-background px-3.5 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSending || !result.claimToken}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-60"
+                  >
+                    {isSending ? <Loader2 size={15} className="animate-spin" /> : 'Recevoir'}
+                    {!isSending && <ArrowRight size={15} />}
+                  </button>
+                </form>
 
-          {failed.length === 0 && (
-            <div className="mt-5 flex items-start gap-2.5">
-              <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[--score-good-500]" />
-              <p className="text-sm text-muted-foreground">
-                Les bases sont en place. Reste la vraie question : les IA vous citent-elles ?
-              </p>
-            </div>
-          )}
+                {emailError && <p className="mt-2 text-xs text-destructive">{emailError}</p>}
 
-          <Link
-            href="/signup"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-colors hover:bg-primary/90"
-          >
-            Voir si ChatGPT me cite — audit complet offert
-            <ArrowRight size={15} />
-          </Link>
-          <p className="mt-2 text-center text-[11px] text-muted-foreground">
-            Sans carte bancaire · {ENGINE_LIST} interrogés réellement
-          </p>
+                <p className="mt-2.5 text-[11px] leading-relaxed text-muted-foreground">
+                  Votre audit de {result.domain} sera rattaché au compte. Votre email sert
+                  uniquement à vous envoyer ce lien et votre rapport — pas de démarchage.{' '}
+                  <Link
+                    href="/legal/privacy"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Politique de confidentialité
+                  </Link>
+                </p>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Sans carte bancaire · {ENGINE_LIST} interrogés réellement
+                </p>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

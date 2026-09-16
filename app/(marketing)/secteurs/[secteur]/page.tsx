@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowRight, Scale, Search, FileText, ListChecks, MessageSquareQuote } from 'lucide-react'
+import { Scale, Search, FileText, ListChecks, MessageSquareQuote } from 'lucide-react'
 import { ExpressAudit } from '@/components/features/marketing/express-audit'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { IA_ENGINES, ENGINE_LABELS } from '@/lib/analysis/authority-table'
@@ -432,16 +431,9 @@ export default async function SecteurPage({
               {config.ctaTitre}
             </h2>
             <p className="mt-4 text-lg text-[#B2C8DE]">{config.ctaCorps}</p>
-            <Button
-              size="lg"
-              asChild
-              className="mt-8 gap-2 rounded-lg bg-[#34D399] px-8 font-semibold text-[#0B3B2E] shadow-lg shadow-black/20 hover:bg-[#2bbd88]"
-            >
-              <Link href="#audit">
-                Lancer l&apos;audit express
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+            <div className="mt-8">
+              <ExpressAudit />
+            </div>
           </div>
         </div>
       </section>

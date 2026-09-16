@@ -15,14 +15,16 @@ export default function PrivacyPage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
           Politique de confidentialité
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : juin 2026</p>
+        <p className="mt-2 text-xs text-muted-foreground">Dernière mise à jour : septembre 2026</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">1. Responsable du traitement</h2>
         <p className="text-muted-foreground leading-relaxed">
-          Le responsable du traitement est GEOMIND, micro-entreprise française
-          (SIRET : [à compléter]), joignable à{' '}
+          {/* TODO(SIRET) : insérer le numéro SIRET dès réception de l'immatriculation,
+              ici et dans app/(marketing)/legal/mentions/page.tsx. En attendant on
+              n'affiche rien plutôt qu'un marqueur de rédaction visible du public. */}
+          Le responsable du traitement est GEOMIND, micro-entreprise française, joignable à{' '}
           <a
             href="mailto:contact@geomind.fr"
             className="font-medium text-primary underline underline-offset-4 hover:opacity-80"
@@ -52,6 +54,14 @@ export default function PrivacyPage() {
             <strong className="text-foreground">Données analytiques</strong> : pages visitées, actions
             (PostHog), uniquement avec votre consentement.
           </li>
+          <li>
+            <strong className="text-foreground">Audit express</strong> : nom de domaine testé,
+            résultat des vérifications, et empreinte technique de votre adresse IP (hachée, non
+            réversible) pour limiter les abus. Si vous demandez à recevoir le rapport, votre
+            adresse e-mail est enregistrée dans le seul but de vous envoyer le lien d&apos;accès
+            et le rapport de cet audit. Elle n&apos;est utilisée pour aucune prospection et
+            n&apos;est transmise à personne.
+          </li>
         </ul>
       </section>
 
@@ -65,6 +75,11 @@ export default function PrivacyPage() {
           <li>
             <strong className="text-foreground">Obligation légale</strong> : données de facturation —
             conservation 10 ans.
+          </li>
+          <li>
+            <strong className="text-foreground">Intérêt légitime</strong> : audit express — mesurer
+            un site à votre demande, prévenir les abus du service gratuit, et vous transmettre le
+            rapport que vous avez demandé.
           </li>
           <li>
             <strong className="text-foreground">Consentement</strong> : cookies analytiques PostHog —
@@ -87,6 +102,11 @@ export default function PrivacyPage() {
           <li>Données d&apos;analyse : durée de l&apos;abonnement actif.</li>
           <li>Données de facturation : 10 ans (obligation comptable).</li>
           <li>Logs analytiques : 13 mois maximum (PostHog EU).</li>
+          <li>
+            Audit express : 12 mois. L&apos;e-mail éventuellement laissé est supprimé avec le
+            compte auquel l&apos;audit est rattaché, ou à l&apos;expiration de ce délai s&apos;il
+            n&apos;a jamais donné lieu à un compte.
+          </li>
         </ul>
       </section>
 

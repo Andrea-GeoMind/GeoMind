@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { normalizePublicUrl, robotsBlocksAiBots } from '@/lib/analysis/express-audit'
+import {
+  normalizePublicUrl,
+  robotsBlocksAiBots,
+  EXPRESS_UNKNOWNS,
+  EXPRESS_PILLARS_COVERED,
+  PILLAR_COUNT,
+} from '@/lib/analysis/express-audit'
 
 describe('normalizePublicUrl (anti-SSRF)', () => {
   it('normalise un domaine nu en https racine', () => {
@@ -57,5 +63,24 @@ describe('robotsBlocksAiBots', () => {
   it('gère plusieurs groupes', () => {
     const txt = 'User-agent: *\nDisallow: /admin/\n\nUser-agent: ClaudeBot\nDisallow: /'
     expect(robotsBlocksAiBots(txt)).toBe(true)
+  })
+})
+
+describe('périmètre de l’audit express', () => {
+  it('déclare les trois inconnues attendues, dans l’ordre du tunnel', () => {
+    expect(EXPRESS_UNKNOWNS.map((u) => u.key)).toEqual(['citations', 'competitors', 'reputation'])
+  })
+
+  it('ne couvre qu’un pilier sur trois — c’est ce qui justifie le bloc « ce qu’on ne sait pas encore »', () => {
+    expect(EXPRESS_PILLARS_COVERED).toBe(1)
+    expect(PILLAR_COUNT).toBe(3)
+    expect(PILLAR_COUNT - EXPRESS_PILLARS_COVERED).toBe(2)
+  })
+
+  it('dit « non mesuré » et jamais « 0 » — convention de scoring du produit', () => {
+    for (const u of EXPRESS_UNKNOWNS) {
+      expect(u.detail.toLowerCase()).toContain('non mesuré')
+      expect(u.question.endsWith('?')).toBe(true)
+    }
   })
 })
