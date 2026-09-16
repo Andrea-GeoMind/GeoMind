@@ -16,7 +16,8 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "inngest:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest"
+    "inngest:dev": "npx inngest-cli@latest dev -u http://localhost:3000/api/inngest",
+    "inngest:sync": "curl -fsS -X PUT https://geomind.fr/api/inngest && echo"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

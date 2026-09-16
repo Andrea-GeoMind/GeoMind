@@ -61,9 +61,18 @@ pnpm db:push                    # appliquer le schéma à la DB (dev only)
 pnpm db:migrate                 # appliquer les migrations (prod)
 pnpm db:studio                  # ouvrir Drizzle Studio
 pnpm inngest:dev                # lancer le dev server Inngest local
+pnpm inngest:sync               # RE-SYNCHRONISER les fonctions Inngest en prod
 ```
 
 Avant chaque commit : `pnpm typecheck && pnpm lint && pnpm test`. Aucun de ces 3 ne doit échouer.
+
+**Après tout déploiement qui ajoute, retire ou renomme une fonction Inngest : `pnpm inngest:sync`.**
+Inngest ne découvre pas les nouvelles fonctions tout seul — il faut lui demander de
+relire l'endpoint. Sans l'intégration Vercel officielle, aucune synchronisation
+n'a lieu au déploiement : les fonctions existent dans le code, sont servies par
+`/api/inngest`, mais Inngest Cloud ne les connaît pas et leurs crons ne se
+déclenchent jamais. C'est resté invisible de juin à septembre 2026 — 8 fonctions
+sur 12 n'étaient pas enregistrées, dont tous les crons de surveillance.
 
 ---
 
