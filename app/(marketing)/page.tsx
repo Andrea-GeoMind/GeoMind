@@ -1,3 +1,4 @@
+import type { Route } from 'next'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
@@ -25,6 +26,7 @@ import { CREDIT_COSTS } from '@/lib/credits-shared'
 import { ExpressAudit } from '@/components/features/marketing/express-audit'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { IA_ENGINES, ENGINE_LABELS, ENGINE_LIST } from '@/lib/analysis/authority-table'
+import { SECTEURS } from '@/lib/marketing/secteurs'
 
 /** Nombre d'analyses complètes couvertes par l'allocation mensuelle d'un plan. */
 function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
@@ -431,6 +433,20 @@ export default function MarketingHome() {
                 </p>
                 <p className="mt-auto text-sm leading-relaxed text-foreground/80">{outcome}</p>
               </div>
+            ))}
+          </div>
+
+          {/* Pages secteur — l'entrée dédiée par métier, dérivée du registre */}
+          <div className="mt-8 flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-muted-foreground">Votre métier en particulier :</span>
+            {SECTEURS.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/secteurs/${s.slug}` as Route}
+                className="rounded-full border border-border px-4 py-1.5 font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
+              >
+                {s.label}
+              </Link>
             ))}
           </div>
         </div>

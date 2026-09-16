@@ -1,4 +1,6 @@
+import type { Route } from 'next'
 import Link from 'next/link'
+import { SECTEURS } from '@/lib/marketing/secteurs'
 
 export default function Footer() {
   return (
@@ -32,12 +34,15 @@ export default function Footer() {
             >
               À propos
             </Link>
-            <Link
-              href="/secteurs/cabinets-dentaires"
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Cabinets dentaires
-            </Link>
+            {SECTEURS.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/secteurs/${s.slug}` as Route}
+                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {s.label}
+              </Link>
+            ))}
             <Link
               href="/outils/generateur-llms-txt"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"

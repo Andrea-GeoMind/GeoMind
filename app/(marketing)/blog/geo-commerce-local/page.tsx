@@ -21,7 +21,9 @@ export default function Page() {
       </p>
       <p>
         Ce scénario se répète des millions de fois chaque jour en France, pour les restaurants, les
-        artisans, les cabinets médicaux, les coiffeurs, les agences immobilières. Être dans cette
+        artisans, les{' '}
+        <Link href="/secteurs/cabinets-dentaires">cabinets dentaires et médicaux</Link>, les
+        coiffeurs, les agences immobilières. Être dans cette
         liste courte, c&apos;est décrocher des clients. En être absent, c&apos;est laisser le
         champ libre à vos concurrents. Ce guide vous explique exactement comment franchir ce seuil.
       </p>

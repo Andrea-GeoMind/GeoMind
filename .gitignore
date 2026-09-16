@@ -58,3 +58,6 @@ tests/screenshots/
 # serwist — service worker généré par le build
 /public/sw.js
 /public/sw.js.map
+
+# Config locale du serveur de dev pour le navigateur intégré
+.claude/launch.json

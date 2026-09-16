@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { ARTICLES } from '@/lib/marketing/articles'
+import { SECTEURS } from '@/lib/marketing/secteurs'
 
 /** Sitemap des pages publiques — règle GEO élémentaire (cf. règles produit). */
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -12,12 +13,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/about`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/blog`, lastModified, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/glossaire`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
-    {
-      url: `${base}/secteurs/cabinets-dentaires`,
+    ...SECTEURS.map((s) => ({
+      url: `${base}/secteurs/${s.slug}`,
       lastModified,
-      changeFrequency: 'monthly',
+      changeFrequency: 'monthly' as const,
       priority: 0.8,
-    },
+    })),
     {
       url: `${base}/outils/generateur-llms-txt`,
       lastModified,
