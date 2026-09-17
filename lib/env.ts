@@ -117,6 +117,21 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true' || v === '1'),
+  /**
+   * Nombre maximum de sites traités par passage de surveillance.
+   *
+   * Un cron fan-out un événement par site : sans plafond, le coût d'un passage
+   * croît linéairement avec la base et part en salve. Les sites relevés il y a
+   * le plus longtemps passent en premier, donc un dépassement fait tourner la
+   * file d'un passage à l'autre plutôt que d'affamer toujours les mêmes.
+   */
+  MONITORING_MAX_SITES_PER_RUN: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const n = Number(v)
+      return Number.isFinite(n) && n > 0 ? Math.floor(n) : 25
+    }),
 
   // ── Observabilité ────────────────────────────────────────────────────────────
   SENTRY_DSN: z.url({ message: 'SENTRY_DSN doit être une URL valide' }),

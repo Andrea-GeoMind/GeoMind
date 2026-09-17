@@ -6,7 +6,7 @@
  * suivi les agrègent par jour/moteur pour afficher des tendances.
  */
 
-import { and, desc, eq, gte, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { citationChecks } from '@/lib/db/schema'
 
@@ -121,4 +121,28 @@ export async function getRollingCitationRate(
   const total = row?.total ?? 0
   const cited = row?.cited ?? 0
   return { total, cited, rate: total > 0 ? Math.round((cited / total) * 100) : null }
+}
+
+/**
+ * Date du dernier relevé de citations par site, pour les sites demandés.
+ *
+ * Sert à ordonner la surveillance : on traite en priorité les sites relevés il
+ * y a le plus longtemps. Un site absent du résultat n'a jamais été relevé et
+ * passe donc en tête.
+ */
+export async function getLastCheckedAtBySite(
+  siteIds: string[]
+): Promise<Map<string, Date>> {
+  if (siteIds.length === 0) return new Map()
+
+  const rows = await db
+    .select({
+      siteId: citationChecks.siteId,
+      lastCheckedAt: sql<Date>`max(${citationChecks.checkedAt})`,
+    })
+    .from(citationChecks)
+    .where(inArray(citationChecks.siteId, siteIds))
+    .groupBy(citationChecks.siteId)
+
+  return new Map(rows.map((r) => [r.siteId, r.lastCheckedAt]))
 }

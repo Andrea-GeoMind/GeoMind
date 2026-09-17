@@ -16,6 +16,7 @@ import { env } from '@/lib/env'
 import { db } from '@/lib/db/client'
 import { sites, subscriptions } from '@/lib/db/schema'
 import { PLAN_LIMITS, computeFrozenSiteIds, type Plan } from '@/lib/plans'
+import { getLastCheckedAtBySite } from '@/lib/db/queries/citation-checks'
 import { runMonitoringCheck } from '@/lib/analysis/monitoring'
 import { evaluateMonitoringAlerts } from '@/lib/analysis/alerts'
 
@@ -23,6 +24,29 @@ import { evaluateMonitoringAlerts } from '@/lib/analysis/alerts'
 // pour les payants ; 2 prompts × tous les moteurs par mois pour le gratuit.
 const PAID_PROMPT_SAMPLE = 3
 const FREE_PROMPT_SAMPLE = 2
+
+/**
+ * Borne un passage de surveillance à `MONITORING_MAX_SITES_PER_RUN` sites,
+ * les moins récemment relevés d'abord (jamais relevé = priorité absolue).
+ *
+ * Deux effets : le coût d'un passage reste borné quelle que soit la taille de
+ * la base, et un dépassement fait tourner la file d'un passage à l'autre au
+ * lieu de traiter toujours les mêmes sites en tête de liste.
+ */
+export async function takeStalestSites(siteIds: string[]): Promise<string[]> {
+  const max = env.MONITORING_MAX_SITES_PER_RUN
+  if (siteIds.length <= max) return siteIds
+
+  const lastChecked = await getLastCheckedAtBySite(siteIds)
+  return [...siteIds]
+    .sort((a, b) => {
+      // Jamais relevé → 0, donc en tête.
+      const ta = lastChecked.get(a)?.getTime() ?? 0
+      const tb = lastChecked.get(b)?.getTime() ?? 0
+      return ta - tb
+    })
+    .slice(0, max)
+}
 
 /** Liste les sites actifs (non gelés) des utilisateurs du segment demandé. */
 async function listMonitorableSites(segment: 'paid' | 'free'): Promise<string[]> {
@@ -69,7 +93,9 @@ export const monitorPaidSitesFunction = inngest.createFunction(
       return { dispatched: 0, paused: true }
     }
 
-    const siteIds = await step.run('list-paid-sites', () => listMonitorableSites('paid'))
+    const siteIds = await step.run('list-paid-sites', async () =>
+      takeStalestSites(await listMonitorableSites('paid'))
+    )
     if (siteIds.length === 0) return { dispatched: 0 }
 
     await step.sendEvent(
@@ -93,7 +119,9 @@ export const monitorFreeSitesFunction = inngest.createFunction(
       return { dispatched: 0, paused: true }
     }
 
-    const siteIds = await step.run('list-free-sites', () => listMonitorableSites('free'))
+    const siteIds = await step.run('list-free-sites', async () =>
+      takeStalestSites(await listMonitorableSites('free'))
+    )
     if (siteIds.length === 0) return { dispatched: 0 }
 
     await step.sendEvent(
