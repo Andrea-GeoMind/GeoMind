@@ -3,8 +3,16 @@ import { parseSources, extractAnswerText, extractTokenUsage } from '@/lib/ai/par
 import { computeCost } from '@/lib/ai/cost'
 import { env } from '@/lib/env'
 
-// Modèle beta pour activer l'outil web_search natif Anthropic via OpenRouter
-export const CLAUDE_MODEL = 'anthropic/claude-haiku-4-5:beta'
+// Recherche via le plugin `web` d'OpenRouter, et non l'outil natif
+// web_search_20250305 d'Anthropic.
+//
+// L'outil natif est une boucle agentique : le modèle lance jusqu'à `max_uses`
+// recherches, et chaque tour renvoie l'intégralité du contexte — prompt plus
+// tous les résultats déjà collectés. Mesuré sur le prompt réel de production,
+// 3 exécutions : 39 163 tokens d'entrée en moyenne (jusqu'à 50 300) pour
+// 8,3 sources, soit 0,076 $ l'appel. Le plugin, sur le même prompt :
+// 3 568 tokens, 10 sources, 0,017 $. Moins cher ET mieux couvert.
+export const CLAUDE_MODEL = 'anthropic/claude-haiku-4-5'
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 type Fetcher = typeof fetch
@@ -27,19 +35,13 @@ export class ClaudeConnector implements IAEngine {
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://geomind.fr',
         'X-Title': 'GeoMind',
-        // Active les outils beta Anthropic (web_search_20250305)
-        'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
         model: CLAUDE_MODEL,
         messages: [{ role: 'user', content: prompt }],
-        tools: [
-          {
-            type: 'web_search_20250305',
-            name: 'web_search',
-            max_uses: 5,
-          },
-        ],
+        // 10 résultats : couvre au moins autant de sources que la boucle
+        // agentique qu'on remplace (8,3 en moyenne), sans son inflation.
+        plugins: [{ id: 'web', max_results: 10 }],
       }),
     })
 

@@ -5,7 +5,14 @@ import { env } from '@/lib/env'
 
 // gpt-4o-mini-search-preview a été retiré d'OpenRouter (404 « No endpoints found ») ;
 // le plugin `web` fournit la recherche + annotations url_citation sur le modèle éco courant.
-export const CHATGPT_MODEL = 'openai/gpt-5-mini'
+//
+// Modèle éco et NON raisonneur, délibérément. Mesuré sur le prompt réel de
+// production, 3 exécutions chacun : gpt-5-mini 29 776 tokens d'entrée et
+// 0,072 $ l'appel ; gpt-5-nano pire encore (54 098 tokens, 0,167 $) ; alors
+// que gpt-4o-mini tient 2 928 tokens pour 0,0079 $ — à 10 sources dans les
+// trois cas. Les modèles à raisonnement font exploser l'entrée dès qu'on y
+// branche le plugin web, sans rien apporter sur une question de liste.
+export const CHATGPT_MODEL = 'openai/gpt-4o-mini'
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 // Injectable pour les tests
@@ -32,7 +39,7 @@ export class ChatGPTConnector implements IAEngine {
       },
       body: JSON.stringify({
         model: CHATGPT_MODEL,
-        plugins: [{ id: 'web' }],
+        plugins: [{ id: 'web', max_results: 10 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
