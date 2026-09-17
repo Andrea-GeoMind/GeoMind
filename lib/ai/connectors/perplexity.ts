@@ -43,6 +43,8 @@ export class PerplexityConnector implements IAEngine {
       body: JSON.stringify({
         model: PERPLEXITY_MODEL,
         messages: [{ role: 'user', content: prompt }],
+        // Demande le coût facturé : il inclut la recherche web, pas la table locale.
+        usage: { include: true },
       }),
     })
 
@@ -52,7 +54,7 @@ export class PerplexityConnector implements IAEngine {
 
     const raw: unknown = await response.json()
     const { sources, partial_response } = parseSources(raw, 'perplexity')
-    const { input, output } = extractTokenUsage(raw)
+    const { input, output, cost } = extractTokenUsage(raw)
 
     return {
       engine: 'perplexity',
@@ -62,7 +64,7 @@ export class PerplexityConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(PERPLEXITY_MODEL, input, output),
+      cost_usd: cost ?? computeCost(PERPLEXITY_MODEL, input, output),
       raw,
     }
   }

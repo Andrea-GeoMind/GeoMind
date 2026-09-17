@@ -39,6 +39,8 @@ export class ClaudeConnector implements IAEngine {
       body: JSON.stringify({
         model: CLAUDE_MODEL,
         messages: [{ role: 'user', content: prompt }],
+        // Demande le coût facturé : il inclut la recherche web, pas la table locale.
+        usage: { include: true },
         // 10 résultats : couvre au moins autant de sources que la boucle
         // agentique qu'on remplace (8,3 en moyenne), sans son inflation.
         plugins: [{ id: 'web', max_results: 10 }],
@@ -51,7 +53,7 @@ export class ClaudeConnector implements IAEngine {
 
     const raw: unknown = await response.json()
     const { sources, partial_response } = parseSources(raw, 'claude')
-    const { input, output } = extractTokenUsage(raw)
+    const { input, output, cost } = extractTokenUsage(raw)
 
     return {
       engine: 'claude',
@@ -61,7 +63,7 @@ export class ClaudeConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(CLAUDE_MODEL, input, output),
+      cost_usd: cost ?? computeCost(CLAUDE_MODEL, input, output),
       raw,
     }
   }

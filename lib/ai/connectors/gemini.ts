@@ -30,6 +30,8 @@ export class GeminiConnector implements IAEngine {
       body: JSON.stringify({
         model: GEMINI_MODEL,
         messages: [{ role: 'user', content: prompt }],
+        // Demande le coût facturé : il inclut la recherche web, pas la table locale.
+        usage: { include: true },
         // Plugin OpenRouter pour activer le grounding Google Search
         plugins: [{ id: 'web', max_results: 5 }],
       }),
@@ -41,7 +43,7 @@ export class GeminiConnector implements IAEngine {
 
     const raw: unknown = await response.json()
     const { sources, partial_response } = parseSources(raw, 'gemini')
-    const { input, output } = extractTokenUsage(raw)
+    const { input, output, cost } = extractTokenUsage(raw)
 
     return {
       engine: 'gemini',
@@ -51,7 +53,7 @@ export class GeminiConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(GEMINI_MODEL, input, output),
+      cost_usd: cost ?? computeCost(GEMINI_MODEL, input, output),
       raw,
     }
   }

@@ -41,6 +41,8 @@ export class ChatGPTConnector implements IAEngine {
         model: CHATGPT_MODEL,
         plugins: [{ id: 'web', max_results: 10 }],
         messages: [{ role: 'user', content: prompt }],
+        // Demande le coût facturé : il inclut la recherche web, pas la table locale.
+        usage: { include: true },
       }),
     })
 
@@ -50,7 +52,7 @@ export class ChatGPTConnector implements IAEngine {
 
     const raw: unknown = await response.json()
     const { sources, partial_response } = parseSources(raw, 'chatgpt')
-    const { input, output } = extractTokenUsage(raw)
+    const { input, output, cost } = extractTokenUsage(raw)
 
     return {
       engine: 'chatgpt',
@@ -60,7 +62,7 @@ export class ChatGPTConnector implements IAEngine {
       partial_response,
       tokens_input: input,
       tokens_output: output,
-      cost_usd: computeCost(CHATGPT_MODEL, input, output),
+      cost_usd: cost ?? computeCost(CHATGPT_MODEL, input, output),
       raw,
     }
   }

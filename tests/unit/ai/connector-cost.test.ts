@@ -71,3 +71,23 @@ describe('connecteurs — garde-fous de coût', () => {
     }
   })
 })
+
+describe('coût facturé plutôt que calculé', () => {
+  it('chaque connecteur demande le coût à OpenRouter', () => {
+    for (const f of ['claude', 'chatgpt', 'gemini', 'perplexity']) {
+      expect(source(f), `${f} : n'active pas usage.include`).toMatch(
+        /usage:\s*\{\s*include:\s*true\s*\}/
+      )
+    }
+  })
+
+  it('chaque connecteur préfère le coût facturé à la table locale', () => {
+    // La table ne connaît que les tokens ; la facture inclut la recherche web.
+    // Mesuré : la part manquante allait de 53 % à 95 % du coût réel.
+    for (const f of ['claude', 'chatgpt', 'gemini', 'perplexity']) {
+      expect(source(f), `${f} : computeCost utilisé sans repli sur le coût facturé`).toMatch(
+        /cost_usd:\s*cost\s*\?\?\s*computeCost\(/
+      )
+    }
+  })
+})

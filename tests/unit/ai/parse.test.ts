@@ -161,11 +161,26 @@ describe('extractAnswerText', () => {
 describe('extractTokenUsage', () => {
   it('extrait les tokens depuis usage', () => {
     const raw = { usage: { prompt_tokens: 150, completion_tokens: 300 } }
-    expect(extractTokenUsage(raw)).toEqual({ input: 150, output: 300 })
+    expect(extractTokenUsage(raw)).toEqual({ input: 150, output: 300, cost: null })
   })
 
   it('retourne zéros si usage absent', () => {
-    expect(extractTokenUsage({})).toEqual({ input: 0, output: 0 })
+    expect(extractTokenUsage({})).toEqual({ input: 0, output: 0, cost: null })
+  })
+
+  it('remonte le coût facturé quand OpenRouter le renvoie', () => {
+    const raw = { usage: { prompt_tokens: 3568, completion_tokens: 1255, cost: 0.0168 } }
+    expect(extractTokenUsage(raw)).toEqual({ input: 3568, output: 1255, cost: 0.0168 })
+  })
+
+  it('laisse cost à null plutôt que zéro quand il manque — zéro serait pris pour gratuit', () => {
+    const raw = { usage: { prompt_tokens: 10, completion_tokens: 20 } }
+    expect(extractTokenUsage(raw).cost).toBeNull()
+  })
+
+  it('ignore un coût non numérique', () => {
+    const raw = { usage: { prompt_tokens: 10, completion_tokens: 20, cost: 'gratuit' } }
+    expect(extractTokenUsage(raw).cost).toBeNull()
   })
 })
 

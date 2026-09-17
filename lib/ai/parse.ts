@@ -106,15 +106,30 @@ export function extractAnswerText(raw: unknown): string {
 
 // ─── Extracteur de tokens ─────────────────────────────────────────────────────
 
-export function extractTokenUsage(raw: unknown): { input: number; output: number } {
-  if (!raw || typeof raw !== 'object') return { input: 0, output: 0 }
+/**
+ * Tokens consommés et coût réellement facturé par OpenRouter.
+ *
+ * `cost` n'est renseigné que si la requête a demandé `usage: { include: true }`.
+ * Il fait foi : une table de prix locale ne connaît que les tokens, alors que
+ * la facture inclut aussi la recherche web. Mesuré en septembre 2026, cette
+ * part manquante allait de 53 % (Claude) à 95 % (Gemini) du coût réel — de quoi
+ * rendre aveugle le garde-fou de dépense de la règle métier 10.
+ */
+export function extractTokenUsage(raw: unknown): {
+  input: number
+  output: number
+  cost: number | null
+} {
+  const empty = { input: 0, output: 0, cost: null }
+  if (!raw || typeof raw !== 'object') return empty
   const r = raw as Record<string, unknown>
   const usage = r['usage']
-  if (!usage || typeof usage !== 'object') return { input: 0, output: 0 }
+  if (!usage || typeof usage !== 'object') return empty
   const u = usage as Record<string, unknown>
   return {
     input: typeof u['prompt_tokens'] === 'number' ? u['prompt_tokens'] : 0,
     output: typeof u['completion_tokens'] === 'number' ? u['completion_tokens'] : 0,
+    cost: typeof u['cost'] === 'number' ? u['cost'] : null,
   }
 }
 
