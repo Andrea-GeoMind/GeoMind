@@ -61,3 +61,6 @@ tests/screenshots/
 
 # Config locale du serveur de dev pour le navigateur intégré
 .claude/launch.json
+
+# Sortie de la prospection (contient des données personnelles)
+PROSPECTS.csv

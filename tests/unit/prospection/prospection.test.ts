@@ -86,3 +86,92 @@ describe('respect de robots.txt', () => {
     expect(isAllowed('/contact', parseDisallow(''))).toBe(true)
   })
 })
+
+import { toCsv, sortByScore, summarise, averageScore } from '@/scripts/prospection/csv'
+import { topIssues } from '@/scripts/prospection/issues'
+import type { Prospect } from '@/scripts/prospection/types'
+
+const p = (over: Partial<Prospect>): Prospect => ({
+  name: 'X', category: 'menuisier', phone: null, address: null, website: 'https://x.fr',
+  reviewCount: 50, rating: 4.5, sourceId: 'x', email: null,
+  expressScore: null, technicalScore: null, contentScore: null, topIssues: [], ...over,
+})
+
+describe('sortie CSV', () => {
+  it('trie les plus faibles d’abord — ce sont les meilleurs prospects', () => {
+    const rows = sortByScore([
+      p({ name: 'fort', technicalScore: 90, contentScore: 90 }),
+      p({ name: 'faible', technicalScore: 40, contentScore: 30 }),
+      p({ name: 'moyen', technicalScore: 65, contentScore: 65 }),
+    ])
+    expect(rows.map((r) => r.name)).toEqual(['faible', 'moyen', 'fort'])
+  })
+
+  it('renvoie les audits en échec en fin de liste', () => {
+    const rows = sortByScore([
+      p({ name: 'echec', error: 'site injoignable' }),
+      p({ name: 'faible', technicalScore: 40, contentScore: 40 }),
+    ])
+    expect(rows.map((r) => r.name)).toEqual(['faible', 'echec'])
+  })
+
+  it('échappe les champs contenant le séparateur ou des guillemets', () => {
+    const csv = toCsv([p({ name: 'Durand; Fils', topIssues: ['Il dit "non"'] })])
+    expect(csv).toContain('"Durand; Fils"')
+    expect(csv).toContain('"Il dit ""non"""')
+  })
+
+  it('commence par un BOM — sans lui Excel FR casse les accents', () => {
+    expect(toCsv([])).toMatch(/^﻿/)
+  })
+
+  it('compte les paliers sur la moyenne technique+contenu', () => {
+    const s = summarise([
+      p({ technicalScore: 80, contentScore: 80 }),
+      p({ technicalScore: 65, contentScore: 65 }),
+      p({ technicalScore: 55, contentScore: 55 }),
+      p({ technicalScore: 40, contentScore: 40 }),
+      p({ error: 'échec' }),
+    ])
+    expect(s).toMatchObject({ total: 5, audited: 4, failed: 1, under70: 3, under60: 2, under50: 1 })
+  })
+
+  it('ignore un pilier manquant dans la moyenne', () => {
+    expect(averageScore(p({ technicalScore: 60, contentScore: null }))).toBe(60)
+    expect(averageScore(p({}))).toBeNull()
+  })
+})
+
+describe('sélection des 3 problèmes', () => {
+  const issue = (o: Record<string, unknown>) =>
+    ({ ruleKey: 'r', category: 'c', title: 'T', description: '', sampleUrls: [],
+       severity: 'minor', effort: 2, impact: 2, ...o }) as never
+
+  it('classe les majeurs avant les mineurs', () => {
+    const out = topIssues(
+      [issue({ ruleKey: 'title-missing', severity: 'minor' }),
+       issue({ ruleKey: 'robots-txt-block-all', severity: 'major' })],
+      []
+    )
+    expect(out[0]).toBe('Le site interdit l’accès aux robots des IA')
+  })
+
+  it('écarte les opportunités — ce ne sont pas des problèmes', () => {
+    const out = topIssues([issue({ ruleKey: 'llms-txt-missing', severity: 'opportunity' })], [])
+    expect(out).toHaveLength(0)
+  })
+
+  it('ne répète pas deux fois la même règle', () => {
+    const out = topIssues(
+      [issue({ ruleKey: 'h1-missing', severity: 'major' }),
+       issue({ ruleKey: 'h1-missing', severity: 'major' })],
+      []
+    )
+    expect(out).toHaveLength(1)
+  })
+
+  it('retombe sur le titre produit pour une règle non reformulée', () => {
+    const out = topIssues([issue({ ruleKey: 'regle-inconnue', severity: 'major', title: 'Titre produit' })], [])
+    expect(out[0]).toBe('Titre produit')
+  })
+})
