@@ -100,6 +100,64 @@ export interface TechnicalAnalysisResult {
   issueCount: number
 }
 
+
+/**
+ * Évaluation pure des règles techniques — aucune lecture ni écriture en base.
+ *
+ * Le calcul n'a jamais eu besoin de la base : il prend des pages et une URL, et
+ * rend un score et des points faibles. L'extraire permet de l'exécuter sur un
+ * site hors base — la prospection (scripts/prospection) audite des sites qui ne
+ * sont pas des clients et ne doit créer ni site, ni analyse, ni issue.
+ *
+ * `runTechnicalAnalysis` garde ses lectures/écritures autour de cet appel.
+ * Aucun appel LLM : uniquement les règles déterministes.
+ */
+export interface TechnicalRuleEvaluation {
+  score: number
+  /** Détectés, hors opportunités (qui ne pénalisent pas). */
+  issues: TechnicalIssue[]
+  /** Détectés + opportunités, tels que persistés par la production. */
+  allIssues: TechnicalIssue[]
+  pagesAnalysed: number
+}
+
+export async function evaluateTechnicalRules(
+  pages: FirecrawlPage[],
+  siteUrl: string,
+  pageLimit: number
+): Promise<TechnicalRuleEvaluation> {
+  const ruleInput = { pages, siteUrl, crawlTruncated: crawlWasTruncated(pages) }
+
+  const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))
+  const siteIssues = siteResults.filter((r): r is TechnicalIssue => r !== null)
+
+  // Les pages dont le scrape a échoué sont écartées : leurs métadonnées vides
+  // feraient remonter de faux points faibles (cf. lib/analysis/page-health.ts).
+  const selectedPages = selectPagesForAnalysis(analysablePages(pages), pageLimit)
+  const pageIssues: TechnicalIssue[] = []
+  for (const page of selectedPages) {
+    const results = await Promise.all(PAGE_RULES.map((rule) => rule(page, ruleInput)))
+    for (const issue of results) {
+      if (issue) pageIssues.push({ ...issue, pageUrl: page.url })
+    }
+  }
+
+  const issues = [...siteIssues, ...pageIssues]
+  const allIssues = [...issues, ...completeTechnicalOpportunities(issues)]
+
+  const score = computeIssuesScore(
+    allIssues.map((i) => ({
+      ruleKey: i.ruleKey,
+      category: i.category,
+      penalty: penaltyForSeverity(i.severity),
+      pageUrl: i.pageUrl ?? null,
+    })),
+    Math.max(1, selectedPages.length)
+  )
+
+  return { score, issues, allIssues, pagesAnalysed: selectedPages.length }
+}
+
 export async function runTechnicalAnalysis({
   siteId,
   analysisId,
@@ -118,29 +176,13 @@ export async function runTechnicalAnalysis({
     metadata: p.metadata as unknown as FirecrawlPage['metadata'],
   }))
 
-  const ruleInput = { pages, siteUrl: site.url, crawlTruncated: crawlWasTruncated(pages) }
-
-  // 1. Règles site
-  const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))
-  const siteIssues = siteResults.filter((r): r is TechnicalIssue => r !== null)
-
-  // 2. Règles page — sur les pages sélectionnées selon le plan (§18.2)
+  // Pages analysées selon le plan (§18.2)
   const pageLimit = await getPageAnalysisLimit(site.userId)
-  // Les pages dont le scrape a échoué sont écartées : leurs métadonnées vides
-  // feraient remonter de faux points faibles (cf. lib/analysis/page-health.ts).
-  const selectedPages = selectPagesForAnalysis(analysablePages(pages), pageLimit)
-  const pageIssues: TechnicalIssue[] = []
-  for (const page of selectedPages) {
-    const results = await Promise.all(PAGE_RULES.map((rule) => rule(page, ruleInput)))
-    for (const issue of results) {
-      if (issue) pageIssues.push({ ...issue, pageUrl: page.url })
-    }
-  }
-
-  // 3. Opportunités — garantie ≥ 3 « pour aller plus loin » (§18.6)
-  const detected = [...siteIssues, ...pageIssues]
-  const opportunities = completeTechnicalOpportunities(detected)
-  const allIssues = [...detected, ...opportunities]
+  const { score, issues: detected, allIssues } = await evaluateTechnicalRules(
+    pages,
+    site.url,
+    pageLimit
+  )
 
   if (allIssues.length > 0) {
     await insertTechnicalIssues(
@@ -159,17 +201,6 @@ export async function runTechnicalAnalysis({
       }))
     )
   }
-
-  // 4. Score V2 : sévérités + proportionnalité page + plafonds par catégorie (§18.3)
-  const score = computeIssuesScore(
-    allIssues.map((i) => ({
-      ruleKey: i.ruleKey,
-      category: i.category,
-      penalty: penaltyForSeverity(i.severity),
-      pageUrl: i.pageUrl ?? null,
-    })),
-    Math.max(1, selectedPages.length)
-  )
 
   // issueCount n'inclut pas les opportunités (elles ne pénalisent pas)
   return { score, issueCount: detected.length }

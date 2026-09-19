@@ -87,6 +87,55 @@ export interface ContentAnalysisResult {
   issueCount: number
 }
 
+
+/**
+ * Évaluation pure des règles de contenu — aucune lecture ni écriture en base.
+ * Pendant de `evaluateTechnicalRules` ; même motif, même raison : permettre
+ * d'auditer un site hors base (prospection) sans créer de site ni d'analyse.
+ */
+export interface ContentRuleEvaluation {
+  score: number
+  issues: ContentIssue[]
+  allIssues: ContentIssue[]
+  pagesAnalysed: number
+}
+
+export async function evaluateContentRules(
+  pages: FirecrawlPage[],
+  siteUrl: string,
+  pageLimit: number,
+  keywords: string[] = []
+): Promise<ContentRuleEvaluation> {
+  const ruleInput = { pages, siteUrl, keywords, crawlTruncated: crawlWasTruncated(pages) }
+
+  const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))
+  const siteIssues = siteResults.filter((r): r is ContentIssue => r !== null)
+
+  const selectedPages = selectPagesForAnalysis(analysablePages(pages), pageLimit)
+  const pageIssues: ContentIssue[] = []
+  for (const page of selectedPages) {
+    const results = await Promise.all(PAGE_RULES.map((rule) => rule(page, ruleInput)))
+    for (const issue of results) {
+      if (issue) pageIssues.push({ ...issue, pageUrl: page.url })
+    }
+  }
+
+  const issues = [...siteIssues, ...pageIssues]
+  const allIssues = [...issues, ...completeContentOpportunities(issues)]
+
+  const score = computeIssuesScore(
+    allIssues.map((i) => ({
+      ruleKey: i.ruleKey,
+      category: i.category,
+      penalty: penaltyForSeverity(i.severity),
+      pageUrl: i.pageUrl ?? null,
+    })),
+    Math.max(1, selectedPages.length)
+  )
+
+  return { score, issues, allIssues, pagesAnalysed: selectedPages.length }
+}
+
 export async function runContentAnalysis({
   siteId,
   analysisId,
@@ -106,34 +155,13 @@ export async function runContentAnalysis({
     metadata: p.metadata as unknown as FirecrawlPage['metadata'],
   }))
 
-  const ruleInput = {
-    pages,
-    siteUrl: site.url,
-    keywords: metadata?.keywords ?? [],
-    crawlTruncated: crawlWasTruncated(pages),
-  }
-
-  // 1. Règles site
-  const siteResults = await Promise.all(SITE_RULES.map((rule) => rule(ruleInput)))
-  const siteIssues = siteResults.filter((r): r is ContentIssue => r !== null)
-
-  // 2. Règles page — sur les pages sélectionnées selon le plan (§18.2)
   const pageLimit = await getPageAnalysisLimit(site.userId)
-  // Les pages dont le scrape a échoué sont écartées : leurs métadonnées vides
-  // feraient remonter de faux points faibles (cf. lib/analysis/page-health.ts).
-  const selectedPages = selectPagesForAnalysis(analysablePages(pages), pageLimit)
-  const pageIssues: ContentIssue[] = []
-  for (const page of selectedPages) {
-    const results = await Promise.all(PAGE_RULES.map((rule) => rule(page, ruleInput)))
-    for (const issue of results) {
-      if (issue) pageIssues.push({ ...issue, pageUrl: page.url })
-    }
-  }
-
-  // 3. Opportunités — garantie ≥ 3 « pour aller plus loin » (§18.6)
-  const detected = [...siteIssues, ...pageIssues]
-  const opportunities = completeContentOpportunities(detected)
-  const allIssues = [...detected, ...opportunities]
+  const { score, issues: detected, allIssues } = await evaluateContentRules(
+    pages,
+    site.url,
+    pageLimit,
+    metadata?.keywords ?? []
+  )
 
   if (allIssues.length > 0) {
     await insertContentIssues(
@@ -153,16 +181,6 @@ export async function runContentAnalysis({
     )
   }
 
-  // 4. Score V2 (§18.3)
-  const score = computeIssuesScore(
-    allIssues.map((i) => ({
-      ruleKey: i.ruleKey,
-      category: i.category,
-      penalty: penaltyForSeverity(i.severity),
-      pageUrl: i.pageUrl ?? null,
-    })),
-    Math.max(1, selectedPages.length)
-  )
-
+  // issueCount n'inclut pas les opportunités (elles ne pénalisent pas)
   return { score, issueCount: detected.length }
 }
