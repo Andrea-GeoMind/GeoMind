@@ -12,6 +12,7 @@ import type { Prospect } from './types'
 const HEADERS = [
   'nom', 'categorie', 'telephone', 'email', 'site', 'avis', 'note',
   'score_express', 'score_technique', 'score_contenu', 'score_moyen',
+  'score_negligence', 'signaux_negligence',
   'sous_domaine_plateforme', 'probleme_1', 'probleme_2', 'probleme_3', 'erreur',
 ]
 
@@ -35,6 +36,7 @@ export function toCsv(prospects: Prospect[]): string {
       [
         p.name, p.category, p.phone, p.email, p.website, p.reviewCount, p.rating,
         p.expressScore, p.technicalScore, p.contentScore, averageScore(p),
+        p.neglectScore ?? '', (p.neglectReasons ?? []).join(' · '),
         p.platform ?? '',
         p.topIssues[0], p.topIssues[1], p.topIssues[2], p.error ?? '',
       ]
@@ -45,9 +47,19 @@ export function toCsv(prospects: Prospect[]): string {
   return '﻿' + lines.join('\n') + '\n'
 }
 
-/** Les plus faibles d'abord : ce sont les prospects les plus convaincants. */
+/**
+ * Tri par score de négligence décroissant — les meilleurs prospects d'abord.
+ *
+ * Le tri par technique+contenu croissant ne séparait rien : médiane 80, deux
+ * sites sous 70 sur 24. À score de négligence égal, le site le plus faible
+ * passe devant.
+ */
 export function sortByScore(prospects: Prospect[]): Prospect[] {
   return [...prospects].sort((a, b) => {
+    const na = a.neglectScore ?? -1
+    const nb = b.neglectScore ?? -1
+    if (na !== nb) return nb - na
+
     const sa = averageScore(a)
     const sb = averageScore(b)
     // Les audits en échec finissent en bas, ils ne sont pas exploitables.

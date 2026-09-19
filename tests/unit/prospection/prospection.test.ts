@@ -283,3 +283,158 @@ describe('sous-domaines de plateforme', () => {
     ]).onPlatform).toBe(1)
   })
 })
+
+import { isCitySubdomain } from '@/scripts/prospection/platform'
+
+describe('sous-domaines de ville', () => {
+  it('écarte une antenne locale de réseau national', () => {
+    expect(isCitySubdomain('https://lyon.plomberie-roche.fr/')).toBe(true)
+    expect(isCitySubdomain('https://marseille.reseau-x.com/')).toBe(true)
+  })
+
+  it('ne confond pas un nom de domaine contenant la ville', () => {
+    // Celui-ci appartient bien à l'entreprise.
+    expect(isCitySubdomain('https://lyon-plombier.fr/')).toBe(false)
+    expect(isCitySubdomain('https://www.demenagement-lyon-69.com/')).toBe(false)
+  })
+
+  it('laisse passer un simple www', () => {
+    expect(isCitySubdomain('https://www.alpaje.com/')).toBe(false)
+  })
+
+  it('encaisse une URL absente ou illisible', () => {
+    expect(isCitySubdomain(null)).toBe(false)
+    expect(isCitySubdomain('nawak')).toBe(false)
+  })
+})
+
+describe('priorité aux sites sans domaine propre', () => {
+  const b = (category: string, name: string, platform: string | null = null): Business => ({
+    name, category, phone: null, address: null, website: `https://${name}.fr`,
+    reviewCount: 50, rating: 4, sourceId: name, platform,
+  })
+
+  it('les place en tête, avant le tourniquet', () => {
+    const out = roundRobin([
+      b('paysagiste', 'p1'), b('paysagiste', 'p2'),
+      b('photographe', 'jozmavie', 'myportfolio.com'),
+      b('paysagiste', 'clairvert', 'webflow.io'),
+    ], 4)
+    expect(out.slice(0, 2).map((x) => x.name).sort()).toEqual(['clairvert', 'jozmavie'])
+  })
+
+  it('n’en retient pas plus que la limite', () => {
+    const out = roundRobin([
+      b('a', 'x1', 'webflow.io'), b('a', 'x2', 'webflow.io'), b('a', 'x3', 'webflow.io'),
+    ], 2)
+    expect(out).toHaveLength(2)
+  })
+
+  it('complète au tourniquet quand les prioritaires ne suffisent pas', () => {
+    const out = roundRobin([
+      b('a', 'plat', 'webflow.io'),
+      b('a', 'a1'), b('a', 'a2'), b('b', 'b1'), b('b', 'b2'),
+    ], 3)
+    expect(out[0].name).toBe('plat')
+    expect(out.slice(1).map((x) => x.category).sort()).toEqual(['a', 'b'])
+  })
+})
+
+import { decodeEntities } from '@/scripts/prospection/email'
+
+/** Défauts relevés sur la première série réelle du 19/09. */
+describe('emails — défauts de la première série', () => {
+  it('ne récolte plus le balisage échappé qui suit un mailto', () => {
+    // Cas « Volets Services », tel quel.
+    const html = '<a href="mailto:volets26services@gmail.com\\&quot;&gt;volets26services@gmail.com&lt;/a&gt;&lt;/span&gt;">écrire</a>'
+    const found = extractEmails(html, 'volets-services.fr')
+    expect(found).toContain('volets26services@gmail.com')
+    expect(found.every((e) => !e.includes('&') && !e.includes('<'))).toBe(true)
+  })
+
+  it('écarte les adresses d’exemple laissées dans un gabarit', () => {
+    // Cas « Marie Landoin ».
+    expect(extractEmails('écrivez à utilisateur@domaine.com', 'marielandoin.fr')).toHaveLength(0)
+    expect(extractEmails('nom@exemple.fr votremail@site.fr', 'x.fr')).toHaveLength(0)
+  })
+
+  it('rejette une chaîne trop longue ou mal formée', () => {
+    const long = 'a'.repeat(70) + '@x.fr'
+    expect(extractEmails(`contact ${long}`, 'x.fr')).toHaveLength(0)
+  })
+
+  it('décode les entités sans casser une adresse valide', () => {
+    expect(decodeEntities('a&amp;b')).toBe('a&b')
+    expect(extractEmails('&lt;marie.dupont@cabinet.fr&gt;', 'cabinet.fr')).toEqual(['marie.dupont@cabinet.fr'])
+  })
+
+  it('retire la ponctuation collée en fin d’adresse', () => {
+    expect(extractEmails('Écrivez à contact@site.fr.', 'site.fr')).toEqual(['contact@site.fr'])
+  })
+})
+
+import { neglectScore, neglectSignals } from '@/scripts/prospection/neglect'
+
+describe('score de négligence', () => {
+  it('place le noindex en tête des signaux — l’argument le plus frappant', () => {
+    const s = neglectScore(p({ technicalScore: 90, contentScore: 90 }), ['noindex-key-page'])
+    expect(s).toBe(30)
+  })
+
+  it('cumule les signaux indépendants', () => {
+    const s = neglectScore(
+      p({ platform: 'webflow.io', technicalScore: 90, contentScore: 90 }),
+      ['noindex-detected', 'schema-org-organization']
+    )
+    expect(s).toBe(75) // 30 noindex + 25 domaine + 20 données structurées
+  })
+
+  it('repère la traction commerciale sans site à la hauteur', () => {
+    const signals = neglectSignals(p({ reviewCount: 150, contentScore: 55, technicalScore: 80 }), [])
+    expect(signals.map((x) => x.key)).toContain('traction-sans-site')
+  })
+
+  it('ne retient pas la traction quand le site tient la route', () => {
+    const signals = neglectSignals(p({ reviewCount: 150, contentScore: 85, technicalScore: 85 }), [])
+    expect(signals.map((x) => x.key)).not.toContain('traction-sans-site')
+  })
+
+  it('reste borné à 100', () => {
+    const s = neglectScore(
+      p({ platform: 'wixsite.com', reviewCount: 200, contentScore: 40, technicalScore: 40 }),
+      ['noindex', 'schema-org', 'sitemap-missing', 'faq-missing']
+    )
+    expect(s).toBe(100)
+  })
+
+  it('rend zéro et aucun signal pour un site suivi', () => {
+    const prospect = p({ reviewCount: 30, technicalScore: 95, contentScore: 95 })
+    expect(neglectScore(prospect, [])).toBe(0)
+    expect(neglectSignals(prospect, [])).toHaveLength(0)
+  })
+
+  it('trie le CSV par négligence décroissante', () => {
+    const rows = sortByScore([
+      p({ name: 'suivi', neglectScore: 0, technicalScore: 90, contentScore: 90 }),
+      p({ name: 'neglige', neglectScore: 75, technicalScore: 60, contentScore: 60 }),
+      p({ name: 'moyen', neglectScore: 25, technicalScore: 70, contentScore: 70 }),
+    ])
+    expect(rows.map((r) => r.name)).toEqual(['neglige', 'moyen', 'suivi'])
+  })
+
+  it('départage deux négligences égales par le score le plus faible', () => {
+    const rows = sortByScore([
+      p({ name: 'moins-faible', neglectScore: 30, technicalScore: 80, contentScore: 80 }),
+      p({ name: 'plus-faible', neglectScore: 30, technicalScore: 50, contentScore: 50 }),
+    ])
+    expect(rows[0].name).toBe('plus-faible')
+  })
+
+  it('expose les signaux en clair pour l’argumentaire', () => {
+    const signals = neglectSignals(p({ platform: 'webflow.io' }), ['noindex'])
+    expect(signals.map((x) => x.label)).toEqual([
+      'Page clé invisible des moteurs',
+      'Pas de domaine propre (webflow.io)',
+    ])
+  })
+})

@@ -7,8 +7,9 @@ import { crawlProspect, PROSPECT_MAX_PAGES } from './crawl'
 import { isFranchise, detectSharedDomains, isEmergencyService } from './franchises'
 import { findContactEmail } from './email'
 import { topIssues } from './issues'
+import { neglectScore, neglectSignals } from './neglect'
 import { writeCsv, sortByScore, summarise, averageScore } from './csv'
-import { platformSubdomain } from './platform'
+import { platformSubdomain, isCitySubdomain } from './platform'
 import { roundRobin } from './select'
 import { DEFAULT_FILTERS, type Business, type Prospect } from './types'
 
@@ -86,6 +87,8 @@ function keep(b: Business, sharedDomains: Set<string>): boolean {
   // Cherché dans le nom ET l'URL : « Atelier 2 Créqui » sur
   // depannage-electricien-lyon.fr était passé au travers.
   if (isEmergencyService(b.name, b.website)) return false
+  // Antenne locale d'un réseau national : `lyon.plomberie-roche.fr`.
+  if (isCitySubdomain(b.website)) return false
   if (b.website) {
     try {
       const host = new URL(b.website).hostname.replace(/^www\./, '').toLowerCase()
@@ -136,9 +139,15 @@ async function auditOne(
     base.technicalScore = tech.score
     base.contentScore = content.score
     base.topIssues = topIssues(tech.issues, content.issues)
+    base.issueKeys = [...tech.issues, ...content.issues].map((i) => i.ruleKey)
   } catch (err) {
     base.error = `analyse : ${err instanceof Error ? err.message : String(err)}`
   }
+
+  // Score de négligence : calculé une fois les règles connues.
+  const signals = neglectSignals(base, base.issueKeys ?? [])
+  base.neglectScore = neglectScore(base, base.issueKeys ?? [])
+  base.neglectReasons = signals.map((x) => x.label)
 
   // 3. Email — après l'audit : inutile de solliciter un site déjà en échec.
   try {
@@ -199,10 +208,8 @@ async function main(): Promise<void> {
   // dans l'ordre de recherche : au premier essai, 8 paysagistes et 7
   // électriciens occupaient la moitié des 30, et menuisiers, carreleurs et
   // déménageurs n'apparaissaient pas du tout.
-  const selected = roundRobin(eligible, opts.limit).map((b) => ({
-    ...b,
-    platform: platformSubdomain(b.website),
-  }))
+  const flagged = eligible.map((b) => ({ ...b, platform: platformSubdomain(b.website) }))
+  const selected = roundRobin(flagged, opts.limit)
 
   // ── Garde-fou de dépense ───────────────────────────────────────────────────
   const estimated = selected.length * opts.maxPages

@@ -35,6 +35,12 @@ export interface Prospect extends Business {
   topIssues: string[]
   /** Renseigné quand l'audit n'a pas pu aboutir. */
   error?: string
+  /** Clés des règles violées — alimentent le score de négligence. */
+  issueKeys?: string[]
+  /** 0–100, le plus élevé désignant le meilleur prospect. */
+  neglectScore?: number
+  /** Signaux retenus, en clair, pour l'argumentaire d'appel. */
+  neglectReasons?: string[]
 }
 
 /** Une source d'entreprises — enfichable, pour ne pas dépendre d'un fournisseur. */

@@ -26,11 +26,42 @@ const CANDIDATE_PATHS = [
 
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
 
+/**
+ * Décode les entités HTML avant extraction.
+ *
+ * `Volets Services` avait produit
+ * `volets26services@gmail.com\\&quot;&gt;volets26services@gmail.com&lt;/a&gt;…` :
+ * le mailto était encodé dans un attribut, et la regex avalait le balisage
+ * échappé qui suivait.
+ */
+export function decodeEntities(html: string): string {
+  return html
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#0?39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+}
+
+/** Une adresse ne contient ni balise, ni antislash, ni espace. */
+function isWellFormed(email: string): boolean {
+  if (email.length > 60) return false
+  if (/[<>"'\\\s]/.test(email)) return false
+  // Un TLD plausible : 2 à 12 lettres.
+  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,12}$/i.test(email)
+}
+
 /** Adresses à ignorer : fournisseurs, exemples, images mal découpées. */
 const NOISE = [
   'example.', 'sentry.io', 'wixpress.com', 'godaddy', 'squarespace',
   '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.css', '.js',
   'protected', 'javascript', 'u003e', 'domain.com', 'votredomaine',
+  // Textes d'exemple laissés dans les gabarits — « Marie Landoin » avait
+  // livré utilisateur@domaine.com, qui n'existe pas.
+  'domaine.com', 'utilisateur@', 'exemple.', 'nom@', 'email@', 'adresse@',
+  'monemail', 'votremail', 'votre-email', 'yourname', 'youremail',
   'wordpress.com', 'sentry-next', 'noreply@', 'no-reply@',
 ]
 
@@ -53,17 +84,23 @@ export function isNominative(email: string): boolean {
 }
 
 /** Emails trouvés dans une page, mailto: d'abord (les plus fiables). */
-export function extractEmails(html: string, siteHost?: string): string[] {
+export function extractEmails(rawHtml: string, siteHost?: string): string[] {
+  const html = decodeEntities(rawHtml)
   const found = new Set<string>()
 
-  for (const m of html.matchAll(/mailto:([^"'?>\s]+)/gi)) {
-    const e = decodeURIComponent(m[1]).trim().toLowerCase()
-    if (e.includes('@') && !isNoise(e)) found.add(e)
+  const add = (candidate: string) => {
+    const e = candidate.trim().toLowerCase().replace(/[.,;:)]+$/, '')
+    if (e.includes('@') && isWellFormed(e) && !isNoise(e)) found.add(e)
   }
-  for (const m of html.matchAll(EMAIL_RE)) {
-    const e = m[0].trim().toLowerCase()
-    if (!isNoise(e)) found.add(e)
+
+  for (const m of html.matchAll(/mailto:([^"'?><\s]+)/gi)) {
+    try {
+      add(decodeURIComponent(m[1]))
+    } catch {
+      add(m[1])
+    }
   }
+  for (const m of html.matchAll(EMAIL_RE)) add(m[0])
 
   const list = [...found]
   if (!siteHost) return list
