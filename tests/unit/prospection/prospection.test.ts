@@ -175,3 +175,111 @@ describe('sélection des 3 problèmes', () => {
     expect(out[0]).toBe('Titre produit')
   })
 })
+
+import { isEmergencyService } from '@/scripts/prospection/franchises'
+import { roundRobin } from '@/scripts/prospection/select'
+import type { Business } from '@/scripts/prospection/types'
+
+/**
+ * Défauts relevés sur le dry-run réel du 19/09 — chacun est verrouillé ici.
+ */
+describe('défauts du premier dry-run', () => {
+  it('écarte un dépanneur dont seul le DOMAINE trahit l’activité', () => {
+    // « Atelier 2 Créqui - A 2 C » : nom neutre, site de dépannage.
+    expect(isEmergencyService('Atelier 2 Créqui - A 2 C', 'http://www.depannage-electricien-lyon.fr/')).toBe(true)
+    expect(isEmergencyService('D24 - Électricien Lyonnais', 'https://www.depannage24.com/electricien-lyon')).toBe(true)
+    expect(isEmergencyService('Allo Elec - Electricien Lyon', 'https://alloelec.net/')).toBe(true)
+  })
+
+  it('laisse passer un électricien classique', () => {
+    expect(isEmergencyService('Gerard Antoine Electricité', 'https://gerard-antoine-electricite.fr/')).toBe(false)
+    expect(isEmergencyService('Élec’Ception', 'https://elecception.fr/electricien-lyon/')).toBe(false)
+  })
+
+  it('écarte une page d’agence dans un site national', () => {
+    // Nom neutre, chemin révélateur : ces deux-là étaient passés.
+    expect(isFranchise('Morel - Cuisines et Aménagements',
+      'https://www.cuisines-morel.com/point_de_vente/cuisines-morel-lyon-presquile/')).toBe(true)
+    expect(isFranchise("Notes de Styles - Agence Architecte d'intérieur Lyon",
+      'https://www.notesdestyles.com/nos-agences/architecte-dinterieur-rhone/agence-notes-de-styles-lyon/')).toBe(true)
+  })
+
+  it('ne confond pas une page de service avec une page d’agence', () => {
+    expect(isFranchise('Studio Bluen', 'https://studiobluen.fr/work')).toBe(false)
+    expect(isFranchise('Aura Paysages', 'https://www.aurapaysages.fr/')).toBe(false)
+  })
+})
+
+describe('répartition entre catégories', () => {
+  const b = (category: string, name: string): Business => ({
+    name, category, phone: null, address: null, website: `https://${name}.fr`,
+    reviewCount: 50, rating: 4, sourceId: name,
+  })
+
+  it('sert les catégories à tour de rôle au lieu d’épuiser la première', () => {
+    const input = [
+      ...Array.from({ length: 8 }, (_, i) => b('paysagiste', `p${i}`)),
+      ...Array.from({ length: 7 }, (_, i) => b('électricien', `e${i}`)),
+      ...Array.from({ length: 2 }, (_, i) => b('menuisier', `m${i}`)),
+    ]
+    const out = roundRobin(input, 6)
+    const cats = out.map((x) => x.category)
+    expect(cats.filter((c) => c === 'paysagiste')).toHaveLength(2)
+    expect(cats.filter((c) => c === 'électricien')).toHaveLength(2)
+    expect(cats.filter((c) => c === 'menuisier')).toHaveLength(2)
+  })
+
+  it('complète avec les catégories restantes quand l’une s’épuise', () => {
+    const input = [b('a', 'a1'), b('b', 'b1'), b('b', 'b2'), b('b', 'b3')]
+    const out = roundRobin(input, 4)
+    expect(out).toHaveLength(4)
+    expect(out.filter((x) => x.category === 'b')).toHaveLength(3)
+  })
+
+  it('ne boucle pas indéfiniment quand la demande dépasse le stock', () => {
+    expect(roundRobin([b('a', 'a1')], 30)).toHaveLength(1)
+  })
+})
+
+import { platformSubdomain } from '@/scripts/prospection/platform'
+
+describe('sous-domaines de plateforme', () => {
+  it('repère les cas relevés au dry-run', () => {
+    expect(platformSubdomain('https://clair-et-vert-72ae40.webflow.io/')).toBe('webflow.io')
+    expect(platformSubdomain('https://jozmavie.myportfolio.com/')).toBe('myportfolio.com')
+  })
+
+  it('couvre les plateformes courantes en France', () => {
+    expect(platformSubdomain('https://moncabinet.wixsite.com/accueil')).toBe('wixsite.com')
+    expect(platformSubdomain('https://jardin.business.site')).toBe('business.site')
+    expect(platformSubdomain('http://menuisier.pagesperso-orange.fr')).toBe('pagesperso-orange.fr')
+  })
+
+  it('ne signale pas un domaine propre, même bâti sur une plateforme', () => {
+    expect(platformSubdomain('https://www.aurapaysages.fr/')).toBeNull()
+    expect(platformSubdomain('https://studiobluen.fr/work')).toBeNull()
+  })
+
+  it('ne signale pas le site de la plateforme elle-même', () => {
+    expect(platformSubdomain('https://webflow.io')).toBeNull()
+    expect(platformSubdomain('https://www.wixsite.com')).toBeNull()
+  })
+
+  it('encaisse une URL illisible ou absente', () => {
+    expect(platformSubdomain(null)).toBeNull()
+    expect(platformSubdomain('pas une url')).toBeNull()
+  })
+
+  it('le CSV porte une colonne dédiée', () => {
+    const csv = toCsv([p({ platform: 'webflow.io', technicalScore: 40, contentScore: 40 })])
+    expect(csv.split('\n')[0]).toContain('sous_domaine_plateforme')
+    expect(csv).toContain('webflow.io')
+  })
+
+  it('le résumé les compte à part', () => {
+    expect(summarise([
+      p({ platform: 'webflow.io', technicalScore: 40, contentScore: 40 }),
+      p({ platform: null, technicalScore: 80, contentScore: 80 }),
+    ]).onPlatform).toBe(1)
+  })
+})

@@ -4,10 +4,12 @@ import { evaluateTechnicalRules } from '@/lib/analysis/technical'
 import { evaluateContentRules } from '@/lib/analysis/content'
 import { PlacesSource } from './sources/places'
 import { crawlProspect, PROSPECT_MAX_PAGES } from './crawl'
-import { isFranchise, detectSharedDomains } from './franchises'
+import { isFranchise, detectSharedDomains, isEmergencyService } from './franchises'
 import { findContactEmail } from './email'
 import { topIssues } from './issues'
 import { writeCsv, sortByScore, summarise, averageScore } from './csv'
+import { platformSubdomain } from './platform'
+import { roundRobin } from './select'
 import { DEFAULT_FILTERS, type Business, type Prospect } from './types'
 
 /**
@@ -37,9 +39,6 @@ const CATEGORIES = [
 ]
 
 const AREA = 'Lyon'
-
-/** Écarte les dépanneurs 24h : métier et discours différents. */
-const EXCLUDED_NAME_PATTERNS = [/24\s*h/i, /d[ée]pannage\s*(urgent|24)/i, /urgence/i]
 
 interface Options {
   limit: number
@@ -84,7 +83,9 @@ function keep(b: Business, sharedDomains: Set<string>): boolean {
   if (b.reviewCount < DEFAULT_FILTERS.minReviews) return false
   if (b.reviewCount > DEFAULT_FILTERS.maxReviews) return false
   if (isFranchise(b.name, b.website)) return false
-  if (EXCLUDED_NAME_PATTERNS.some((re) => re.test(b.name))) return false
+  // Cherché dans le nom ET l'URL : « Atelier 2 Créqui » sur
+  // depannage-electricien-lyon.fr était passé au travers.
+  if (isEmergencyService(b.name, b.website)) return false
   if (b.website) {
     try {
       const host = new URL(b.website).hostname.replace(/^www\./, '').toLowerCase()
@@ -95,6 +96,7 @@ function keep(b: Business, sharedDomains: Set<string>): boolean {
   }
   return true
 }
+
 
 async function auditOne(
   app: FirecrawlApp,
@@ -193,7 +195,14 @@ async function main(): Promise<void> {
   )
   console.log(`requêtes Places facturées : ${source.requestCount}`)
 
-  const selected = eligible.slice(0, opts.limit)
+  // Sélection en tourniquet entre catégories. `slice` prenait les résultats
+  // dans l'ordre de recherche : au premier essai, 8 paysagistes et 7
+  // électriciens occupaient la moitié des 30, et menuisiers, carreleurs et
+  // déménageurs n'apparaissaient pas du tout.
+  const selected = roundRobin(eligible, opts.limit).map((b) => ({
+    ...b,
+    platform: platformSubdomain(b.website),
+  }))
 
   // ── Garde-fou de dépense ───────────────────────────────────────────────────
   const estimated = selected.length * opts.maxPages
@@ -205,7 +214,12 @@ async function main(): Promise<void> {
 
   if (opts.dryRun) {
     console.log('\n--dry-run : arrêt avant toute dépense.')
-    for (const b of selected) console.log(`  ${b.name} — ${b.reviewCount} avis — ${b.website}`)
+    for (const b of selected) {
+      const flag = b.platform ? `  [${b.platform}]` : ''
+      console.log(`  ${b.category.padEnd(22)} ${b.name} — ${b.reviewCount} avis — ${b.website}${flag}`)
+    }
+    const onPlatform = selected.filter((b) => b.platform).length
+    if (onPlatform > 0) console.log(`\n  dont ${onPlatform} sans domaine propre (prioritaires)`)
     return
   }
   if (estimated > opts.creditBudget) {
@@ -240,6 +254,7 @@ async function main(): Promise<void> {
   console.log(`\n${opts.out} écrit.`)
   console.log(`  audités avec succès : ${s.audited}/${s.total}${s.failed ? ` (${s.failed} en échec)` : ''}`)
   console.log(`  avec email          : ${s.withEmail}`)
+  console.log(`  sans domaine propre : ${s.onPlatform}`)
   console.log(`  sous 70             : ${s.under70}`)
   console.log(`  sous 60             : ${s.under60}`)
   console.log(`  sous 50             : ${s.under50}`)

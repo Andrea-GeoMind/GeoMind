@@ -12,7 +12,7 @@ import type { Prospect } from './types'
 const HEADERS = [
   'nom', 'categorie', 'telephone', 'email', 'site', 'avis', 'note',
   'score_express', 'score_technique', 'score_contenu', 'score_moyen',
-  'probleme_1', 'probleme_2', 'probleme_3', 'erreur',
+  'sous_domaine_plateforme', 'probleme_1', 'probleme_2', 'probleme_3', 'erreur',
 ]
 
 function cell(v: unknown): string {
@@ -35,6 +35,7 @@ export function toCsv(prospects: Prospect[]): string {
       [
         p.name, p.category, p.phone, p.email, p.website, p.reviewCount, p.rating,
         p.expressScore, p.technicalScore, p.contentScore, averageScore(p),
+        p.platform ?? '',
         p.topIssues[0], p.topIssues[1], p.topIssues[2], p.error ?? '',
       ]
         .map(cell)
@@ -64,6 +65,8 @@ export interface Summary {
   under60: number
   under50: number
   withEmail: number
+  /** Sites sans domaine propre — prospects prioritaires. */
+  onPlatform: number
 }
 
 export function summarise(prospects: Prospect[]): Summary {
@@ -78,6 +81,7 @@ export function summarise(prospects: Prospect[]): Summary {
     under60: scores.filter((s) => s < 60).length,
     under50: scores.filter((s) => s < 50).length,
     withEmail: prospects.filter((p) => p.email).length,
+    onPlatform: prospects.filter((p) => p.platform).length,
   }
 }
 

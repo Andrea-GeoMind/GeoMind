@@ -47,14 +47,59 @@ function normalise(s: string): string {
     .trim()
 }
 
+
+/**
+ * Motifs d'URL trahissant une tête de réseau.
+ *
+ * Le dry-run du 19/09 a laissé passer « Morel - Cuisines » sur
+ * `cuisines-morel.com/point_de_vente/...` et « Notes de Styles » sur
+ * `notesdestyles.com/nos-agences/...` : le nom ne dit rien, mais le chemin
+ * révèle une page d'agence dans un site national. Le gérant local n'a pas la
+ * main dessus — c'est exactement ce qu'on veut écarter.
+ */
+const NETWORK_URL_PATTERNS = [
+  /\/point[_-]?de[_-]?vente/i,
+  /\/nos[_-]agences/i,
+  /\/agences?\//i,
+  /\/magasins?\//i,
+  /\/showrooms?\//i,
+  /\/franchise/i,
+  /\/nos[_-]magasins/i,
+]
+
+/**
+ * Motifs de dépannage d'urgence, cherchés dans le nom ET dans l'URL.
+ *
+ * Le dry-run a retenu « Atelier 2 Créqui » sur
+ * `depannage-electricien-lyon.fr` et « D24 » sur `depannage24.com` : le nom
+ * est neutre, le domaine ne l'est pas. Métier et discours différents.
+ */
+const EMERGENCY_PATTERNS = [
+  /d[ée]pannage/i,
+  /24\s*h/i,
+  /24\/7/i,
+  /urgence/i,
+  /\ballo\b/i,
+  /\bsos\b/i,
+]
+
+/** Vrai si le nom ou l'URL trahit une activité de dépannage d'urgence. */
+export function isEmergencyService(name: string, website: string | null): boolean {
+  const haystack = `${name} ${website ?? ''}`
+  return EMERGENCY_PATTERNS.some((re) => re.test(haystack))
+}
+
 export function isFranchise(name: string, website: string | null): boolean {
   const n = normalise(name)
   if (FRANCHISE_NAMES.some((f) => n.includes(normalise(f)))) return true
 
   if (website) {
     try {
-      const host = new URL(website).hostname.replace(/^www\./, '').toLowerCase()
+      const u = new URL(website)
+      const host = u.hostname.replace(/^www\./, '').toLowerCase()
       if (FRANCHISE_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`))) return true
+      // Page d'agence dans un site national : le nom ne dit rien, le chemin si.
+      if (NETWORK_URL_PATTERNS.some((re) => re.test(u.pathname))) return true
     } catch {
       // URL illisible : on ne conclut pas à une franchise pour autant.
     }

@@ -18,6 +18,11 @@ export interface Business {
   rating: number | null
   /** Identifiant de la source, pour déduplication. */
   sourceId: string
+  /**
+   * Plateforme d'hébergement quand le site vit sur un sous-domaine partagé
+   * (webflow.io, wixsite.com…). Prospect prioritaire : pas de domaine propre.
+   */
+  platform?: string | null
 }
 
 /** Entreprise auditée, prête pour le CSV. */

@@ -30,6 +30,9 @@ const FIELD_MASK = [
 export const LYON = { latitude: 45.764043, longitude: 4.835659 }
 export const DEFAULT_RADIUS_M = 15_000
 
+/** Maximum documenté par Google pour Text Search : 3 pages, 60 résultats. */
+export const MAX_PAGES_PER_CATEGORY = 3
+
 interface PlacesResponse {
   places?: {
     id?: string
@@ -58,10 +61,16 @@ export class PlacesSource implements BusinessSource {
 
   async search(category: string, area: string, limit: number): Promise<Business[]> {
     const out: Business[] = []
+    const seenIds = new Set<string>()
     let pageToken: string | undefined
+    let pages = 0
 
-    // 20 résultats par page, 3 pages maximum côté Google.
-    while (out.length < limit) {
+    // Plafond dur de pages. Sans lui, la boucle suit les `nextPageToken` tant
+    // que Google en renvoie : lors du premier essai, 32 pages par catégorie au
+    // lieu d'une, 294 requêtes facturées au lieu de 27. Google documente 3
+    // pages maximum (60 résultats) pour Text Search ; au-delà les jetons ne
+    // rapportent plus rien de neuf.
+    while (out.length < limit && pages < MAX_PAGES_PER_CATEGORY) {
       const body: Record<string, unknown> = {
         textQuery: `${category} ${area}`,
         languageCode: 'fr',
@@ -84,6 +93,7 @@ export class PlacesSource implements BusinessSource {
         signal: AbortSignal.timeout(20_000),
       })
       this.requestCount++
+      pages++
 
       const json = (await res.json()) as PlacesResponse
       if (!res.ok || json.error) {
@@ -92,7 +102,12 @@ export class PlacesSource implements BusinessSource {
         )
       }
 
+      let added = 0
       for (const p of json.places ?? []) {
+        const id = p.id ?? `${category}:${p.displayName?.text ?? ''}`
+        if (seenIds.has(id)) continue
+        seenIds.add(id)
+        added++
         out.push({
           name: p.displayName?.text ?? '(sans nom)',
           category,
@@ -101,9 +116,13 @@ export class PlacesSource implements BusinessSource {
           website: p.websiteUri ?? null,
           reviewCount: p.userRatingCount ?? null,
           rating: p.rating ?? null,
-          sourceId: p.id ?? `${category}:${p.displayName?.text ?? ''}`,
+          sourceId: id,
         })
       }
+
+      // Une page qui n'apporte rien de neuf signale que le filon est épuisé :
+      // continuer ne ferait que facturer des requêtes.
+      if (added === 0) break
 
       pageToken = json.nextPageToken
       if (!pageToken) break
