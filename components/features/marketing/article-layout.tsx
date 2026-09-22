@@ -7,7 +7,8 @@ import { ARTICLES, getRelatedArticles, type ArticleMeta } from '@/lib/marketing/
 /**
  * Gabarit d'article de blog (PLAN item 22) : en-tête avec date visible
  * (signal de fraîcheur), JSON-LD BlogPosting + BreadcrumbList (+ HowTo sur les
- * guides pas-à-pas), sommaire ancré, typographie de lecture, CTA final.
+ * guides pas-à-pas, FAQPage et ItemList sur les comparatifs), sommaire ancré,
+ * typographie de lecture, CTA final.
  *
  * L'auteur est déclaré en `Person` et non en `Organization` : les IA accordent
  * plus de crédit à un contenu signé par quelqu'un d'identifiable (E-E-A-T).
@@ -93,6 +94,45 @@ export function ArticleLayout({
     })
   }
 
+  // FAQ : le format que les moteurs de réponse reprennent le plus directement,
+  // parce que chaque réponse tient seule, hors du contexte de l'article.
+  if (meta.faq && meta.faq.length > 0) {
+    graph.push({
+      '@type': 'FAQPage',
+      '@id': `${url}#faq`,
+      inLanguage: 'fr-FR',
+      isPartOf: { '@id': 'https://geomind.fr/#website' },
+      mainEntity: meta.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: { '@type': 'Answer', text: f.answer },
+      })),
+    })
+  }
+
+  // ItemList — les entités que l'article passe en revue. Déclarée `Unordered`
+  // et sans `position` : un comparatif honnête ne classe pas, et un rang dans
+  // le balisage affirmerait le contraire de ce que dit le texte.
+  if (meta.itemList && meta.itemList.length > 0) {
+    graph.push({
+      '@type': 'ItemList',
+      '@id': `${url}#liste`,
+      name: meta.title,
+      itemListOrder: 'https://schema.org/ItemListUnordered',
+      numberOfItems: meta.itemList.length,
+      itemListElement: meta.itemList.map((item) => ({
+        '@type': 'ListItem',
+        item: {
+          '@type': 'SoftwareApplication',
+          name: item.name,
+          url: item.url,
+          description: item.description,
+          applicationCategory: 'BusinessApplication',
+        },
+      })),
+    })
+  }
+
   const jsonLd = { '@context': 'https://schema.org', '@graph': graph }
 
   // Le sommaire se glisse APRÈS le paragraphe d'introduction. Placé juste sous
@@ -159,6 +199,25 @@ export function ArticleLayout({
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {/* La FAQ est rendue en texte courant, pas en accordéon : un contenu
+          replié derrière un clic est souvent ignoré par les extracteurs qui
+          alimentent les IA — et c'est justement ce bloc qu'on veut voir cité. */}
+      {meta.faq && meta.faq.length > 0 ? (
+        <section className="mt-12">
+          <h2 id="faq" className="scroll-mt-24 text-xl font-bold text-foreground">
+            Questions fréquentes
+          </h2>
+          <dl className="mt-6 space-y-6">
+            {meta.faq.map((f) => (
+              <div key={f.question}>
+                <dt className="text-base font-semibold text-foreground">{f.question}</dt>
+                <dd className="mt-2 text-base leading-relaxed text-foreground/85">{f.answer}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       ) : null}
 

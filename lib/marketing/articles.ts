@@ -19,6 +19,12 @@ export interface HowToStep {
   text: string
 }
 
+export interface FaqEntry {
+  question: string
+  /** Réponse autoportante : elle doit tenir seule, hors contexte de l'article. */
+  answer: string
+}
+
 export interface ArticleMeta {
   slug: string
   title: string
@@ -41,9 +47,170 @@ export interface ArticleMeta {
   howTo?: { name: string; steps: HowToStep[] }
   /** Bloc « À retenir » de fin d'article — le passage le plus repris en citation. */
   takeaways?: string[]
+  /**
+   * Questions fréquentes rendues en fin d'article et exposées en Schema.org
+   * FAQPage. Format que les moteurs de réponse reprennent tel quel : une
+   * question, une réponse autoportante.
+   */
+  faq?: FaqEntry[]
+  /**
+   * Liste d'entités présentées par l'article (outils comparés, par exemple),
+   * exposée en Schema.org ItemList. Volontairement non ordonnée : un
+   * comparatif honnête ne classe pas, et un `position` mentirait sur le fond.
+   */
+  itemList?: { name: string; url: string; description: string }[]
 }
 
 export const ARTICLES: ArticleMeta[] = [
+  {
+    slug: 'meilleurs-outils-geo-2026',
+    toc: [
+      { id: 'comment-nous-avons-compare', label: 'Comment nous avons comparé' },
+      { id: 'le-tableau-comparatif', label: 'Le tableau comparatif' },
+      { id: 'otterly', label: 'Otterly.ai à 29 $/mois : est-ce suffisant ?' },
+      { id: 'writesonic', label: 'Writesonic mesure-t-il ou rédige-t-il ?' },
+      { id: 'peec-ai', label: 'Peec AI vaut-il ses 85 €/mois ?' },
+      { id: 'semrush', label: 'Le Semrush AI Visibility Toolkit suffit-il à une PME ?' },
+      { id: 'ia-rank', label: 'ia-rank.com à 99 €/mois : que contient l’offre ?' },
+      { id: 'ahrefs', label: 'Ahrefs Brand Radar : que paie-t-on vraiment ?' },
+      { id: 'scrunch', label: 'Scrunch AI est-il réservé aux grosses marques ?' },
+      { id: 'profound', label: 'Combien coûte réellement Profound ?' },
+      { id: 'yext', label: 'Yext Scout peut-il s’acheter seul ?' },
+      { id: 'geomind', label: 'GeoMind : pour qui, et pour qui pas ?' },
+      { id: 'quel-outil-pour-quel-profil', label: 'Quel outil pour quel profil' },
+      { id: 'comment-choisir', label: 'Comment choisir sans se tromper' },
+      { id: 'deleguer', label: 'Et si vous préférez déléguer ?' },
+      { id: 'sources', label: 'Sources' },
+    ],
+    howTo: {
+      name: 'Choisir un outil de visibilité IA en 4 étapes',
+      steps: [
+        {
+          id: 'etape-moteurs',
+          name: '1. Listez les moteurs qui comptent pour vos clients',
+          text: 'Déterminez lesquels de ChatGPT, Perplexity, Gemini, Google AI Overviews, Copilot et Claude vos clients utilisent réellement, puis éliminez les outils qui ne les couvrent pas à leur tarif d’entrée.',
+        },
+        {
+          id: 'etape-prompts',
+          name: '2. Comptez les questions que vous voulez suivre',
+          text: 'Comptez les questions auxquelles vous voulez apparaître : une dizaine suffit à une activité locale, plusieurs centaines sont nécessaires à une marque nationale multi-gammes.',
+        },
+        {
+          id: 'etape-langue',
+          name: '3. Vérifiez la langue des prompts générés',
+          text: 'Demandez un exemple de prompts générés pour votre activité : s’ils sont en anglais alors que vos clients cherchent en français, la mesure ne reflète pas votre marché.',
+        },
+        {
+          id: 'etape-essai',
+          name: '4. Testez avant de vous engager à l’année',
+          text: 'Utilisez l’essai gratuit ou le plan gratuit avant de signer, et méfiez-vous des tarifs mensuels affichés qui supposent en réalité un engagement de douze mois.',
+        },
+      ],
+    },
+    takeaways: [
+      'Aucun outil ne couvre tous les moteurs à son tarif d’entrée. La première question n’est pas « lequel est le meilleur » mais « quels moteurs comptent pour mes clients ».',
+      'Les prix d’entrée publics vont de 29 $ à 300 $ par mois. Profound, Yext et les agences ne publient plus de prix du tout.',
+      'Claude est le moteur le plus souvent absent ou vendu en option — jusqu’à 439 $/mois chez Otterly, absent des offres en libre-service de Peec.',
+      'Un outil dont l’interface et les prompts générés sont en anglais ne mesure pas votre visibilité sur le marché français.',
+      'GeoMind est l’offre la moins chère qui couvre Claude nativement en français, mais elle suit 10 questions par analyse là où Peec ou Otterly en suivent 50 à 400.',
+    ],
+    faq: [
+      {
+        question: 'Existe-t-il un outil GEO gratuit ?',
+        answer:
+          'Aucun des outils internationaux n’a de plan gratuit permanent : Otterly, Peec AI et Scrunch proposent des essais de 7 à 14 jours, Profound un essai de 7 jours limité à 50 questions par jour. GeoMind a un plan gratuit sans limite de durée, qui couvre un site et 1 000 crédits de bienvenue non renouvelés, soit environ deux analyses complètes. Chez Ahrefs, le suivi de prompts personnalisés est inclus dans tout plan payant à partir de 129 $/mois.',
+      },
+      {
+        question:
+          'Quel est l’outil le moins cher pour suivre ChatGPT, Claude, Gemini et Perplexity ensemble ?',
+        answer:
+          'Au relevé de septembre 2026, GeoMind couvre ces quatre moteurs dès son plan gratuit puis à 19 €/mois, et Scrunch AI les couvre à partir de 300 $/mois. Otterly.ai facture Claude en option de 29 à 439 $/mois selon le plan, Peec AI ne le propose pas dans ses offres en libre-service, et Ahrefs le réserve à ses contrats entreprise.',
+      },
+      {
+        question: 'Pourquoi les prix vont-ils de 29 $ à plus de 2 000 $ par mois ?',
+        answer:
+          'Le coût d’un outil de visibilité IA est le produit de trois nombres : le nombre de questions suivies, le nombre de moteurs interrogés et la fréquence des relevés. Chaque réponse d’IA est un appel facturé au fournisseur. Suivre 50 questions sur 3 moteurs une fois par jour représente environ 4 500 réponses par mois ; 400 questions sur 6 moteurs en représentent plus de 70 000, d’où l’écart de prix.',
+      },
+      {
+        question: 'Les outils américains fonctionnent-ils pour le marché français ?',
+        answer:
+          'Ils suivent des questions dans n’importe quelle langue, mais leur interface est en anglais — sauf Semrush et Ahrefs, disponibles en français — et les questions qu’ils génèrent automatiquement le sont aussi par défaut. Or une IA interrogée en anglais cite des sources anglophones : la mesure ne correspond alors pas à ce que voient vos clients français. Vérifiez toujours la langue des questions générées, pas seulement celle de l’interface.',
+      },
+      {
+        question: 'Peut-on se fier à un score de visibilité IA ?',
+        answer:
+          'Pas en valeur absolue. Les modèles ne répondent jamais deux fois exactement pareil, et chaque outil calcule son score avec ses propres questions et sa propre pondération : deux outils donneront deux notes différentes pour le même site. Ce qui est exploitable, c’est la tendance mesurée dans un même outil sur 30 à 90 jours, et la liste des sources citées à votre place.',
+      },
+    ],
+    itemList: [
+      {
+        name: 'Otterly.ai',
+        url: 'https://otterly.ai',
+        description:
+          'Suivi quotidien de la visibilité IA à partir de 29 $/mois, 15 questions, quatre moteurs, Claude et Gemini en options payantes. Interface en anglais.',
+      },
+      {
+        name: 'Peec AI',
+        url: 'https://peec.ai',
+        description:
+          'Plateforme d’analyse de la visibilité IA à partir de 85 €/mois, 50 questions, trois moteurs au choix parmi six. Interface en anglais.',
+      },
+      {
+        name: 'Profound',
+        url: 'https://www.tryprofound.com',
+        description:
+          'Plateforme de visibilité IA orientée grands comptes, jusqu’à neuf moteurs, sans prix public depuis 2026 : accès par démonstration commerciale.',
+      },
+      {
+        name: 'Scrunch AI',
+        url: 'https://scrunch.com',
+        description:
+          'Suivi de visibilité IA sur sept moteurs dont Claude et Perplexity, à partir de 300 $/mois au mois ou 250 $/mois avec engagement annuel.',
+      },
+      {
+        name: 'Ahrefs Brand Radar',
+        url: 'https://ahrefs.com/brand-radar',
+        description:
+          'Module de visibilité IA d’Ahrefs sur six moteurs, à partir de 50 $/mois inclus dans un plan Ahrefs payant, ou 199 $/mois en abonnement autonome. Interface disponible en français.',
+      },
+      {
+        name: 'Semrush AI Visibility Toolkit',
+        url: 'https://www.semrush.com/pricing/ai/',
+        description:
+          'Module de visibilité IA de Semrush à 94,94 €/mois par domaine avec engagement annuel, 25 questions suivies, quatre moteurs. Interface disponible en français.',
+      },
+      {
+        name: 'Writesonic',
+        url: 'https://writesonic.com',
+        description:
+          'Plateforme qui associe rédaction de contenu et suivi de visibilité IA, à partir de 79 $/mois avec engagement annuel, trois moteurs hors contrat entreprise.',
+      },
+      {
+        name: 'Yext Scout',
+        url: 'https://www.yext.com/platform/scout',
+        description:
+          'Module de visibilité IA de la plateforme Yext, mesuré par point de vente sur cinq moteurs, vendu sur devis aux réseaux multi-établissements.',
+      },
+      {
+        name: 'ia-rank.com',
+        url: 'https://ia-rank.com',
+        description:
+          'Offre française d’optimisation de la visibilité IA à 99 €/mois sans engagement, quatre moteurs annoncés, livrée sous forme de rapports mensuels.',
+      },
+      {
+        name: 'GeoMind',
+        url: 'https://geomind.fr',
+        description:
+          'Outil français d’audit de visibilité IA sur ChatGPT, Claude, Gemini et Perplexity, gratuit pour un site puis de 19 à 149 €/mois. Interface et recommandations en français.',
+      },
+    ],
+    related: ['choisir-outil-visibilite-ia', 'suivre-citations-ia', 'quest-ce-que-le-geo'],
+    title: 'Les meilleurs outils GEO en 2026 : comparatif',
+    description:
+      'Otterly, Peec AI, Profound, Scrunch, Ahrefs, Semrush, Writesonic, Yext, ia-rank, GeoMind : prix relevés en septembre 2026, moteurs couverts, langue et limites de chacun.',
+    datePublished: '2026-09-22',
+    readingMinutes: 14,
+  },
   {
     slug: 'choisir-outil-visibilite-ia',
     toc: [
