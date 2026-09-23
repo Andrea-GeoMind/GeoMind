@@ -5,7 +5,7 @@ import { upsertFirecrawlPages, type FirecrawlPageInsert } from '@/lib/db/queries
 import { buildPageMetadata } from '@/lib/crawl/pages'
 import { withRetry } from '@/lib/crawl/retry'
 import { firecrawlDocumentSchema } from '@/lib/crawl/schemas'
-import { measureResponseTimes } from '@/lib/crawl/response-time'
+import { probePages } from '@/lib/crawl/page-probe'
 import { isCrawlTruncated, CRAWL_TRUNCATED_KEY } from '@/lib/analysis/crawl-coverage'
 
 export { withRetry } from '@/lib/crawl/retry'
@@ -141,7 +141,7 @@ export async function scrapeForDiscovery({
     maxPages,
     discoveryFailed,
   })
-  await measureResponseTimes(pages)
+  await probePages(pages)
   await upsertFirecrawlPages(pages)
   return { siteId, pagesCount: pages.length }
 }
@@ -190,7 +190,7 @@ export async function crawlSite({
   }
 
   markCrawlTruncation(pages, { pagesFound: pages.length, maxPages })
-  await measureResponseTimes(pages)
+  await probePages(pages)
   await upsertFirecrawlPages(pages)
 
   return { siteId, pagesCount: pages.length }

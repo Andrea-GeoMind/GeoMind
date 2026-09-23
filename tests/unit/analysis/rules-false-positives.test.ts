@@ -8,7 +8,14 @@ const input = { pages: [], siteUrl: 'https://x.fr' }
 const filler = (n: number) => Array.from({ length: n }, (_, i) => `mot${i}`).join(' ')
 
 describe('checkNoindexOnKeyPages', () => {
-  const page = (url: string) => ({ url, markdown: '# T', statusCode: 200, metadata: { robots: 'noindex, nofollow' } })
+  // `robotsHtml` = ce qu'on a extrait du HTML brut nous-mêmes. Le champ
+  // `robots` de Firecrawl est volontairement ignoré depuis le 23/09.
+  const page = (url: string) => ({
+    url,
+    markdown: '# T',
+    statusCode: 200,
+    metadata: { robots: 'noindex, nofollow', robotsHtml: ['noindex, nofollow'] },
+  })
 
   it("ne reproche pas son noindex à une page de connexion — c'est la bonne pratique", async () => {
     for (const url of ['https://x.fr/login', 'https://x.fr/signup', 'https://x.fr/connexion/', 'https://x.fr/mon-compte']) {

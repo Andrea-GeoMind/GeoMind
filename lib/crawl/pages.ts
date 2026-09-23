@@ -3,6 +3,7 @@
 
 import { extractJsonLd } from '@/lib/crawl/json-ld'
 import { extractHeadings } from '@/lib/crawl/headings'
+import { extractMetaRobots } from '@/lib/crawl/robots-directives'
 import type { FirecrawlDocument } from '@/lib/crawl/schemas'
 
 export type FirecrawlPageInsert = {
@@ -38,6 +39,10 @@ export function buildPageMetadata(doc: FirecrawlDocument): Record<string, unknow
   const metadata: Record<string, unknown> = {
     ...(doc.metadata ?? {}),
     schemaOrgs: extractJsonLd(doc.rawHtml),
+    // Les directives d'indexation lues à la source. Le champ `robots` de
+    // Firecrawl est conservé tel quel au-dessus, mais il s'est révélé faux sur
+    // deux sites réels : la règle noindex exige désormais ce recoupement.
+    robotsHtml: extractMetaRobots(doc.rawHtml),
   }
   // Les titres viennent du HTML : le markdown de Firecrawl perd ceux placés dans
   // un en-tête ou une bannière, d'où de faux « H1 manquant ».

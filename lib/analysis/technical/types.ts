@@ -14,6 +14,15 @@ export interface FirecrawlPageMetadata {
   h2?: string[]
   schemaOrgs?: Array<Record<string, unknown>>
   loadTime?: number
+  /**
+   * Directives `meta robots` extraites par nous du HTML brut. `undefined` =
+   * page crawlée avant ce relevé ; `[]` = relevé fait, aucune directive.
+   * Le champ `robots` que renvoie Firecrawl n'est plus consulté : il s'est
+   * révélé faux sur deux sites réels (voir `lib/crawl/robots-directives.ts`).
+   */
+  robotsHtml?: string[]
+  /** En-tête `X-Robots-Tag`. `null` = sondée sans en-tête ; `undefined` = non sondée. */
+  xRobotsTag?: string | null
   [key: string]: unknown
 }
 
