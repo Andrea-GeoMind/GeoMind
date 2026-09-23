@@ -21,7 +21,7 @@ import { DEFAULT_FILTERS, type Business, type Prospect } from './types'
  * Prospection — chaîne complète, sans aucun appel LLM.
  *
  * Source Google Places, puis pour chaque entreprise retenue : audit express
- * (11 vérifications HTTP), crawl Firecrawl borné, moteur des 57 règles
+ * (12 vérifications HTTP), crawl Firecrawl borné, moteur des 57 règles
  * technique + contenu, extraction d'email. Les piliers Autorité et Réputation
  * sont volontairement exclus : ce sont les seuls à consommer des crédits
  * OpenRouter.

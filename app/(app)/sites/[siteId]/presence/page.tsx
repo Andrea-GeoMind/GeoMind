@@ -11,7 +11,7 @@ import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis } from '@/lib/db/queries/analyses'
 import { getPublishersByAnalysisId } from '@/lib/db/queries/publishers'
 import { getOffSitePresenceByAnalysisId } from '@/lib/db/queries/off-site-presence'
-import { OFF_SITE_PLATFORMS } from '@/lib/analysis/offsite-platforms'
+import { OFF_SITE_PLATFORMS, coverageCounts } from '@/lib/analysis/offsite-platforms'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PresenceList, type PresenceItem } from '@/components/features/presence/PresenceList'
 import { PublishersList } from '@/components/features/publishers/PublishersList'
@@ -94,7 +94,11 @@ export default async function PresencePage({ params }: Props) {
     }
   })
 
-  const presentCount = items.filter((i) => i.status === 'present').length
+  const {
+    present: presentCount,
+    unknown: unknownCount,
+    measured: measuredCount,
+  } = coverageCounts(items.map((i) => i.status))
   const totalKey = OFF_SITE_PLATFORMS.length
 
   return (
@@ -141,11 +145,18 @@ export default async function PresencePage({ params }: Props) {
                 Couverture des plateformes clés
               </p>
               <p className="mt-1 text-2xl font-extrabold tracking-tight text-foreground">
-                {detectionRan ? `${presentCount} / ${totalKey}` : `— / ${totalKey}`}
+                {detectionRan ? `${presentCount} / ${measuredCount}` : `— / ${totalKey}`}
                 <span className="ml-2 text-sm font-medium text-muted-foreground">
                   plateformes couvertes
                 </span>
               </p>
+              {detectionRan && unknownCount > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {unknownCount} plateforme{unknownCount > 1 ? 's' : ''} non vérifiée
+                  {unknownCount > 1 ? 's' : ''} — nous n&apos;avons pas pu conclure, elles ne
+                  comptent ni pour ni contre.
+                </p>
+              )}
             </div>
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
               <Globe className="h-7 w-7 text-primary" />

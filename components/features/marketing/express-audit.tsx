@@ -235,6 +235,15 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
               </strong>{' '}
               — la note complète est la moyenne des trois.
             </p>
+            {/*
+              Le score est pondéré, pas une fraction du nombre de vérifications :
+              6 sur 12 peut donner 70/100. Sans cette phrase, les deux chiffres
+              se contredisent à l'œil, juste sous la jauge.
+            */}
+            <p className="mt-1 text-xs text-muted-foreground">
+              Les vérifications ne pèsent pas toutes pareil : un robots.txt qui bloque les robots
+              des IA coûte à lui seul plus que toutes les autres réunies.
+            </p>
 
             {failed.length > 0 && (
               <div className="mt-4 space-y-2.5">

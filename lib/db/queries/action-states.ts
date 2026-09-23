@@ -10,7 +10,12 @@ import { db } from '@/lib/db/client'
 import { actionStates } from '@/lib/db/schema'
 
 export type ActionStatus = 'todo' | 'done' | 'verified'
-export type ActionSource = 'technical' | 'content' | 'authority'
+/**
+ * `local` : les points de la checklist de présence locale. Ils ne viennent pas
+ * du moteur de règles — ils ne sont ni détectés ni vérifiables automatiquement
+ * — mais ils se cochent et se retiennent comme les autres.
+ */
+export type ActionSource = 'technical' | 'content' | 'authority' | 'local'
 
 export async function getActionStatesBySiteId(siteId: string) {
   return db.select().from(actionStates).where(eq(actionStates.siteId, siteId))

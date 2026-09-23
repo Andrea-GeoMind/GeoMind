@@ -94,6 +94,11 @@ export function IssueCard({ issue, onClick }: IssueCardProps) {
     >
       <div className="min-w-0 flex-1 space-y-1">
         <p className="truncate text-sm font-semibold text-foreground">{issue.title}</p>
+        {/* Sans l'URL, deux cartes au titre identique sont indiscernables —
+            c'est ce que donnaient deux pages en « H1 dupliqué ». */}
+        {issue.pageUrl && (
+          <p className="truncate text-xs text-muted-foreground">{issue.pageUrl}</p>
+        )}
         <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{issue.description}</p>
         {explainJargon(issue.title) && (
           <p className="text-[11px] leading-relaxed text-indigo-600/90">

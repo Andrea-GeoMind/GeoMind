@@ -216,3 +216,24 @@ export const OFF_SITE_CATEGORY_LABELS: Record<OffSitePlatformCategory, string> =
   communaute: 'Communautés',
   encyclopedie: 'Bases publiques',
 }
+
+/**
+ * Compteur de couverture affiché en haut de l'onglet Présence.
+ *
+ * Les plateformes « à vérifier » (`unknown`) ne sont pas absentes : on ne les a
+ * pas mesurées. Les compter au dénominateur affichait « 0 / 12 » à un cabinet
+ * qui a bel et bien une fiche Google — la première chose qu'il sait, et de quoi
+ * cesser de nous croire sur le reste.
+ */
+export function coverageCounts(statuses: OffSitePresenceStatus[]): {
+  present: number
+  unknown: number
+  /** Dénominateur : uniquement les plateformes réellement évaluées. */
+  measured: number
+} {
+  const present = statuses.filter((s) => s === 'present').length
+  const unknown = statuses.filter((s) => s === 'unknown').length
+  return { present, unknown, measured: statuses.length - unknown }
+}
+
+export type OffSitePresenceStatus = 'present' | 'absent' | 'unknown'

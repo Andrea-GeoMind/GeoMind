@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { MapPin, Info, CheckCircle2, MessageCircleQuestion } from 'lucide-react'
+import { MapPin, Info, MessageCircleQuestion } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getSiteMetadataBySiteId } from '@/lib/db/queries/site-metadata'
 import { detectCity, buildLocalPrompts, buildLocalChecklist } from '@/lib/analysis/local'
+import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
+import { LocalChecklist } from '@/components/features/local/local-checklist'
+import Link from 'next/link'
+import type { Route } from 'next'
 
 export const metadata: Metadata = {
   title: 'Local',
@@ -36,6 +40,12 @@ export default async function LocalPage({ params }: Props) {
   const prompts = buildLocalPrompts(ctx)
   const checklist = buildLocalChecklist(ctx)
 
+  // Les coches vivent dans `action_states`, comme celles du plan d'action.
+  const states = await getActionStatesBySiteId(siteId)
+  const doneKeys = states
+    .filter((s) => s.source === 'local' && s.status !== 'todo')
+    .map((s) => s.ruleKey)
+
   return (
     <div className="space-y-6 p-6 sm:p-8">
       {/* Header */}
@@ -57,14 +67,25 @@ export default async function LocalPage({ params }: Props) {
           {city ? (
             <>
               Zone détectée : <strong className="text-foreground">{city}</strong>. Si ce n’est pas
-              la bonne, précisez votre ville dans la description (onglet Découverte) pour des
-              questions plus justes.
+              la bonne,{' '}
+              <Link
+                href={`/sites/${siteId}/discovery` as Route}
+                className="underline hover:text-foreground"
+              >
+                précisez votre ville dans la description
+              </Link>{' '}
+              pour des questions plus justes.
             </>
           ) : (
             <>
-              Nous n’avons pas détecté votre ville. Ajoutez-la dans la description de votre site
-              (onglet Découverte) — les questions ci-dessous sont des modèles à compléter avec «
-              [votre ville] ».
+              Nous n’avons pas détecté votre ville.{' '}
+              <Link
+                href={`/sites/${siteId}/discovery` as Route}
+                className="underline hover:text-foreground"
+              >
+                Ajoutez-la dans la description de votre site
+              </Link>{' '}
+              — les questions ci-dessous sont des modèles à compléter avec « [votre ville] ».
             </>
           )}
         </p>
@@ -78,7 +99,14 @@ export default async function LocalPage({ params }: Props) {
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Testez-les vous-même dans ChatGPT ou Perplexity : sortez-vous dans les réponses ? Vous
-          pouvez aussi les ajouter à vos questions d’analyse (onglet Découverte).
+          pouvez aussi les{' '}
+          <Link
+            href={`/sites/${siteId}/discovery` as Route}
+            className="underline hover:text-foreground"
+          >
+            ajouter à vos questions d’analyse
+          </Link>
+          .
         </p>
         <ul className="mt-3 space-y-2">
           {prompts.map((p) => (
@@ -95,22 +123,7 @@ export default async function LocalPage({ params }: Props) {
       {/* Checklist présence locale */}
       <section className="rounded-xl border border-border bg-white p-5 shadow-sm">
         <h2 className="text-sm font-bold text-foreground">Votre présence locale, point par point</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Les sources que les IA recoupent pour répondre aux recherches locales. Cochez mentalement
-          ce qui est déjà fait.
-        </p>
-        <div className="mt-4 space-y-4">
-          {checklist.map((item) => (
-            <div key={item.key} className="flex items-start gap-3">
-              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-muted-foreground/40" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">{item.label}</p>
-                <p className="text-xs text-muted-foreground">{item.why}</p>
-                <p className="mt-1 text-xs text-indigo-600/90">→ {item.action}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <LocalChecklist siteId={siteId} items={checklist} doneKeys={doneKeys} />
       </section>
     </div>
   )

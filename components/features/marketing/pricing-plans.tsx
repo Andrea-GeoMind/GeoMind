@@ -166,7 +166,8 @@ export function PricingPlans({
               <p className="mt-1 min-h-10 text-sm text-muted-foreground">{plan.description}</p>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-4xl font-extrabold text-foreground">{price} €</span>
-                <span className="text-sm text-muted-foreground">/mois</span>
+                {/* Cible B2B : les prix sont hors taxes, et ça doit se lire. */}
+                <span className="text-sm text-muted-foreground">HT/mois</span>
               </div>
               {period === 'annual' && price > 0 && (
                 <p className="mt-1 text-xs text-muted-foreground">

@@ -38,8 +38,14 @@ export function IssuesList({ issues, isPro, isBusiness, fixesByRule }: IssuesLis
     .sort((a, b) => (b.impact ?? 0) - (a.impact ?? 0))
     .slice(0, 3)
 
-  const siteIssues = realIssues.filter((i) => !i.pageUrl)
-  const pageIssues = realIssues.filter((i) => i.pageUrl)
+  // Les « corrections rapides » sont une sélection des points ci-dessous, pas
+  // des points en plus. Les laisser aussi dans leur catégorie les affichait
+  // deux fois, texte identique : « H1 dupliqué » apparaissait en double sur
+  // l'onglet Technique, et « Contenu sans signe de fraîcheur » sur Contenu.
+  const quickWinIds = new Set(quickWins.map((i) => i.id))
+  const remaining = realIssues.filter((i) => !quickWinIds.has(i.id))
+  const siteIssues = remaining.filter((i) => !i.pageUrl)
+  const pageIssues = remaining.filter((i) => i.pageUrl)
 
   const grouped = CATEGORY_ORDER.reduce<Record<string, TechnicalIssueRow[]>>((acc, cat) => {
     const items = siteIssues.filter((i) => i.category === cat)

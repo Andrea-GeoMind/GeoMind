@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ne } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, ne } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { RULES_VERSION } from '@/lib/analysis/geo-rules'
 import { analyses } from '@/lib/db/schema'
@@ -146,4 +146,25 @@ export async function countAnalysesThisMonth(userId: string): Promise<number> {
     )
 
   return result?.value ?? 0
+}
+
+/**
+ * Dernière analyse de chacun des sites donnés, en une seule requête.
+ *
+ * Le tableau de bord n'affichait que le nom et l'URL : ni note, ni date, ni
+ * statut. Pour un produit dont la promesse est « sachez où vous en êtes »,
+ * c'était l'écran le moins informatif de l'application. Une requête par site
+ * aurait suffi à l'usage mais multiplie les allers-retours ; `DISTINCT ON` rend
+ * la dernière ligne par site d'un coup.
+ */
+export async function getLatestAnalysisPerSite(siteIds: string[]) {
+  if (siteIds.length === 0) return new Map<string, typeof analyses.$inferSelect>()
+
+  const rows = await db
+    .selectDistinctOn([analyses.siteId])
+    .from(analyses)
+    .where(inArray(analyses.siteId, siteIds))
+    .orderBy(analyses.siteId, desc(analyses.createdAt))
+
+  return new Map(rows.map((r) => [r.siteId, r]))
 }

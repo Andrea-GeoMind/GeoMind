@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Globe, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getSitesByUserId } from '@/lib/db/queries/sites'
+import { getLatestAnalysisPerSite } from '@/lib/db/queries/analyses'
 import { canAddSite, getFrozenSiteIds } from '@/lib/quotas'
 import { PLAN_UPGRADE_URLS } from '@/lib/plans'
 import { SiteCard } from '@/components/features/sites/site-card'
@@ -26,6 +27,8 @@ export default async function DashboardPage() {
     canAddSite(user.id),
     getFrozenSiteIds(user.id),
   ])
+  // Note et date par site : la carte ne disait rien de l'état du site.
+  const latestBySite = await getLatestAnalysisPerSite(siteList.map((s) => s.id))
 
   return (
     <div className="mx-auto max-w-4xl p-6 sm:p-8">
@@ -67,7 +70,12 @@ export default async function DashboardPage() {
         /* Site list */
         <div className="grid gap-3">
           {siteList.map((site) => (
-            <SiteCard key={site.id} site={site} frozen={frozenSiteIds.includes(site.id)} />
+            <SiteCard
+              key={site.id}
+              site={site}
+              frozen={frozenSiteIds.includes(site.id)}
+              latest={latestBySite.get(site.id) ?? null}
+            />
           ))}
         </div>
       )}

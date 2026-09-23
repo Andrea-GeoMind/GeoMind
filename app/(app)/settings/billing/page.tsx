@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getSubscriptionByUserId } from '@/lib/db/queries/subscriptions'
@@ -9,6 +10,13 @@ import {
 import { createPortalSession } from '@/app/actions/stripe'
 import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICES, type PaidPlan } from '@/lib/plans'
 import { WaitlistButton } from '@/components/features/billing/waitlist-button'
+
+// Sans cet export, la page héritait du titre de l'accueil : l'onglet du
+// navigateur affichait « GEOMIND — Êtes-vous cité par ChatGPT ?… » sur les
+// réglages de facturation.
+export const metadata: Metadata = {
+  title: 'Facturation',
+}
 
 interface PageProps {
   searchParams: Promise<{ success?: string; canceled?: string; pack_success?: string }>

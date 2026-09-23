@@ -2,7 +2,7 @@
  * Prospection — types partagés.
  *
  * Chaîne volontairement sans aucun appel LLM : Google Places pour la source,
- * l'audit express (11 vérifications HTTP) et le moteur de 57 règles via
+ * l'audit express (12 vérifications HTTP) et le moteur de 57 règles via
  * Firecrawl. Les piliers Autorité et Réputation, qui interrogent les moteurs
  * IA, sont exclus — ce sont eux qui coûtent des crédits OpenRouter.
  */

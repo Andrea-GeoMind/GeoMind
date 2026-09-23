@@ -191,8 +191,9 @@ export default async function ActionPlanPage({ params }: Props) {
         <section className="rounded-xl border border-border bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-foreground">
+              {/* L'accord suivait `totalHandled` : « 0/31 actions traitée ». */}
               {totalHandled}/{total} action{total > 1 ? 's' : ''} traitée
-              {totalHandled > 1 ? 's' : ''}
+              {total > 1 ? 's' : ''}
             </p>
             {remainingPenalty > 0 && recoverable > 0 && (
               <p className="text-xs text-muted-foreground">

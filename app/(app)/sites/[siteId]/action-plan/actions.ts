@@ -33,4 +33,5 @@ export async function setActionStatusAction(params: {
   }
 
   revalidatePath(`/sites/${params.siteId}/action-plan`)
+  if (params.source === 'local') revalidatePath(`/sites/${params.siteId}/local`)
 }

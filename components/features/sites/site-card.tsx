@@ -16,6 +16,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 import { deleteSiteAction } from '@/app/(app)/sites/actions'
+import { analysisSummary, type LatestAnalysisSummary } from '@/lib/analysis/site-summary'
 
 type Site = {
   id: string
@@ -28,9 +29,10 @@ type Props = {
   site: Site
   /** Site gelé après downgrade (§17.5) : lecture seule, pas de nouvelle analyse */
   frozen?: boolean
+  latest?: LatestAnalysisSummary | null
 }
 
-export function SiteCard({ site, frozen = false }: Props) {
+export function SiteCard({ site, frozen = false, latest = null }: Props) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -84,6 +86,7 @@ export function SiteCard({ site, frozen = false }: Props) {
               {site.url}
               <ExternalLink className="h-3 w-3 shrink-0" />
             </a>
+            <p className="mt-1 text-xs text-muted-foreground">{analysisSummary(latest)}</p>
           </div>
 
           {/* CTA */}

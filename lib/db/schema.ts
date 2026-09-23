@@ -80,6 +80,14 @@ export const creditTransactionReasonEnum = pgEnum('credit_transaction_reason', [
 // ─── profiles ─────────────────────────────────────────────────────────────────
 // Mirror de auth.users — créé automatiquement par trigger SQL.
 
+/**
+ * La table porte encore en base trois colonnes héritées — `subscription_plan`,
+ * `subscription_status` et `is_premium` — que ce schéma ne déclare pas et
+ * qu'aucun code ne lit (vérifié le 23/09/2026). Elles sont restées figées sur
+ * « free / inactive » alors que `subscriptions` dit la vérité : sur un compte
+ * Business, elles annonçaient toutes les trois le plan gratuit. Ne pas s'en
+ * servir ; leur suppression demande une migration destructive à planifier.
+ */
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(), // = auth.users.id, set by SQL trigger
   email: text('email').notNull(),
@@ -535,7 +543,11 @@ export const actionStates = pgTable(
     ruleKey: text('rule_key').notNull(),
     /** '' pour les issues site-scope, sinon l'URL de la page concernée */
     pageUrl: text('page_url').notNull().default(''),
-    source: text('source', { enum: ['technical', 'content', 'authority'] }).notNull(),
+    // 'local' : points de la checklist de présence locale — cochés à la main,
+    // pas détectés par le moteur de règles. Colonne texte : pas de migration.
+    source: text('source', {
+      enum: ['technical', 'content', 'authority', 'local'],
+    }).notNull(),
     status: actionStatusEnum('status').notNull().default('todo'),
     markedDoneAt: timestamp('marked_done_at', { withTimezone: true }),
     verifiedAt: timestamp('verified_at', { withTimezone: true }),

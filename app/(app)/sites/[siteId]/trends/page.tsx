@@ -10,6 +10,7 @@ import {
 } from '@/lib/db/queries/citation-checks'
 import { TrendLineChart, type TrendSeries } from '@/components/charts/trend-line-chart'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
+import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
 
 export const metadata: Metadata = {
   title: 'Suivi',
@@ -35,11 +36,15 @@ export default async function TrendsPage({ params }: Props) {
   const site = await getSiteById(siteId)
   if (!site || site.userId !== user.id) notFound()
 
-  const [allAnalyses, citationTrend, rolling] = await Promise.all([
+  const [allAnalyses, citationTrend, rolling, sitePrompts] = await Promise.all([
     getAnalysesBySiteId(siteId),
     getCitationTrend(siteId, 90),
     getRollingCitationRate(siteId, 30, 'forced'),
+    getPromptsBySiteId(siteId),
   ])
+  // Le nombre de questions était écrit en dur (« 10 questions »), quand le site
+  // en avait huit exploitables : le texte annonçait 40 mesures pour 32 réelles.
+  const neutralPromptCount = sitePrompts.filter((p) => p.isNeutral).length
 
   // Analyses réussies, de la plus ancienne à la plus récente
   const successful = allAnalyses
@@ -146,8 +151,9 @@ export default async function TrendsPage({ params }: Props) {
           Citations au fil des jours
         </h2>
         <p className="mb-5 text-xs text-muted-foreground">
-          Chaque point agrège les mesures du jour (10 questions × {ENGINE_COUNT} moteurs lors
-          d&apos;une analyse, échantillon lors de la surveillance automatique). 90 derniers jours.
+          Chaque point agrège les mesures du jour ({neutralPromptCount} question
+          {neutralPromptCount > 1 ? 's' : ''} × {ENGINE_COUNT} moteurs lors d&apos;une analyse,
+          échantillon lors de la surveillance automatique). 90 derniers jours.
         </p>
         {citationTrend.length >= 2 ? (
           <TrendLineChart labels={citationLabels} series={citationSeries} height={150} />
