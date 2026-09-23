@@ -63,6 +63,70 @@ export interface ArticleMeta {
 
 export const ARTICLES: ArticleMeta[] = [
   {
+    slug: 'chatgpt-artisans-lyon',
+    toc: [
+      { id: 'comment-nous-avons-procede', label: 'Comment nous avons procédé' },
+      {
+        id: 'une-douzaine-de-fiches',
+        label: '1. Il lit une douzaine de fiches et n’ouvre aucune page',
+      },
+      { id: 'avis-google', label: '2. Le nombre d’avis Google pèse plus que tout le reste' },
+      { id: 'categorie-google', label: '3. Une mauvaise catégorie peut effacer une entreprise' },
+      { id: 'annuaires', label: '4. Il vous décrit à partir des annuaires, pas de votre site' },
+      {
+        id: 'plateformes',
+        label: '5. Sur les métiers médicaux, les plateformes prennent la place',
+      },
+      { id: 'piege-de-mesure', label: '6. Le piège de mesure qui fait croire qu’on est visible' },
+      { id: 'ce-que-ca-change', label: 'Ce que ça change pour vous' },
+      { id: 'limites', label: 'Ce que cette étude ne dit pas' },
+    ],
+    takeaways: [
+      'ChatGPT a consulté 11 à 14 entreprises locales par métier et en a nommé 5 à 8, sans ouvrir une seule page.',
+      'Le nombre d’avis Google est le signal dominant, sans être déterministe : une entreprise à 223 avis est absente, deux à 25 avis sont recommandées.',
+      'Une catégorie Google inexacte ne fait pas reculer dans le classement : elle retire de la liste.',
+      'Être cité et être décrit sont deux résultats différents — le second se joue sur des fiches d’annuaires, pas sur votre site.',
+      'Tester sa visibilité depuis son propre compte donne une réponse fausse, et rassurante.',
+    ],
+    faq: [
+      {
+        question: 'ChatGPT lit-il vraiment mon site web ?',
+        answer:
+          'Dans nos dix tests, non : aucune page n’a été ouverte. ChatGPT a travaillé sur les extraits renvoyés par sa recherche, essentiellement des fiches d’annuaires. Votre site reste utile, mais il n’intervient pas à cette étape de la sélection.',
+      },
+      {
+        question: 'Combien d’avis Google faut-il pour être recommandé par ChatGPT ?',
+        answer:
+          'Il n’existe pas de seuil garanti. Sur les métiers testés à Lyon en septembre 2026, les entreprises recommandées se situaient le plus souvent au-dessus de 77 avis, et les plombiers recommandés entre 132 et 226. Mais une entreprise à 25 avis a été recommandée et une à 223 avis ignorée : le nombre d’avis pèse lourd sans décider seul.',
+      },
+      {
+        question: 'Pourquoi mon concurrent moins bien noté est-il mieux décrit que moi ?',
+        answer:
+          'Probablement parce qu’il dispose d’une fiche détaillée ailleurs que sur son site — Houzz, Pages Jaunes, un annuaire de métier. Nous avons observé ce cas deux fois : une entreprise à 45 avis décrite en un paragraphe entier pendant qu’une concurrente à 75 avis n’obtenait qu’une ligne.',
+      },
+      {
+        question: 'Ma catégorie Google peut-elle vraiment me faire disparaître des réponses ?',
+        answer:
+          'Oui. Dans notre test sur les architectes d’intérieur, l’entreprise la mieux notée de sa liste — 71 avis — a été écartée parce qu’elle était classée « décoratrice ». ChatGPT a écrit chercher des professionnels « plutôt qu’un simple décorateur ». Un cabinet à 13 avis a été retenu à sa place.',
+      },
+      {
+        question: 'Comment tester ma propre visibilité sans me tromper ?',
+        answer:
+          'En discussion temporaire, sans jamais citer le nom de votre entreprise dans la question, et en répétant le test plusieurs fois. Sur un compte ordinaire, ChatGPT peut reprendre le nom présent dans votre historique et vous renvoyer une réponse contaminée : vous mesurez alors votre propre requête, pas celle de vos clients.',
+      },
+    ],
+    related: [
+      'savoir-si-chatgpt-parle-de-mon-entreprise',
+      'geo-commerce-local',
+      'comment-etre-cite-par-chatgpt',
+    ],
+    title: 'Ce que ChatGPT recommande quand on cherche un artisan à Lyon',
+    description:
+      'Dix métiers testés à Lyon en septembre 2026. Ce que ChatGPT consulte, ce qu’il retient, et pourquoi le nombre d’avis Google et la catégorie pèsent plus que votre site.',
+    datePublished: '2026-09-23',
+    readingMinutes: 9,
+  },
+  {
     slug: 'meilleurs-outils-geo-2026',
     toc: [
       { id: 'comment-nous-avons-compare', label: 'Comment nous avons comparé' },
