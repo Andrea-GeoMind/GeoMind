@@ -30,17 +30,20 @@ describe('PLAN_LIMITS', () => {
 
 describe('siteSchema — validation URL', () => {
   it('accepte une URL https valide', () => {
-    expect(siteSchema.safeParse({ name: 'Mon site', url: 'https://exemple.fr' }).success).toBe(
-      true
-    )
+    expect(siteSchema.safeParse({ name: 'Mon site', url: 'https://exemple.fr' }).success).toBe(true)
   })
 
   it('accepte une URL http valide', () => {
     expect(siteSchema.safeParse({ name: 'Mon site', url: 'http://exemple.fr' }).success).toBe(true)
   })
 
-  it('rejette une URL sans protocole', () => {
-    expect(siteSchema.safeParse({ name: 'Mon site', url: 'exemple.fr' }).success).toBe(false)
+  // Comportement inversé volontairement : le domaine nu était refusé ici alors
+  // que l'audit express l'acceptait. Les deux partagent désormais
+  // normalizePublicUrl, qui préfixe https:// et normalise sur la racine.
+  it('accepte un domaine nu et le normalise en https', () => {
+    const result = siteSchema.safeParse({ name: 'Mon site', url: 'exemple.fr' })
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.url).toBe('https://exemple.fr/')
   })
 
   it('rejette un protocole non http(s)', () => {

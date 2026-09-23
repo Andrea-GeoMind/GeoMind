@@ -5,6 +5,42 @@ describe('siteSchema', () => {
   it('accepts valid name + url', () => {
     expect(siteSchema.safeParse({ name: 'Mon site', url: 'https://exemple.fr' }).success).toBe(true)
   })
+
+  // Le formulaire exigeait https:// alors que l'audit express acceptait le
+  // domaine nu : même produit, deux règles. Les deux passent désormais par
+  // normalizePublicUrl.
+  it('accepte un domaine nu, comme l’audit express', () => {
+    const result = siteSchema.safeParse({ name: 'Mon site', url: 'exemple.fr' })
+    expect(result.success).toBe(true)
+    expect(result.success && result.data.url).toBe('https://exemple.fr/')
+  })
+
+  it('accepte www, un chemin et une requête, et normalise sur la racine https', () => {
+    for (const input of [
+      'www.exemple.fr',
+      'http://exemple.fr',
+      'https://www.exemple.fr/contact?x=1',
+      '  exemple.fr  ',
+    ]) {
+      const result = siteSchema.safeParse({ name: 'Mon site', url: input })
+      expect(result.success, input).toBe(true)
+      expect(result.success && result.data.url, input).toMatch(/^https:\/\/(www\.)?exemple\.fr\/$/)
+    }
+  })
+
+  it('rejette ce que la garde anti-SSRF interdit', () => {
+    for (const input of [
+      'localhost',
+      'http://127.0.0.1',
+      'http://192.168.1.1',
+      'ftp://exemple.fr',
+      'https://exemple.fr:8080',
+      'intranet',
+      '',
+    ]) {
+      expect(siteSchema.safeParse({ name: 'Mon site', url: input }).success, input).toBe(false)
+    }
+  })
 })
 
 describe('onboardingSiteSchema', () => {

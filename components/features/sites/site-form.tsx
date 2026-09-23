@@ -109,7 +109,7 @@ export function SiteForm({ canAdd, planUpgradeUrl }: Props) {
             </div>
             <DialogTitle className="text-lg font-bold">Ajouter un site</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Entrez le nom et l&apos;URL de votre site. L&apos;URL doit commencer par https://.
+              Entrez le nom et l&apos;adresse de votre site. Le domaine seul suffit.
             </DialogDescription>
           </DialogHeader>
 
@@ -124,9 +124,7 @@ export function SiteForm({ canAdd, planUpgradeUrl }: Props) {
                 className="rounded-lg border-border focus-visible:ring-primary"
                 {...register('name')}
               />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
-              )}
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -136,13 +134,11 @@ export function SiteForm({ canAdd, planUpgradeUrl }: Props) {
               <Input
                 id="url"
                 type="url"
-                placeholder="https://exemple.fr"
+                placeholder="monentreprise.fr"
                 className="rounded-lg border-border focus-visible:ring-primary"
                 {...register('url')}
               />
-              {errors.url && (
-                <p className="text-xs text-destructive">{errors.url.message}</p>
-              )}
+              {errors.url && <p className="text-xs text-destructive">{errors.url.message}</p>}
             </div>
 
             {serverError && (

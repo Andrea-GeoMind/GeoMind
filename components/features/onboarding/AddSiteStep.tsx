@@ -77,9 +77,7 @@ export function AddSiteStep() {
             className="rounded-lg border-border focus-visible:ring-primary"
             {...register('name')}
           />
-          {errors.name && (
-            <p className="text-xs text-destructive">{errors.name.message}</p>
-          )}
+          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
 
         <div className="space-y-2">
@@ -89,13 +87,11 @@ export function AddSiteStep() {
           <Input
             id="url"
             type="url"
-            placeholder="https://exemple.fr"
+            placeholder="monentreprise.fr"
             className="rounded-lg border-border focus-visible:ring-primary"
             {...register('url')}
           />
-          {errors.url && (
-            <p className="text-xs text-destructive">{errors.url.message}</p>
-          )}
+          {errors.url && <p className="text-xs text-destructive">{errors.url.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -134,9 +130,7 @@ export function AddSiteStep() {
                 </option>
               ))}
             </select>
-            {errors.country && (
-              <p className="text-xs text-destructive">{errors.country.message}</p>
-            )}
+            {errors.country && <p className="text-xs text-destructive">{errors.country.message}</p>}
           </div>
         </div>
 
