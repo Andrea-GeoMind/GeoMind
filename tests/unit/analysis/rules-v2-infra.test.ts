@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { computeIssuesScore, type ScorableIssue } from '@/lib/analysis/scoring'
-import { selectPagesForAnalysis } from '@/lib/analysis/page-selection'
+import { selectPagesForAnalysis, isEditorialPage } from '@/lib/analysis/page-selection'
 import {
   completeTechnicalOpportunities,
   completeContentOpportunities,
@@ -85,7 +85,9 @@ describe('computeIssuesScore', () => {
   it('le plafond est par catégorie, pas global', () => {
     const issues = [
       ...['a', 'b', 'c', 'd'].map((k) => issue({ ruleKey: k, penalty: 12, category: 'structure' })),
-      ...['e', 'f', 'g', 'h'].map((k) => issue({ ruleKey: k, penalty: 12, category: 'schema_org' })),
+      ...['e', 'f', 'g', 'h'].map((k) =>
+        issue({ ruleKey: k, penalty: 12, category: 'schema_org' })
+      ),
     ]
     expect(computeIssuesScore(issues, 1)).toBe(100 - 30 - 30)
   })
@@ -110,13 +112,93 @@ describe('computeIssuesScore', () => {
 
 const page = (url: string, len = 100) => ({ url, markdown: 'x'.repeat(len) })
 
+// Les règles de contenu tiraient sur /signup, /login et /legal/cgv :
+// « le premier paragraphe ne répond pas à la question » sur une page de
+// connexion n'a aucun sens et décrédibilisait les vrais constats.
+describe('isEditorialPage', () => {
+  it('écarte les pages d’authentification et de compte', () => {
+    for (const url of [
+      'https://a.fr/login',
+      'https://a.fr/signup',
+      'https://a.fr/connexion',
+      'https://a.fr/inscription',
+      'https://a.fr/mon-compte/factures',
+      'https://a.fr/dashboard',
+    ]) {
+      expect(isEditorialPage(url), url).toBe(false)
+    }
+  })
+
+  it('écarte les pages juridiques', () => {
+    for (const url of [
+      'https://a.fr/legal/cgv',
+      'https://a.fr/mentions-legales',
+      'https://a.fr/cgu',
+      'https://a.fr/politique-de-confidentialite',
+      'https://a.fr/cookies',
+    ]) {
+      expect(isEditorialPage(url), url).toBe(false)
+    }
+  })
+
+  it('écarte le tunnel d’achat et les utilitaires', () => {
+    for (const url of [
+      'https://a.fr/panier',
+      'https://a.fr/checkout',
+      'https://a.fr/merci',
+      'https://a.fr/recherche?q=x',
+      'https://a.fr/sitemap.xml',
+    ]) {
+      expect(isEditorialPage(url), url).toBe(false)
+    }
+  })
+
+  it('garde la page d’accueil et les pages éditoriales', () => {
+    for (const url of [
+      'https://a.fr/',
+      'https://a.fr/blog/geo-vs-seo',
+      'https://a.fr/services/plomberie',
+      'https://a.fr/tarifs',
+      'https://a.fr/a-propos',
+    ]) {
+      expect(isEditorialPage(url), url).toBe(true)
+    }
+  })
+
+  it('raisonne par segment, pas par sous-chaîne', () => {
+    // /panier sort, mais une page produit qui commence par « panier » reste.
+    expect(isEditorialPage('https://a.fr/panier')).toBe(false)
+    expect(isEditorialPage('https://a.fr/panier-garni-de-noel')).toBe(true)
+    expect(isEditorialPage('https://a.fr/legal')).toBe(false)
+    expect(isEditorialPage('https://a.fr/legalisation-de-documents')).toBe(true)
+  })
+})
+
 describe('selectPagesForAnalysis', () => {
+  it('n’analyse jamais une page non éditoriale', () => {
+    const pages = [
+      page('https://a.fr/'),
+      page('https://a.fr/login'),
+      page('https://a.fr/legal/cgv'),
+      page('https://a.fr/blog/article'),
+    ]
+    const urls = selectPagesForAnalysis(pages, 10).map((p) => p.url)
+    expect(urls).toContain('https://a.fr/')
+    expect(urls).toContain('https://a.fr/blog/article')
+    expect(urls).not.toContain('https://a.fr/login')
+    expect(urls).not.toContain('https://a.fr/legal/cgv')
+  })
+
   it('limite 0 (plan Gratuit) → aucune page', () => {
     expect(selectPagesForAnalysis([page('https://a.fr/')], 0)).toEqual([])
   })
 
   it("la page d'accueil est toujours incluse en premier", () => {
-    const pages = [page('https://a.fr/blog/post'), page('https://a.fr/'), page('https://a.fr/tarifs')]
+    const pages = [
+      page('https://a.fr/blog/post'),
+      page('https://a.fr/'),
+      page('https://a.fr/tarifs'),
+    ]
     const selected = selectPagesForAnalysis(pages, 2)
     expect(selected[0].url).toBe('https://a.fr/')
   })

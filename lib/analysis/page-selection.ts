@@ -7,11 +7,6 @@
  * avec diversité de sections (round-robin sur le premier segment d'URL).
  */
 
-interface SelectablePage {
-  url: string
-  markdown?: string | null
-}
-
 function pathInfo(url: string): { path: string; depth: number; firstSegment: string } {
   try {
     const path = new URL(url).pathname.replace(/\/+$/, '') || '/'
@@ -22,12 +17,97 @@ function pathInfo(url: string): { path: string; depth: number; firstSegment: str
   }
 }
 
+interface SelectablePage {
+  url: string
+  markdown?: string | null
+}
+
+/**
+ * Pages non éditoriales : elles ne sont pas censées répondre à une question de
+ * client, donc les règles de contenu n'ont rien à y dire. Les analyser
+ * produisait des constats absurdes — « le premier paragraphe ne répond pas à
+ * la question » sur /login, « mots-clés absents des titres » sur les CGV — qui
+ * polluaient le plan d'action et décrédibilisaient les vrais constats.
+ *
+ * On raisonne sur le premier segment d'URL et sur quelques chemins exacts,
+ * jamais sur une sous-chaîne : /panier doit sortir, /panier-solaire est une
+ * page produit légitime.
+ */
+const NON_EDITORIAL_SEGMENTS = new Set([
+  // Authentification et compte
+  'login',
+  'signin',
+  'signup',
+  'register',
+  'inscription',
+  'connexion',
+  'logout',
+  'deconnexion',
+  'mot-de-passe-oublie',
+  'reset-password',
+  'compte',
+  'account',
+  'mon-compte',
+  'profil',
+  'profile',
+  'dashboard',
+  'tableau-de-bord',
+  // Juridique et mentions
+  'legal',
+  'mentions-legales',
+  'mentions',
+  'cgv',
+  'cgu',
+  'conditions-generales',
+  'politique-de-confidentialite',
+  'confidentialite',
+  'privacy',
+  'cookies',
+  'terms',
+  // Tunnel d'achat
+  'panier',
+  'cart',
+  'checkout',
+  'commande',
+  'paiement',
+  'payment',
+  'merci',
+  'thank-you',
+  'confirmation',
+  // Utilitaires
+  'recherche',
+  'search',
+  'sitemap',
+  'plan-du-site',
+  '404',
+  'erreur',
+])
+
+/** Chemins exacts non éditoriaux, hors segmentation. */
+const NON_EDITORIAL_PATHS = new Set(['/robots.txt', '/sitemap.xml', '/llms.txt'])
+
+/**
+ * Une page est-elle éditoriale, c'est-à-dire susceptible de répondre à une
+ * question que se pose un client ? La page d'accueil l'est toujours.
+ */
+export function isEditorialPage(url: string): boolean {
+  const { path, firstSegment } = pathInfo(url)
+  if (path === '/') return true
+  if (NON_EDITORIAL_PATHS.has(path.toLowerCase())) return false
+  return !NON_EDITORIAL_SEGMENTS.has(firstSegment.toLowerCase())
+}
+
 export function selectPagesForAnalysis<T extends SelectablePage>(pages: T[], limit: number): T[] {
   if (!Number.isFinite(limit) || limit <= 0 || pages.length === 0) return []
 
+  // Les pages non éditoriales sont écartées avant toute sélection : les règles
+  // de contenu n'ont rien de pertinent à dire sur /login ou les CGV.
+  const editorial = pages.filter((p) => isEditorialPage(p.url))
+  if (editorial.length === 0) return []
+
   // Dédoublonnage par URL (le crawl peut contenir des doublons trailing-slash)
   const seen = new Set<string>()
-  const unique = pages.filter((p) => {
+  const unique = editorial.filter((p) => {
     const key = pathInfo(p.url).path
     if (seen.has(key)) return false
     seen.add(key)
