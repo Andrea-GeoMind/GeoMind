@@ -1,5 +1,5 @@
 import type { TechnicalIssue, RuleInput } from '../types'
-import { blockedAiBots } from './_robots-parser'
+import { blockedAiBots } from '@/lib/analysis/robots-parser'
 
 export async function checkRobotsTxtBlockAiBots({ siteUrl }: RuleInput): Promise<TechnicalIssue | null> {
   const robotsUrl = `${new URL(siteUrl).origin}/robots.txt`

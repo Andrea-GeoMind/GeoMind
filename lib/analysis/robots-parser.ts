@@ -1,3 +1,13 @@
+/**
+ * lib/analysis/robots-parser.ts
+ *
+ * Parsing de robots.txt — partagé entre l'analyse complète (règles Technique,
+ * lib/analysis/technical/rules/robots-txt-block-*.ts) et l'audit express
+ * public (lib/analysis/express-audit.ts). Une seule implémentation, une seule
+ * liste de bots IA : le gratuit et le payant doivent s'accorder sur ce qui
+ * bloque quoi, sans quoi ils se contrediraient devant le même visiteur.
+ */
+
 interface RobotsRecord {
   userAgents: string[]
   disallows: string[]
@@ -38,7 +48,8 @@ export function blocksAllBots(robotsText: string): boolean {
   )
 }
 
-const AI_BOTS = ['GPTBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot', 'CCBot']
+/** Les 5 robots d'IA que l'analyse complète et l'audit express vérifient tous les deux. */
+export const AI_BOTS = ['GPTBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot', 'CCBot']
 
 export function blockedAiBots(robotsText: string): string[] {
   const records = parseRobots(robotsText)

@@ -16,6 +16,7 @@ import { ENGINE_LIST } from '@/lib/analysis/authority-table'
 import {
   EXPRESS_UNKNOWNS,
   EXPRESS_PILLARS_COVERED,
+  EXPRESS_CHECK_COUNT,
   PILLAR_COUNT,
 } from '@/lib/analysis/express-audit'
 import { claimExpressAudit } from '@/app/actions/public-audit'
@@ -25,7 +26,9 @@ import { cn } from '@/lib/utils'
  * Audit express sans inscription (PLAN item 20) — premier étage du tunnel.
  *
  * Le résultat est délibérément en deux temps :
- *  1. la note technique telle quelle (ce que les 11 vérifications mesurent) ;
+ *  1. la note technique telle quelle (ce que les vérifications mesurent —
+ *     cf. EXPRESS_CHECK_COUNT — pondérées : un robots.txt qui bloque les
+ *     robots des IA plombe le score à lui seul, cf. AI_BOTS_BLOCK_WEIGHT) ;
  *  2. « ce qu'on ne sait pas encore » — les deux piliers que l'express ne
  *     couvre pas du tout.
  *
@@ -40,6 +43,7 @@ interface ExpressCheck {
   label: string
   ok: boolean
   hint: string
+  weight?: number
 }
 
 interface AuditResponse {
@@ -130,7 +134,12 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
     })
   }
 
-  const failed = result?.checks.filter((c) => !c.ok) ?? []
+  // Trié par poids décroissant : un robots.txt qui bloque les IA doit
+  // apparaître en premier, avant des manques cosmétiques (meta description,
+  // Open Graph…) — sinon le point rédhibitoire se retrouve noyé au milieu.
+  const failed = [...(result?.checks ?? [])]
+    .filter((c) => !c.ok)
+    .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
   const passed = result?.checks.filter((c) => c.ok) ?? []
 
   return (
@@ -170,7 +179,7 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
           onNavy ? 'text-[#7C92AC]' : 'text-muted-foreground'
         )}
       >
-        Gratuit, sans inscription — 11 vérifications en quelques secondes
+        Gratuit, sans inscription — {EXPRESS_CHECK_COUNT} vérifications en quelques secondes
       </p>
 
       {status === 'loading' && (

@@ -10,8 +10,34 @@
  * uniquement, hôtes privés/localhost/IP littérales bloqués, ports standards).
  */
 
+import { AI_BOTS, blockedAiBots, blocksAllBots } from '@/lib/analysis/robots-parser'
+
 const FETCH_TIMEOUT_MS = 8_000
 const MAX_HTML_BYTES = 500_000
+
+/**
+ * Nombre de vérifications de l'audit express — affiché avant même de lancer
+ * un test (« Gratuit, sans inscription — N vérifications »). Doit rester égal
+ * à la longueur du tableau `checks` construit dans `runExpressAudit` ; un
+ * test vérifie l'accord des deux.
+ */
+export const EXPRESS_CHECK_COUNT = 12
+
+/**
+ * Poids par défaut d'un check dans le score (0-100). Les checks cosmétiques
+ * (titre, meta description, Open Graph…) se partagent ce poids à parts égales.
+ */
+export const DEFAULT_CHECK_WEIGHT = 5
+
+/**
+ * Poids du check « robots.txt ouvert aux robots des IA ». Un blocage est
+ * rédhibitoire : peu importe la qualité du reste, un site que GPTBot ne peut
+ * pas lire ne sera jamais cité. Avec ce poids, un blocage plafonne le score à
+ * ~55/100 même si tous les autres checks passent (cf. computeExpressScore) —
+ * avant ce correctif, il ne coûtait qu'1/11 du score (~9 points), au même
+ * niveau qu'un Open Graph manquant, ce qui rendait l'audit peu discriminant.
+ */
+export const AI_BOTS_BLOCK_WEIGHT = 45
 
 export interface ExpressCheck {
   key: string
@@ -19,6 +45,24 @@ export interface ExpressCheck {
   ok: boolean
   /** Une phrase de vulgarisation affichée si le check échoue */
   hint: string
+  /** Poids dans le score final — DEFAULT_CHECK_WEIGHT si omis. */
+  weight?: number
+}
+
+/**
+ * Score pondéré 0-100 : chaque check compte pour son poids (DEFAULT_CHECK_WEIGHT
+ * si non précisé), pas pour une simple fraction du nombre de checks. Fonction
+ * pure et testée, dans l'esprit de la règle CLAUDE.md §5.9 (idempotence, pas
+ * de side-effect) appliquée ici à l'audit express plutôt qu'au scoring complet.
+ */
+export function computeExpressScore(checks: ExpressCheck[]): number {
+  const total = checks.reduce((sum, c) => sum + (c.weight ?? DEFAULT_CHECK_WEIGHT), 0)
+  if (total === 0) return 0
+  const earned = checks.reduce(
+    (sum, c) => sum + (c.ok ? (c.weight ?? DEFAULT_CHECK_WEIGHT) : 0),
+    0
+  )
+  return Math.round((earned / total) * 100)
 }
 
 /**
@@ -26,9 +70,12 @@ export interface ExpressCheck {
  *
  * L'express ne fait que des vérifications HTTP : il couvre le pilier Technique,
  * et partiellement. L'Autorité (êtes-vous cité) et le Contenu ne sont pas
- * mesurés du tout — d'où un score express structurellement élevé (la plupart
- * des sites corrects passent 10 vérifications sur 11) alors que la note
- * complète, moyenne des trois piliers, est bien plus basse.
+ * mesurés du tout — d'où un score express qui reste souvent élevé pour un
+ * site correct, alors que la note complète, moyenne des trois piliers, est
+ * bien plus basse. Exception assumée : un robots.txt qui bloque les robots
+ * des IA plombe le score à lui seul (cf. AI_BOTS_BLOCK_WEIGHT), parce que
+ * c'est rédhibitoire pour être cité — contrairement à un Open Graph manquant,
+ * qui ne coûte que quelques points.
  *
  * Afficher ces inconnues n'est donc pas un argument commercial : c'est la
  * partie manquante du périmètre, dite explicitement. On garde le vocabulaire
@@ -145,32 +192,21 @@ function hasTag(html: string, re: RegExp): boolean {
 }
 
 /**
- * robots.txt : un des robots IA est-il explicitement interdit (Disallow: /) ?
- * Parsing par groupes au standard robots.txt : des lignes User-agent
- * consécutives forment un groupe ; toute directive clôt l'accumulation
- * d'agents ; le User-agent suivant ouvre un nouveau groupe.
+ * Bots IA effectivement bloqués par un robots.txt : les bots nommés
+ * explicitement (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot —
+ * lib/analysis/robots-parser.ts), ou — si `Disallow: /` s'applique à
+ * `User-agent: *` — la totalité de la liste, puisqu'un bot sans groupe qui le
+ * nomme tombe alors sous le groupe générique (sémantique standard de
+ * robots.txt : le groupe le plus spécifique gagne, à défaut c'est `*` qui
+ * s'applique).
+ *
+ * Consolide en un seul signal ce que l'analyse complète traite comme deux
+ * règles distinctes (robots_txt_block_all et robots_txt_block_ai_bots) :
+ * l'audit express n'a qu'un check à afficher, pas deux.
  */
-export function robotsBlocksAiBots(robotsTxt: string): boolean {
-  const lines = robotsTxt.split('\n').map((l) => l.trim().toLowerCase())
-  const aiBots = ['gptbot', 'claudebot', 'claude-web', 'perplexitybot', 'google-extended', '*']
-  let currentAgents: string[] = []
-  let collectingAgents = false
-  const blockedAgents = new Set<string>()
-  for (const line of lines) {
-    if (line.startsWith('user-agent:')) {
-      if (!collectingAgents) currentAgents = [] // nouveau groupe
-      currentAgents.push(line.slice('user-agent:'.length).trim())
-      collectingAgents = true
-    } else if (line.startsWith('disallow:')) {
-      collectingAgents = false
-      const path = line.slice('disallow:'.length).trim()
-      if (path === '/') currentAgents.forEach((a) => blockedAgents.add(a))
-    } else if (line !== '' && !line.startsWith('#')) {
-      // autre directive (allow, sitemap, crawl-delay…) : clôt l'accumulation
-      collectingAgents = false
-    }
-  }
-  return aiBots.some((bot) => blockedAgents.has(bot))
+export function effectivelyBlockedAiBots(robotsText: string): string[] {
+  if (blocksAllBots(robotsText)) return [...AI_BOTS]
+  return blockedAiBots(robotsText)
 }
 
 // ─── Audit express ─────────────────────────────────────────────────────────────
@@ -190,7 +226,10 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
 
   const html = home.text
   const robotsOk = robots !== null && robots.status === 200
-  const robotsBlocks = robotsOk ? robotsBlocksAiBots(robots.text) : false
+  // Pas de robots.txt du tout → rien ne bloque personne (comportement par
+  // défaut des crawlers) : seul un robots.txt PRÉSENT peut bloquer.
+  const blockedBots = robotsOk ? effectivelyBlockedAiBots(robots.text) : []
+  const aiBotsBlocked = blockedBots.length > 0
 
   const checks: ExpressCheck[] = [
     {
@@ -243,12 +282,21 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
       hint: 'Vos pages n\'ont pas d\'aperçu riche quand elles sont partagées ou citées.',
     },
     {
-      key: 'robots',
-      label: 'robots.txt présent et ouvert aux IA',
-      ok: robotsOk && !robotsBlocks,
-      hint: robotsBlocks
-        ? 'Votre robots.txt INTERDIT l\'accès aux robots des IA — vous êtes invisible volontairement.'
-        : 'Le fichier robots.txt est introuvable — les robots avancent à l\'aveugle.',
+      key: 'robots-present',
+      label: 'robots.txt présent',
+      ok: robotsOk,
+      hint: 'Le fichier robots.txt est introuvable — les robots avancent à l\'aveugle, sans savoir ce qu\'ils ont le droit de lire.',
+    },
+    {
+      key: 'robots-ai-bots',
+      label: 'Ouvert aux robots des IA (GPTBot, ClaudeBot, Perplexity…)',
+      ok: !aiBotsBlocked,
+      // Rédhibitoire : un bot qui ne peut pas lire votre site ne peut pas
+      // vous citer, quelle que soit la qualité du reste. D'où le poids fort.
+      weight: AI_BOTS_BLOCK_WEIGHT,
+      hint: aiBotsBlocked
+        ? `Votre robots.txt bloque explicitement : ${blockedBots.join(', ')}. Ces robots ne peuvent pas lire votre site — vous êtes invisible pour eux, volontairement ou non.`
+        : 'Les robots des principales IA peuvent lire votre site.',
     },
     {
       key: 'sitemap',
@@ -264,8 +312,7 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
     },
   ]
 
-  const passed = checks.filter((c) => c.ok).length
-  const score = Math.round((passed / checks.length) * 100)
+  const score = computeExpressScore(checks)
 
   return {
     domain: target.hostname.replace(/^www\./, ''),

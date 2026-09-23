@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { checkRobotsTxtBlockAll } from '@/lib/analysis/technical/rules/robots-txt-block-all'
 import { checkRobotsTxtBlockAiBots } from '@/lib/analysis/technical/rules/robots-txt-block-ai-bots'
-import { parseRobots, blocksAllBots, blockedAiBots } from '@/lib/analysis/technical/rules/_robots-parser'
+import { parseRobots, blocksAllBots, blockedAiBots } from '@/lib/analysis/robots-parser'
 
 const SITE_URL = 'https://example.com'
 
