@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { MobileMenu } from '@/components/features/marketing/mobile-menu'
+import { HeaderAuthActions } from '@/components/features/marketing/header-auth-actions'
 
 export default function Header() {
   return (
@@ -39,17 +39,10 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2 md:gap-3">
-          <Button variant="ghost" asChild size="sm" className="hidden md:inline-flex">
-            <Link href="/login">Se connecter</Link>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="rounded-lg bg-primary text-primary-foreground shadow-sm shadow-primary/20 transition-colors hover:bg-primary/90"
-          >
-            <Link href="/signup">Commencer</Link>
-          </Button>
+        {/* `min-w` : la bascule connecté/déconnecté ne doit pas décaler la
+            barre de navigation une fois la session détectée côté client. */}
+        <div className="flex min-w-[9.5rem] items-center justify-end gap-2 md:min-w-[15rem] md:gap-3">
+          <HeaderAuthActions />
           <MobileMenu />
         </div>
       </div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useIsSignedIn } from '@/components/features/marketing/header-auth-actions'
 
 const NAV_LINKS = [
   { href: '/#features', label: 'Fonctionnalités' },
@@ -16,6 +17,7 @@ const NAV_LINKS = [
 export function MobileMenu() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const signedIn = useIsSignedIn()
 
   return (
     <div className="md:hidden">
@@ -45,18 +47,28 @@ export function MobileMenu() {
               </Link>
             ))}
             <div className="my-2 border-t border-border/60" />
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
-            >
-              Se connecter
-            </Link>
-            <Button asChild size="sm" className="mx-3 my-2">
-              <Link href="/signup" onClick={() => setOpen(false)}>
-                Commencer
-              </Link>
-            </Button>
+            {signedIn ? (
+              <Button asChild size="sm" className="mx-3 my-2">
+                <Link href="/dashboard" onClick={() => setOpen(false)}>
+                  Mon tableau de bord
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  Se connecter
+                </Link>
+                <Button asChild size="sm" className="mx-3 my-2">
+                  <Link href="/signup" onClick={() => setOpen(false)}>
+                    Commencer
+                  </Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       )}
