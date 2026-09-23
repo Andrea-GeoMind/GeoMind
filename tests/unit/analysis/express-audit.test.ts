@@ -165,6 +165,66 @@ describe('runExpressAudit — intégration avec un fetch simulé', () => {
     expect(result?.score).toBeLessThanOrEqual(60)
   })
 
+  // nytimes.com renvoie 403 à notre robot : le site marche pour un humain,
+  // c'est le pare-feu qui filtre. L'audit disait « votre page d'accueil répond
+  // une erreur » et notait le HTML du mur anti-bot.
+  it('distingue un refus d’accès d’un site en panne', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        status: 403,
+        text: async () => '<html><body>Access Denied</body></html>',
+      }))
+    )
+    const result = await runExpressAudit(new URL('https://exemple.fr/'))
+    const access = result?.checks.find((c) => c.key === 'reachable')
+    expect(access?.ok).toBe(false)
+    expect(access?.label).toContain('robot')
+    expect(access?.hint).toContain('403')
+    expect(access?.hint).toContain('fonctionne')
+    expect(access?.hint).toContain('GPTBot')
+  })
+
+  it('n’analyse pas le HTML de la page d’erreur quand l’accès est refusé', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        status: 403,
+        text: async () => '<html><body>Access Denied</body></html>',
+      }))
+    )
+    const result = await runExpressAudit(new URL('https://exemple.fr/'))
+    const keys = (result?.checks ?? []).map((c) => c.key)
+    // Aucun check dérivé du HTML : on ne note pas un mur anti-bot.
+    for (const k of ['title', 'meta-description', 'h1', 'lang', 'json-ld', 'open-graph']) {
+      expect(keys, k).not.toContain(k)
+    }
+    // Ni les fichiers filtrés par le même pare-feu.
+    expect(keys).not.toContain('sitemap')
+    expect(keys).not.toContain('robots-present')
+    expect(keys).toContain('reachable')
+  })
+
+  it('garde les fichiers accessibles même si la page d’accueil est refusée', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string | URL) => {
+        const url = String(input)
+        if (url.includes('/robots.txt'))
+          return { status: 200, text: async () => 'User-agent: *\nDisallow:' }
+        if (url.includes('/sitemap.xml')) return { status: 200, text: async () => '<urlset/>' }
+        if (url.includes('/llms.txt')) return { status: 404, text: async () => '' }
+        return { status: 403, text: async () => '<html>Access Denied</html>' }
+      })
+    )
+    const result = await runExpressAudit(new URL('https://exemple.fr/'))
+    const keys = (result?.checks ?? []).map((c) => c.key)
+    expect(keys).toContain('robots-present')
+    expect(keys).toContain('robots-ai-bots')
+    expect(keys).toContain('sitemap')
+    expect(keys).not.toContain('title')
+  })
+
   it('ne pénalise pas l’absence de robots.txt sur le check des bots IA — rien ne bloque par défaut', async () => {
     mockFetchWithRobots(null)
     const result = await runExpressAudit(new URL('https://exemple.fr/'))

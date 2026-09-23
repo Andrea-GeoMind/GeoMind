@@ -58,10 +58,7 @@ export interface ExpressCheck {
 export function computeExpressScore(checks: ExpressCheck[]): number {
   const total = checks.reduce((sum, c) => sum + (c.weight ?? DEFAULT_CHECK_WEIGHT), 0)
   if (total === 0) return 0
-  const earned = checks.reduce(
-    (sum, c) => sum + (c.ok ? (c.weight ?? DEFAULT_CHECK_WEIGHT) : 0),
-    0
-  )
+  const earned = checks.reduce((sum, c) => sum + (c.ok ? (c.weight ?? DEFAULT_CHECK_WEIGHT) : 0), 0)
   return Math.round((earned / total) * 100)
 }
 
@@ -209,6 +206,37 @@ export function effectivelyBlockedAiBots(robotsText: string): string[] {
   return blockedAiBots(robotsText)
 }
 
+/**
+ * Statuts HTTP par lesquels un serveur refuse notre robot plutôt que d'être en
+ * panne : 401 et 403 (accès interdit), 429 (trop de requêtes), 451 (raisons
+ * légales). Pour un visiteur humain, le site fonctionne parfaitement.
+ *
+ * La distinction n'est pas cosmétique : sur un refus, le corps renvoyé est une
+ * page d'erreur ou un mur anti-bot. Analyser son HTML — titre, meta, H1,
+ * données structurées — reviendrait à noter le mur, pas le site. Ces
+ * vérifications sont donc écartées du score au lieu d'être comptées en échec.
+ */
+const ACCESS_DENIED_STATUSES = new Set([401, 403, 429, 451])
+
+export function isAccessDenied(status: number): boolean {
+  return ACCESS_DENIED_STATUSES.has(status)
+}
+
+/**
+ * Vérifications qui lisent le HTML de la page d'accueil. Quand le serveur nous
+ * a refusé l'accès, ce HTML est celui d'une page d'erreur : ces checks sont
+ * retirés du résultat plutôt que comptés en échec. Mieux vaut ne rien dire que
+ * de noter un mur anti-bot.
+ */
+const HTML_DERIVED_CHECK_KEYS = new Set([
+  'title',
+  'meta-description',
+  'h1',
+  'lang',
+  'json-ld',
+  'open-graph',
+])
+
 // ─── Audit express ─────────────────────────────────────────────────────────────
 
 export async function runExpressAudit(target: URL): Promise<ExpressAuditResult | null> {
@@ -225,6 +253,11 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
   ])
 
   const html = home.text
+  // 403 sur nytimes.com, 429 sur un site protégé : le site marche pour un
+  // humain, c'est notre robot qui est refusé. Deux conséquences — le message
+  // doit le dire, et les vérifications HTML ne doivent pas noter la page
+  // d'erreur reçue à la place du site.
+  const accessDenied = isAccessDenied(home.status)
   const robotsOk = robots !== null && robots.status === 200
   // Pas de robots.txt du tout → rien ne bloque personne (comportement par
   // défaut des crawlers) : seul un robots.txt PRÉSENT peut bloquer.
@@ -234,9 +267,11 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
   const checks: ExpressCheck[] = [
     {
       key: 'reachable',
-      label: 'Site accessible',
+      label: accessDenied ? 'Accès autorisé à notre robot' : 'Site accessible',
       ok: home.status < 400,
-      hint: 'Votre page d\'accueil répond une erreur — les IA ne peuvent rien lire.',
+      hint: accessDenied
+        ? `Votre site fonctionne, mais il a refusé notre robot (erreur ${home.status}). Un pare-feu ou une protection anti-bot filtre les visiteurs automatiques — et il y a de fortes chances qu'il bloque aussi GPTBot et les robots des autres IA, qui ne pourront donc pas vous citer.`
+        : `Votre page d'accueil répond une erreur (${home.status}) — les IA ne peuvent rien lire.`,
     },
     {
       key: 'speed',
@@ -253,7 +288,8 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
     {
       key: 'meta-description',
       label: 'Meta description',
-      ok: hasTag(html, /<meta[^>]+name=["']description["'][^>]+content=["'][^"']{10,}/i) ||
+      ok:
+        hasTag(html, /<meta[^>]+name=["']description["'][^>]+content=["'][^"']{10,}/i) ||
         hasTag(html, /<meta[^>]+content=["'][^"']{10,}["'][^>]+name=["']description["']/i),
       hint: 'Le petit résumé repris par les moteurs et les IA pour vous présenter est absent.',
     },
@@ -261,7 +297,7 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
       key: 'h1',
       label: 'Titre principal (H1)',
       ok: hasTag(html, /<h1[\s>]/i),
-      hint: 'Le H1 annonce le sujet de la page — les IA s\'y fient beaucoup.',
+      hint: "Le H1 annonce le sujet de la page — les IA s'y fient beaucoup.",
     },
     {
       key: 'lang',
@@ -279,13 +315,13 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
       key: 'open-graph',
       label: 'Balises Open Graph',
       ok: hasTag(html, /<meta[^>]+property=["']og:/i),
-      hint: 'Vos pages n\'ont pas d\'aperçu riche quand elles sont partagées ou citées.',
+      hint: "Vos pages n'ont pas d'aperçu riche quand elles sont partagées ou citées.",
     },
     {
       key: 'robots-present',
       label: 'robots.txt présent',
       ok: robotsOk,
-      hint: 'Le fichier robots.txt est introuvable — les robots avancent à l\'aveugle, sans savoir ce qu\'ils ont le droit de lire.',
+      hint: "Le fichier robots.txt est introuvable — les robots avancent à l'aveugle, sans savoir ce qu'ils ont le droit de lire.",
     },
     {
       key: 'robots-ai-bots',
@@ -308,16 +344,31 @@ export async function runExpressAudit(target: URL): Promise<ExpressAuditResult |
       key: 'llms-txt',
       label: 'Fichier llms.txt',
       ok: llms !== null && llms.status === 200 && llms.text.trim().length > 0,
-      hint: 'La carte de visite de votre site pour les IA n\'existe pas (2 minutes à créer).',
+      hint: "La carte de visite de votre site pour les IA n'existe pas (2 minutes à créer).",
     },
   ]
 
-  const score = computeExpressScore(checks)
+  // Accès refusé : on ne garde que ce qu'on a réellement pu mesurer. Les
+  // vérifications HTML porteraient sur la page d'erreur, et les fichiers
+  // (robots.txt, sitemap, llms.txt) filtrés par le même pare-feu seraient
+  // déclarés « introuvables » alors qu'on n'en sait rien.
+  const measurable = accessDenied
+    ? checks.filter((c) => {
+        if (HTML_DERIVED_CHECK_KEYS.has(c.key)) return false
+        if (c.key === 'speed') return false
+        if (c.key === 'robots-present' || c.key === 'robots-ai-bots') return robotsOk
+        if (c.key === 'sitemap') return sitemap !== null && !isAccessDenied(sitemap.status)
+        if (c.key === 'llms-txt') return llms !== null && !isAccessDenied(llms.status)
+        return true
+      })
+    : checks
+
+  const score = computeExpressScore(measurable)
 
   return {
     domain: target.hostname.replace(/^www\./, ''),
     score,
-    checks,
+    checks: measurable,
     responseTimeMs: home.ms,
   }
 }
