@@ -42,6 +42,9 @@ const PLATFORM_SUFFIXES = [
   'free.fr',
   'pagesperso-orange.fr',
   'wixstudio.com',
+  'eatbu.com', // constructeur de sites de restaurants (Zenchef)
+  'metro-webstudio.fr',
+  'solocal-sites.fr',
 ]
 
 /**

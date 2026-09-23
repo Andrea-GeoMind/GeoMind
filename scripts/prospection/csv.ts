@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs'
-import type { Prospect } from './types'
+import type { Business, Prospect } from './types'
 
 /**
  * Écriture de PROSPECTS.csv.
@@ -99,4 +99,46 @@ export function summarise(prospects: Prospect[]): Summary {
 
 export function writeCsv(path: string, prospects: Prospect[]): void {
   writeFileSync(path, toCsv(prospects), 'utf8')
+}
+
+/**
+ * Entreprises sans site propre — leur seule adresse web est une fiche de
+ * plateforme (Planity, Instagram, Facebook…).
+ *
+ * Elles sortent dans un fichier séparé parce que l'argumentaire n'est pas le
+ * même : il n'y a pas de site à auditer, donc pas de score. Ce qui se discute
+ * avec elles, ce sont les signaux que les moteurs lisent vraiment en local —
+ * catégorie de la fiche Google, nombre d'avis, présence en annuaire. Les
+ * colonnes ci-dessous sont exactement celles qu'il faut sous les yeux pour
+ * mener cette conversation.
+ */
+const LISTING_HEADERS = [
+  'nom', 'categorie_recherchee', 'avis_google', 'note_google',
+  'plateforme', 'url_fiche', 'telephone', 'adresse',
+]
+
+export function toListingsCsv(
+  rows: { business: Business; platform: string }[]
+): string {
+  const lines = [LISTING_HEADERS.join(';')]
+  for (const { business: b, platform } of rows) {
+    lines.push(
+      [b.name, b.category, b.reviewCount, b.rating, platform, b.website, b.phone, b.address]
+        .map(cell)
+        .join(';')
+    )
+  }
+  return '﻿' + lines.join('\n') + '\n'
+}
+
+/** Les mieux dotées en avis d'abord : c'est le levier le plus parlant. */
+export function sortListings<T extends { business: Business }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => (b.business.reviewCount ?? 0) - (a.business.reviewCount ?? 0))
+}
+
+export function writeListingsCsv(
+  path: string,
+  rows: { business: Business; platform: string }[]
+): void {
+  writeFileSync(path, toListingsCsv(sortListings(rows)), 'utf8')
 }
