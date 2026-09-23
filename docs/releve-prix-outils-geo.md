@@ -89,6 +89,13 @@ qu'elles vendent un accompagnement et non un outil :
    pas corriger tout seul.
 4. Mettre à jour la date en tête de ce fichier.
 5. `pnpm typecheck && pnpm lint && pnpm test`, puis pousser.
+6. Vérifier le déploiement sur une chaîne **unique à la modification**, jamais
+   sur un montant seul. Un `grep "99 €/mois"` a déjà annoncé un déploiement
+   abouti alors que la page servait encore l'ancienne version : la chaîne
+   existait ailleurs, dans la ligne d'ia-rank (« puis 99 €/mois »). Chercher
+   plutôt un titre de fiche entier — `GEO Toolbox à 99 €/mois` — ou lire
+   directement la cellule du tableau. Même piège avec `grep "99 $"`, qui
+   compte aussi les `199 $` et `399 $`.
 
 ## Historique
 
