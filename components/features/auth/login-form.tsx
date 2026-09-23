@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { signIn } from '@/app/(auth)/actions'
+import { signIn, sendSignInLink } from '@/app/(auth)/actions'
 import { GoogleSignInButton, AuthDivider } from '@/components/features/auth/google-sign-in-button'
 
 const loginSchema = z.object({
@@ -21,14 +21,35 @@ type LoginData = z.infer<typeof loginSchema>
 export function LoginForm() {
   const [serverError, setServerError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  /** Lien magique : 'idle' | 'sending' | 'sent' | l'adresse est invalide. */
+  const [linkState, setLinkState] = useState<'idle' | 'sending' | 'sent' | 'invalid'>('idle')
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   })
+
+  /**
+   * Beaucoup de comptes viennent du tunnel d'audit public et n'ont jamais eu
+   * de mot de passe : pour eux, ce bouton est la seule porte d'entrée.
+   */
+  function onSendLink() {
+    const email = getValues('email')
+    if (!email || !z.string().email().safeParse(email).success) {
+      setLinkState('invalid')
+      return
+    }
+    setServerError(null)
+    setLinkState('sending')
+    startTransition(async () => {
+      await sendSignInLink(email)
+      setLinkState('sent')
+    })
+  }
 
   function onSubmit(data: LoginData) {
     setServerError(null)
@@ -80,6 +101,32 @@ export function LoginForm() {
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? 'Connexion...' : 'Se connecter'}
       </Button>
+
+      <div className="space-y-2 border-t border-border pt-4">
+        {linkState === 'sent' ? (
+          <p className="text-center text-sm text-muted-foreground">
+            Si un compte existe pour cette adresse, un lien de connexion vient d&apos;être
+            envoyé. Vérifiez votre boîte mail — le lien est valable une heure.
+          </p>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isPending}
+              onClick={onSendLink}
+            >
+              {linkState === 'sending' ? 'Envoi...' : 'Recevoir un lien de connexion'}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              {linkState === 'invalid'
+                ? 'Renseignez d’abord votre adresse email ci-dessus.'
+                : 'Sans mot de passe — pratique si vous êtes arrivé par un audit gratuit.'}
+            </p>
+          </>
+        )}
+      </div>
 
       </form>
     </div>

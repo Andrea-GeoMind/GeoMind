@@ -6,6 +6,7 @@ vi.mock('@/lib/email/send', () => ({ sendEmail: vi.fn() }))
 
 import { auditMagicLinkHtml } from '@/lib/email/templates/audit-magic-link'
 import { lowCreditsEmailHtml } from '@/lib/email/templates/low-credits'
+import { signInLinkHtml } from '@/lib/email/templates/sign-in-link'
 
 /**
  * Les emails partent chez des TPE/PME françaises : aucun ne doit repartir en
@@ -44,5 +45,34 @@ describe('audit-magic-link', () => {
 describe('emails transactionnels existants', () => {
   it('low-credits ne contient pas d’anglais résiduel', () => {
     expect(lowCreditsEmailHtml({ remaining: 120, allowance: 1000 })).not.toMatch(ENGLISH_GIVEAWAYS)
+  })
+})
+
+
+/**
+ * Régression du 23/09/2026 : la page de connexion n'offrait que
+ * email + mot de passe, alors que le tunnel d'audit public crée des comptes
+ * sans mot de passe. Ces clients n'avaient aucune porte d'entrée sensée.
+ */
+describe('sign-in-link', () => {
+  const html = signInLinkHtml({
+    actionLink: 'https://geomind.fr/auth/confirm?token_hash=abc&type=magiclink',
+  })
+
+  it('porte le lien fourni', () => {
+    expect(html).toContain('https://geomind.fr/auth/confirm?token_hash=abc&type=magiclink')
+  })
+
+  it('annonce la durée de validité et l’usage unique', () => {
+    expect(html).toMatch(/valable une heure/)
+    expect(html).toMatch(/ne fonctionne qu'une fois/)
+  })
+
+  it('dit quoi faire quand la demande ne vient pas du destinataire', () => {
+    expect(html).toMatch(/ignorez ce message/)
+  })
+
+  it('reste en français', () => {
+    expect(html).not.toMatch(ENGLISH_GIVEAWAYS)
   })
 })
