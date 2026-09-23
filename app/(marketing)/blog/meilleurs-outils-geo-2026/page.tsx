@@ -219,7 +219,7 @@ export default function Page() {
       <ToolFiche tool={tool('ia-rank')} />
       <CompareLink slug="ia-rank" />
 
-      <h2 id="geotoolbox">GEO Toolbox à 99 $/mois : huit moteurs, mais lesquels ?</h2>
+      <h2 id="geotoolbox">GEO Toolbox à 99 €/mois : huit moteurs, mais lesquels ?</h2>
       <ToolFiche tool={tool('geotoolbox')} />
 
       <h2 id="ahrefs">Ahrefs Brand Radar : que paie-t-on vraiment ?</h2>

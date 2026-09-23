@@ -171,23 +171,24 @@ export const GEO_TOOLS: GeoTool[] = [
     slug: 'geotoolbox',
     name: 'GEO Toolbox',
     website: 'https://geotoolbox.ai',
-    priceSummary: '99 $/mois (−20 % en annuel)',
+    priceSummary: '99 €/mois (−20 % en annuel)',
     engineSummary:
       '3 moteurs au plan d’entrée, 5 au choix à partir de Plus, les 8 sur Pro (ChatGPT, Perplexity, AI Overviews, AI Mode, Gemini, Copilot, Claude, Grok)',
     language: 'Anglais',
     target: 'Marques, consultants, agences',
     priceDetail:
-      'Starter à 99 $/mois (1 marque, 50 questions, 3 moteurs), Plus à 199 $ (jusqu’à 3 marques, 100 questions mutualisées, 5 moteurs au choix), Pro à 399 $ (jusqu’à 5 marques, 150 questions, les 8 moteurs), plus un palier Growth et une grille agences. Facturation annuelle à −20 %. Essai de 7 jours sur les plans payants ; trois des dix outils gratuits tournent sur votre domaine sans inscription ni carte bancaire.',
+      'Starter à 99 €/mois (1 marque, 50 questions, 3 moteurs), Plus à 199 € (jusqu’à 3 marques, 100 questions mutualisées, 5 moteurs au choix), Pro à 399 € (jusqu’à 5 marques, 150 questions, les 8 moteurs), plus un palier Growth et une grille agences. Facturation annuelle à −20 %. Essai de 7 jours sur les plans payants ; trois des dix outils gratuits tournent sur votre domaine sans inscription ni carte bancaire. Les mêmes montants sont libellés en dollars sur la version anglaise du site : c’est la page française qui fait foi pour un acheteur français.',
     engineDetail:
       'Huit au total — ChatGPT, Perplexity, Google AI Overviews, Google AI Mode, Gemini, Bing Copilot, Claude et Grok — mais trois seulement au plan Starter, cinq au choix à partir de Plus, les huit sur Pro. Le coût en crédits varie selon le moteur : 1 pour Perplexity, 4 pour ChatGPT, 8 pour Gemini, 20 pour Claude, 31 pour Grok.',
-    languageDetail: 'Site et interface en anglais, avec une version française du blog.',
+    languageDetail:
+      'Site traduit en français (tarifs et blog compris), interface produit en anglais.',
     audienceDetail:
       'Les marques et consultants qui suivent une à cinq marques, avec une grille séparée pour les agences.',
     strengths: [
       'Un pool de crédits unique pour quatorze outils — suivi, scans ponctuels, analyse de contenu — plutôt que des quotas séparés, et trois outils gratuits qui tournent sur votre domaine sans inscription : score de préparation aux IA, vérification des robots IA, et un scan d’accessibilité testé contre 34 robots.',
     ],
     weaknesses: [
-      'Trois moteurs seulement au plan d’entrée à 99 $, et les moteurs les plus chers en crédits — Claude à 20, Grok à 31 — épuisent vite le pool : la couverture annoncée sur huit moteurs suppose en pratique le plan Pro à 399 $. Pas de plan gratuit permanent non plus : un essai de 7 jours, et trois outils ponctuels.',
+      'Trois moteurs seulement au plan d’entrée à 99 €, et les moteurs les plus chers en crédits — Claude à 20, Grok à 31 — épuisent vite le pool : la couverture annoncée sur huit moteurs suppose en pratique le plan Pro à 399 €. Pas de plan gratuit permanent non plus : un essai de 7 jours, et trois outils ponctuels.',
     ],
     features: [
       'Suivi hebdomadaire des citations et de la part de voix',
@@ -196,8 +197,8 @@ export const GEO_TOOLS: GeoTool[] = [
       'Trois outils gratuits sans inscription, dont un scan des robots IA sur 34 bots',
     ],
     itemListDescription:
-      'Plateforme de visibilité IA sur huit moteurs à partir de 99 $/mois, avec un pool de crédits unique pour quatorze outils et trois outils gratuits sans inscription. Interface en anglais.',
-    sources: [{ label: 'geotoolbox.ai/pricing', href: 'https://geotoolbox.ai/pricing' }],
+      'Plateforme de visibilité IA sur huit moteurs à partir de 99 €/mois, avec un pool de crédits unique pour quatorze outils et trois outils gratuits sans inscription. Interface en anglais, site traduit en français.',
+    sources: [{ label: 'geotoolbox.ai/fr/pricing', href: 'https://geotoolbox.ai/fr/pricing' }],
   },
   {
     slug: 'ia-rank',

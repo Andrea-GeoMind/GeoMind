@@ -75,7 +75,7 @@ export const ARTICLES: ArticleMeta[] = [
       { id: 'peec-ai', label: 'Peec AI vaut-il ses 85 €/mois ?' },
       { id: 'semrush', label: 'Le Semrush AI Visibility Toolkit suffit-il à une PME ?' },
       { id: 'ia-rank', label: 'ia-rank.com à 99 €/mois : que contient l’offre ?' },
-      { id: 'geotoolbox', label: 'GEO Toolbox à 99 $/mois : huit moteurs, mais lesquels ?' },
+      { id: 'geotoolbox', label: 'GEO Toolbox à 99 €/mois : huit moteurs, mais lesquels ?' },
       { id: 'ahrefs', label: 'Ahrefs Brand Radar : que paie-t-on vraiment ?' },
       { id: 'scrunch', label: 'Scrunch AI est-il réservé aux grosses marques ?' },
       { id: 'profound', label: 'Combien coûte réellement Profound ?' },
