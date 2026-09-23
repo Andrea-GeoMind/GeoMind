@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -93,6 +94,25 @@ export function SignupForm() {
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? 'Création du compte...' : 'Créer mon compte'}
       </Button>
+
+      {/*
+        Mention d'acceptation. Le formulaire ne renvoyait vers aucun texte
+        contractuel : ni conditions générales, ni politique de confidentialité.
+        Acceptation par la création du compte plutôt que par une case à cocher —
+        c'est admis et ça n'ajoute pas un obstacle de plus à l'inscription, à
+        condition que les deux liens soient là et lisibles.
+      */}
+      <p className="text-center text-xs text-muted-foreground">
+        En créant un compte, vous acceptez les{' '}
+        <Link href="/legal/cgv" className="underline hover:text-foreground">
+          conditions générales
+        </Link>{' '}
+        et la{' '}
+        <Link href="/legal/privacy" className="underline hover:text-foreground">
+          politique de confidentialité
+        </Link>
+        .
+      </p>
 
       </form>
     </div>
