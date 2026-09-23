@@ -261,6 +261,15 @@ export default function MarketingHome() {
               </span>
             ))}
           </div>
+          <p className="border-t border-white/10 px-4 py-3 text-center text-xs text-[#7C92AC]">
+            Vous cherchez spécifiquement ChatGPT ?{' '}
+            <Link
+              href="/verifier-visibilite-chatgpt"
+              className="font-medium text-white underline underline-offset-4"
+            >
+              Testez ici
+            </Link>
+          </p>
         </div>
       </section>
 

@@ -568,6 +568,13 @@ export default function Page() {
 
       <h2 id="geomind">GeoMind : pour qui, et pour qui pas ?</h2>
       <p>
+        Avant de lire nos tarifs, vous pouvez déjà{' '}
+        <Link href="/verifier-visibilite-chatgpt">
+          vérifier gratuitement si ChatGPT peut lire votre site
+        </Link>
+        .
+      </p>
+      <p>
         <strong>Prix.</strong> Plan Gratuit sans limite de durée : 1 site et 1 000 crédits de
         bienvenue, non renouvelés — une analyse complète coûte 400 crédits, donc deux analyses et
         quelques questions au coach. Solo à 19 €/mois (15 € en annuel) : 2 sites, 5 000 crédits par

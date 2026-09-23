@@ -50,6 +50,12 @@ export default function Footer() {
               Générateur llms.txt
             </Link>
             <Link
+              href="/verifier-visibilite-chatgpt"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Vérifier ma visibilité ChatGPT
+            </Link>
+            <Link
               href="/legal/cgv"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

@@ -25,6 +25,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    // Page d'acquisition stratégique (cible « comment savoir si ChatGPT
+    // parle de mon site ») : priorité au-dessus des articles, en dessous
+    // de /pricing.
+    {
+      url: `${base}/verifier-visibilite-chatgpt`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
     ...ARTICLES.map((a) => ({
       url: `${base}/blog/${a.slug}`,
       lastModified: new Date(a.datePublished),
