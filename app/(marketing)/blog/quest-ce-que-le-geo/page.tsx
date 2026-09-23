@@ -14,18 +14,31 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <ArticleLayout meta={meta}>
-      <p>
-        <strong>
-          Le GEO (Generative Engine Optimization) est l&apos;ensemble des pratiques qui permettent
-          à votre site d&apos;être cité dans les réponses générées par les intelligences
-          artificielles — ChatGPT, Perplexity, Gemini, Claude — lorsqu&apos;un internaute pose une
-          question dans ces outils.
-        </strong>{' '}
-        Concrètement : quand un client potentiel demande « quel est le meilleur plombier à Lyon »
-        ou « quelle agence comptable choisir à Bordeaux », une IA lui répond directement. Le GEO
-        détermine si votre nom apparaît dans cette réponse, ou si c&apos;est celui d&apos;un
-        concurrent.
-      </p>
+      {/* La réponse tient en trois lignes, juste sous le H1 et avant tout le
+          reste : c'est ce bloc que les moteurs de réponse reprennent. Les trois
+          paragraphes sont regroupés dans un seul élément pour que le sommaire,
+          inséré par ArticleLayout après le premier enfant, ne vienne pas
+          s'intercaler au milieu de la réponse. */}
+      <div className="space-y-4">
+        <p>
+          <strong>
+            Le GEO (Generative Engine Optimization) est l&apos;ensemble des pratiques qui permettent
+            à votre site d&apos;être cité dans les réponses générées par les intelligences
+            artificielles — ChatGPT, Perplexity, Gemini, Claude.
+          </strong>
+        </p>
+        <p>
+          Concrètement : quand un client potentiel demande « quel est le meilleur plombier à Lyon »
+          ou « quelle agence comptable choisir à Bordeaux », l&apos;IA lui répond directement, en
+          citant ses sources. Le GEO détermine si votre nom apparaît dans cette réponse, ou si
+          c&apos;est celui d&apos;un concurrent.
+        </p>
+        <p>
+          Ce n&apos;est pas du SEO : le référencement vous place dans une liste de liens, le GEO
+          vous fait nommer dans une réponse rédigée. Les deux se travaillent ensemble, et le GEO
+          s&apos;appuie sur les fondations du SEO.
+        </p>
+      </div>
 
       <h2 id="pourquoi-le-geo-apparait-maintenant">Pourquoi le GEO apparaît maintenant</h2>
       <p>
@@ -50,18 +63,18 @@ export default function Page() {
 
       <h2 id="geo-vs-seo-la-difference-en-une-phrase">GEO vs SEO : la différence en une phrase</h2>
       <p>
-        Le SEO vous place dans une liste de liens ; le GEO vous fait nommer dans une réponse. Ce
-        ne sont pas des disciplines opposées — le GEO s&apos;appuie sur les fondations du SEO —
-        mais elles mesurent des choses différentes et nécessitent des actions complémentaires.
-        Pour comprendre en détail les points communs et les divergences,{' '}
+        Le SEO vous place dans une liste de liens ; le GEO vous fait nommer dans une réponse. Ce ne
+        sont pas des disciplines opposées — le GEO s&apos;appuie sur les fondations du SEO — mais
+        elles mesurent des choses différentes et nécessitent des actions complémentaires. Pour
+        comprendre en détail les points communs et les divergences,{' '}
         <Link href="/blog/geo-vs-seo">lisez notre comparatif complet GEO vs SEO</Link>.
       </p>
 
       <h2 id="les-3-piliers-du-geo">Les 3 piliers du GEO</h2>
       <p>
-        Le GEO repose sur trois dimensions que l&apos;on peut mesurer et améliorer
-        indépendamment. Les négliger l&apos;une après l&apos;autre est la meilleure façon de ne
-        jamais apparaître dans les réponses des IA.
+        Le GEO repose sur trois dimensions que l&apos;on peut mesurer et améliorer indépendamment.
+        Les négliger l&apos;une après l&apos;autre est la meilleure façon de ne jamais apparaître
+        dans les réponses des IA.
       </p>
 
       <h3>Autorité</h3>
@@ -69,24 +82,23 @@ export default function Page() {
         Les IA citent en priorité les sources qu&apos;elles jugent fiables. Cette confiance se
         construit en dehors de votre site : mentions dans la presse locale ou sectorielle, fiches
         sur les annuaires de référence (Pages Jaunes, Google Business Profile, annuaires
-        professionnels), avis clients nombreux et récents, présence sur Wikipédia si votre
-        structure s&apos;y prête. Plus votre nom est mentionné dans des sources que les IA
-        considèrent comme sérieuses, plus elles vous citeront à leur tour.
+        professionnels), avis clients nombreux et récents, présence sur Wikipédia si votre structure
+        s&apos;y prête. Plus votre nom est mentionné dans des sources que les IA considèrent comme
+        sérieuses, plus elles vous citeront à leur tour.
       </p>
       <p>
-        L&apos;autorité GEO est donc largement une question de présence <em>en dehors</em> de
-        votre propre site. C&apos;est une différence majeure avec le SEO classique, où votre site
-        est le centre de gravité.
+        L&apos;autorité GEO est donc largement une question de présence <em>en dehors</em> de votre
+        propre site. C&apos;est une différence majeure avec le SEO classique, où votre site est le
+        centre de gravité.
       </p>
 
       <h3>Technique</h3>
       <p>
-        Pour vous citer, une IA doit d&apos;abord pouvoir lire et comprendre votre site. Cela
-        passe par des prérequis techniques : votre fichier robots.txt ne doit pas bloquer les
-        robots des IA (certains ont leur propre agent d&apos;exploration), votre sitemap doit être
-        à jour, vos pages doivent se charger rapidement, et vos données structurées (balises
-        schema.org) doivent décrire clairement votre activité, votre localisation, vos horaires et
-        vos services.
+        Pour vous citer, une IA doit d&apos;abord pouvoir lire et comprendre votre site. Cela passe
+        par des prérequis techniques : votre fichier robots.txt ne doit pas bloquer les robots des
+        IA (certains ont leur propre agent d&apos;exploration), votre sitemap doit être à jour, vos
+        pages doivent se charger rapidement, et vos données structurées (balises schema.org) doivent
+        décrire clairement votre activité, votre localisation, vos horaires et vos services.
       </p>
       <p>
         Une page lente, sans structure sémantique, avec un contenu dupliqué ou des erreurs
@@ -96,17 +108,15 @@ export default function Page() {
 
       <h3>Contenu</h3>
       <p>
-        C&apos;est le pilier le plus actionnable à court terme. Les IA cherchent du contenu
-        « citable » : des définitions claires placées en début de page, des réponses directes à
-        des questions précises, des listes structurées, des fourchettes de prix, des FAQ balisées.
-        Le contenu vague — « nous proposons des solutions adaptées à vos besoins » — n&apos;est
-        jamais repris, parce qu&apos;il ne dit rien de précis que l&apos;IA pourrait extraire et
-        restituer.
+        C&apos;est le pilier le plus actionnable à court terme. Les IA cherchent du contenu «
+        citable » : des définitions claires placées en début de page, des réponses directes à des
+        questions précises, des listes structurées, des fourchettes de prix, des FAQ balisées. Le
+        contenu vague — « nous proposons des solutions adaptées à vos besoins » — n&apos;est jamais
+        repris, parce qu&apos;il ne dit rien de précis que l&apos;IA pourrait extraire et restituer.
       </p>
       <p>
         Concrètement : chaque page de votre site devrait répondre à une question précise que vos
-        clients posent réellement. La réponse doit apparaître dès les premières lignes, sans
-        détour.
+        clients posent réellement. La réponse doit apparaître dès les premières lignes, sans détour.
       </p>
 
       <h2 id="comment-une-ia-decide-qui-citer">Comment une IA décide qui citer</h2>
@@ -114,12 +124,10 @@ export default function Page() {
         Les modèles d&apos;IA ne fonctionnent pas exactement comme un moteur de recherche. Ils ont
         été entraînés sur de vastes corpus de textes, et ils ont une « mémoire » implicite des
         sources qu&apos;ils ont ingérées. Mais pour les réponses factuelles sur des sujets récents
-        ou locaux, ils s&apos;appuient aussi sur une recherche web en temps réel (c&apos;est le
-        cas de Perplexity, de ChatGPT avec la navigation activée, et de Gemini).
+        ou locaux, ils s&apos;appuient aussi sur une recherche web en temps réel (c&apos;est le cas
+        de Perplexity, de ChatGPT avec la navigation activée, et de Gemini).
       </p>
-      <p>
-        Dans tous les cas, le processus de sélection repose sur plusieurs critères combinés :
-      </p>
+      <p>Dans tous les cas, le processus de sélection repose sur plusieurs critères combinés :</p>
       <ul>
         <li>
           <strong>La cohérence de l&apos;information</strong> : si votre nom, adresse et numéro de
@@ -162,13 +170,13 @@ export default function Page() {
         </li>
         <li>
           <strong>Vérifiez votre robots.txt.</strong> Assurez-vous de ne pas bloquer les agents
-          d&apos;exploration des IA. Certains ont des identifiants spécifiques (GPTBot pour
-          OpenAI, PerplexityBot, etc.).
+          d&apos;exploration des IA. Certains ont des identifiants spécifiques (GPTBot pour OpenAI,
+          PerplexityBot, etc.).
         </li>
         <li>
           <strong>Complétez vos données structurées.</strong> Ajoutez ou mettez à jour les balises
-          schema.org : LocalBusiness, FAQ, Service. Ce balisage aide les IA à comprendre ce que
-          vous faites et où vous le faites.
+          schema.org : LocalBusiness, FAQ, Service. Ce balisage aide les IA à comprendre ce que vous
+          faites et où vous le faites.
         </li>
         <li>
           <strong>Unifiez vos informations de contact.</strong> Nom exact, adresse, numéro de
@@ -176,9 +184,9 @@ export default function Page() {
           site, Google Business Profile, les annuaires, les réseaux sociaux.
         </li>
         <li>
-          <strong>Récrivez vos pages clés.</strong> Commencez par la page d&apos;accueil et la
-          page de présentation de vos services. Chaque page doit répondre à une question précise
-          dès le premier paragraphe. Ajoutez une FAQ à la fin.
+          <strong>Récrivez vos pages clés.</strong> Commencez par la page d&apos;accueil et la page
+          de présentation de vos services. Chaque page doit répondre à une question précise dès le
+          premier paragraphe. Ajoutez une FAQ à la fin.
         </li>
         <li>
           <strong>Obtenez des mentions externes.</strong> Contactez un annuaire sectoriel, un média
@@ -186,9 +194,9 @@ export default function Page() {
           annuaire reconnu vaut beaucoup pour votre autorité GEO.
         </li>
         <li>
-          <strong>Mesurez à nouveau dans 30 jours.</strong> Le GEO ne se pilote pas au jour le
-          jour mais sur la tendance. Comparez vos résultats avec votre point de départ et
-          identifiez les requêtes où vous progressez.
+          <strong>Mesurez à nouveau dans 30 jours.</strong> Le GEO ne se pilote pas au jour le jour
+          mais sur la tendance. Comparez vos résultats avec votre point de départ et identifiez les
+          requêtes où vous progressez.
         </li>
       </ul>
 
@@ -209,8 +217,8 @@ export default function Page() {
         Pour une TPE ou une PME française, le GEO n&apos;est pas une option réservée aux grandes
         entreprises. C&apos;est une opportunité : les requêtes locales et de niche sont encore peu
         disputées dans les IA, et les premières actions produisent des résultats visibles en
-        quelques semaines. La question n&apos;est pas de savoir si vous devez vous y mettre, mais
-        à quelle vitesse.
+        quelques semaines. La question n&apos;est pas de savoir si vous devez vous y mettre, mais à
+        quelle vitesse.
       </p>
     </ArticleLayout>
   )

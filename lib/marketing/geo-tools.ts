@@ -61,8 +61,8 @@ export interface GeoTool {
 }
 
 /** Date du relevé des prix, affichée partout où un tarif apparaît. */
-export const GEO_TOOLS_CHECKED_ON = '2026-09-22'
-export const GEO_TOOLS_CHECKED_ON_LABEL = '22 septembre 2026'
+export const GEO_TOOLS_CHECKED_ON = '2026-09-23'
+export const GEO_TOOLS_CHECKED_ON_LABEL = '23 septembre 2026'
 
 /**
  * Ordre alphabétique volontaire : trier par prix ou par « note » placerait
@@ -74,24 +74,24 @@ export const GEO_TOOLS: GeoTool[] = [
     slug: 'ahrefs',
     name: 'Ahrefs Brand Radar',
     website: 'https://ahrefs.com/brand-radar',
-    priceSummary: '50 $/mois inclus dans un plan Ahrefs (dès 129 $) · 199 $/mois en autonome',
-    engineSummary: 'AI Overviews, AI Mode, ChatGPT, Perplexity, Gemini, Copilot (6)',
+    priceSummary: 'Inclus dans tout plan Ahrefs payant (dès 119 €) · 199 $/mois en autonome',
+    engineSummary: 'AI Overviews, AI Mode, ChatGPT, Perplexity, Gemini, Copilot, Claude (7)',
     language: 'Français disponible',
     target: 'Équipes SEO',
     priceDetail:
-      'Deux produits sous le même nom. Les « Custom Prompts » — vos propres questions suivies — sont inclus dans tout plan Ahrefs payant (Lite à 129 $/mois) et vendus à partir de 50 $/mois. L’« AI Visibility Index » — 83 questions par jour, 2 500 relevés par mois — coûte 199 $/mois et s’achète sans abonnement Ahrefs, avec un dépassement facturé 0,02 $ le relevé.',
+      'Deux produits sous le même nom. Les « Custom Prompts » — vos propres questions suivies — sont inclus dans tout plan Ahrefs payant (Lite à 119 €/mois depuis la France), vendus à partir de 50 $/mois seuls, ou 699 $/mois pour tous les modèles. L’« AI Visibility Index » — 83 questions par jour, 2 500 relevés par mois — coûte 199 $/mois et s’achète sans abonnement Ahrefs, avec un dépassement facturé 0,02 $ le relevé. Curiosité de facturation : les plans Ahrefs s’affichent en euros pour un visiteur français, mais le module Brand Radar reste libellé en dollars.',
     engineDetail:
-      'Google AI Overviews, AI Mode, ChatGPT, Perplexity, Gemini et Copilot. Claude est réservé aux contrats entreprise.',
+      'Google AI Overviews, AI Mode, ChatGPT, Perplexity, Gemini et Copilot. Claude est désormais accessible sur l’AI Visibility Index, qui annonce « toutes les plateformes, Claude compris » ; sur les questions personnalisées, un relevé Claude consomme 8 vérifications au lieu d’une.',
     languageDetail: 'Interface disponible en français — Ahrefs est traduit en douze langues.',
     audienceDetail: 'Les équipes SEO, en priorité celles déjà abonnées à Ahrefs.',
     strengths: [
       'L’adossement à l’index Ahrefs : vous croisez la visibilité IA avec le trafic, les backlinks et la demande de recherche, et le module suit aussi YouTube, TikTok et Reddit. Si vous payez déjà Ahrefs, le suivi de vos questions est déjà là.',
     ],
     weaknesses: [
-      'La lisibilité du prix. On lit encore partout un « 828 $/mois tout compris » qui correspond à une grille antérieure ; la grille actuelle est plus simple, mais il faut comprendre la différence entre les deux produits pour savoir ce qu’on achète. Et Claude manque, comme chez la plupart des acteurs SEO historiques.',
+      'La lisibilité du prix. On lit encore partout un « 828 $/mois tout compris » qui correspond à une grille antérieure, et la grille actuelle mélange deux produits, deux devises et un compteur de vérifications où un relevé Claude coûte huit fois un relevé Perplexity. Il faut lire attentivement pour savoir ce qu’on achète.',
     ],
     itemListDescription:
-      'Module de visibilité IA d’Ahrefs sur six moteurs, à partir de 50 $/mois inclus dans un plan Ahrefs payant, ou 199 $/mois en abonnement autonome. Interface disponible en français.',
+      'Module de visibilité IA d’Ahrefs sur six moteurs plus Claude, inclus dans tout plan Ahrefs payant (dès 119 €/mois) ou 199 $/mois en abonnement autonome. Interface disponible en français.',
     sources: [
       { label: 'ahrefs.com/brand-radar', href: 'https://ahrefs.com/brand-radar' },
       {
@@ -99,6 +99,37 @@ export const GEO_TOOLS: GeoTool[] = [
         href: 'https://help.ahrefs.com/fr/articles/852478-comment-puis-je-changer-la-langue-de-l-interface-ahrefs',
       },
     ],
+  },
+  {
+    slug: 'chatseo',
+    name: 'ChatSEO',
+    website: 'https://chatseo.app',
+    priceSummary: '29 €/mois (23 € en annuel)',
+    engineSummary: 'Aucun suivi moteur par moteur — le GEO est l’un des 12 agents du chatbot',
+    language: 'Français',
+    target: 'Fondateurs solos, consultants, petites agences',
+    priceDetail:
+      'Starter à 29 €/mois (23 € en annuel, 278 € l’an) pour 100 crédits et un site connecté, Pro à 49 € (39 €, 470 €) pour 200 crédits, trois sites et l’accès API et MCP, Ranker à 79 € (63 €, 758 €) pour 400 crédits et dix sites, plus un plan sur mesure. Un crédit égale un message envoyé. Essai avec 30 crédits offerts, sans carte bancaire.',
+    engineDetail:
+      'Ce n’est pas un outil de suivi des citations moteur par moteur : sa page de tarifs ne nomme aucun moteur de réponse. Le GEO y est l’un des douze agents du chatbot — « GEO (être cité par les IA) » — aux côtés de la recherche de mots-clés, du maillage interne ou du SEO local.',
+    languageDetail: 'Interface, agents et support en français.',
+    audienceDetail:
+      'Les fondateurs solos et consultants qui veulent des actions concrètes sans ouvrir un tableau de bord SEO ; la formule Ranker vise les agences multi-sites.',
+    strengths: [
+      'Le format : on discute avec un agent connecté à votre Search Console plutôt que de lire un tableau de bord, et les douze agents couvrent la chaîne complète — mots-clés, on-page, maillage, backlinks, SEO local, données structurées — dont un agent GEO. Accès API et MCP dès le plan Pro à 49 €, et publication directe sur WordPress ou Webflow.',
+    ],
+    weaknesses: [
+      'Ce n’est pas un outil de mesure de la visibilité IA : rien sur sa page de tarifs n’indique qu’il interroge ChatGPT, Perplexity ou Claude pour savoir s’ils vous citent, ni qu’il suive une tendance moteur par moteur. Le GEO y est un sujet de conseil, pas une mesure. Et la facturation au message — un crédit par message envoyé — rend le coût réel dépendant de votre façon de dialoguer.',
+    ],
+    features: [
+      '12 agents SEO dans un chatbot, dont un agent GEO',
+      'Connexion Google Search Console (Google Analytics à partir du plan Pro)',
+      'Accès API et MCP à partir du plan Pro (49 €)',
+      'Publication directe sur WordPress et Webflow',
+    ],
+    itemListDescription:
+      'Assistant SEO français en chatbot connecté à la Search Console, à partir de 29 €/mois, avec un agent GEO parmi ses douze agents. Interface en français.',
+    sources: [{ label: 'chatseo.app/fr/tarifs', href: 'https://chatseo.app/fr/tarifs' }],
   },
   {
     slug: 'geomind',
@@ -135,6 +166,38 @@ export const GEO_TOOLS: GeoTool[] = [
     itemListDescription:
       'Outil français d’audit de visibilité IA sur ChatGPT, Claude, Gemini et Perplexity. Plan gratuit disponible pour un site ; plans payants annoncés de 19 à 149 €/mois, en liste d’attente. Interface et recommandations en français.',
     sources: [{ label: 'geomind.fr/pricing', href: 'https://geomind.fr/pricing' }],
+  },
+  {
+    slug: 'geotoolbox',
+    name: 'GEO Toolbox',
+    website: 'https://geotoolbox.ai',
+    priceSummary: '99 $/mois (−20 % en annuel)',
+    engineSummary:
+      '3 moteurs au plan d’entrée, 5 au choix à partir de Plus, les 8 sur Pro (ChatGPT, Perplexity, AI Overviews, AI Mode, Gemini, Copilot, Claude, Grok)',
+    language: 'Anglais',
+    target: 'Marques, consultants, agences',
+    priceDetail:
+      'Starter à 99 $/mois (1 marque, 50 questions, 3 moteurs), Plus à 199 $ (jusqu’à 3 marques, 100 questions mutualisées, 5 moteurs au choix), Pro à 399 $ (jusqu’à 5 marques, 150 questions, les 8 moteurs), plus un palier Growth et une grille agences. Facturation annuelle à −20 %. Essai de 7 jours sur les plans payants ; trois des dix outils gratuits tournent sur votre domaine sans inscription ni carte bancaire.',
+    engineDetail:
+      'Huit au total — ChatGPT, Perplexity, Google AI Overviews, Google AI Mode, Gemini, Bing Copilot, Claude et Grok — mais trois seulement au plan Starter, cinq au choix à partir de Plus, les huit sur Pro. Le coût en crédits varie selon le moteur : 1 pour Perplexity, 4 pour ChatGPT, 8 pour Gemini, 20 pour Claude, 31 pour Grok.',
+    languageDetail: 'Site et interface en anglais, avec une version française du blog.',
+    audienceDetail:
+      'Les marques et consultants qui suivent une à cinq marques, avec une grille séparée pour les agences.',
+    strengths: [
+      'Un pool de crédits unique pour quatorze outils — suivi, scans ponctuels, analyse de contenu — plutôt que des quotas séparés, et trois outils gratuits qui tournent sur votre domaine sans inscription : score de préparation aux IA, vérification des robots IA, et un scan d’accessibilité testé contre 34 robots.',
+    ],
+    weaknesses: [
+      'Trois moteurs seulement au plan d’entrée à 99 $, et les moteurs les plus chers en crédits — Claude à 20, Grok à 31 — épuisent vite le pool : la couverture annoncée sur huit moteurs suppose en pratique le plan Pro à 399 $. Pas de plan gratuit permanent non plus : un essai de 7 jours, et trois outils ponctuels.',
+    ],
+    features: [
+      'Suivi hebdomadaire des citations et de la part de voix',
+      'Pool de crédits unique pour 14 outils, au coût variable selon le moteur',
+      'Connexion Google Search Console et Google Analytics',
+      'Trois outils gratuits sans inscription, dont un scan des robots IA sur 34 bots',
+    ],
+    itemListDescription:
+      'Plateforme de visibilité IA sur huit moteurs à partir de 99 $/mois, avec un pool de crédits unique pour quatorze outils et trois outils gratuits sans inscription. Interface en anglais.',
+    sources: [{ label: 'geotoolbox.ai/pricing', href: 'https://geotoolbox.ai/pricing' }],
   },
   {
     slug: 'ia-rank',
@@ -359,7 +422,7 @@ export const GEO_TOOLS: GeoTool[] = [
     language: 'Français disponible',
     target: 'PME et agences équipées Semrush',
     priceDetail:
-      '94,94 €/mois par domaine, facturé à l’année. Essai de 7 jours. Le module est aussi vendu dans les bundles Semrush One (Starter à 199 $/mois). Des options de 10 à 90 $/mois s’ajoutent selon les besoins.',
+      '94,94 €/mois par domaine, facturé à l’année. Essai de 7 jours. Le module est aussi vendu dans les bundles Semrush One (Starter à 199 $/mois). Des options de 9,59 à 86,31 €/mois s’ajoutent selon les besoins.',
     engineDetail:
       'ChatGPT, Google AI (AI Overviews et AI Mode), Gemini et Perplexity. Pas de Claude.',
     languageDetail: 'Interface disponible en français.',

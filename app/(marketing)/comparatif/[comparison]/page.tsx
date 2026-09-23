@@ -367,7 +367,7 @@ export default async function ComparisonPage({
       </div>
 
       <div className="mt-12 rounded-2xl bg-[#16304B] px-8 py-10 text-center shadow-xl">
-        <p className="mb-2 text-lg font-bold text-white">Les douze outils du marché, comparés</p>
+        <p className="mb-2 text-lg font-bold text-white">Les quatorze outils du marché, comparés</p>
         <p className="mb-5 text-sm text-[#B2C8DE]">
           Prix réels, moteurs couverts, langue et limites de chacun — les nôtres comprises.
         </p>

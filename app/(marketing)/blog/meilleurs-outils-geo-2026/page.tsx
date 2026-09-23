@@ -55,7 +55,9 @@ function CompareLink({ slug }: { slug: string }) {
   const t = tool(slug)
   return (
     <p>
-      <Link href={`/comparatif/geomind-vs-${slug}` as Route}>Comparer GeoMind et {t.name} en détail</Link>
+      <Link href={`/comparatif/geomind-vs-${slug}` as Route}>
+        Comparer GeoMind et {t.name} en détail
+      </Link>
     </p>
   )
 }
@@ -101,8 +103,8 @@ export default function Page() {
 
       <h2 id="comment-nous-avons-compare">Comment nous avons comparé</h2>
       <p>
-        Une précision avant tout : <strong>nous éditons GeoMind</strong>, l’un des douze outils de
-        ce comparatif. Nous l’avons traité avec la même grille que les autres, ses limites sont
+        Une précision avant tout : <strong>nous éditons GeoMind</strong>, l’un des quatorze outils
+        de ce comparatif. Nous l’avons traité avec la même grille que les autres, ses limites sont
         écrites au même endroit que celles des concurrents, et le tableau est classé par ordre
         alphabétique — pas par un score qui nous mettrait en tête.
       </p>
@@ -184,6 +186,15 @@ export default function Page() {
       <ToolFiche tool={tool('otterly')} />
       <CompareLink slug="otterly" />
 
+      <h2 id="chatseo">ChatSEO à 29 €/mois : un outil GEO ou un outil SEO ?</h2>
+      <p>
+        Un cas à part dans ce comparatif : ChatSEO est un assistant SEO en français, connecté à
+        votre Search Console, dont le GEO est l’un des douze agents. Il ne mesure pas vos citations
+        moteur par moteur — il vous conseille. Nous l’incluons parce qu’on nous le cite souvent
+        comme alternative, et parce que la confusion entre les deux métiers coûte cher.
+      </p>
+      <ToolFiche tool={tool('chatseo')} />
+
       <h2 id="meteoria">Meteoria : que vaut le suivi quotidien à 75 €/mois ?</h2>
       <ToolFiche tool={tool('meteoria')} />
       <CompareLink slug="meteoria" />
@@ -207,6 +218,9 @@ export default function Page() {
       <h2 id="ia-rank">ia-rank.com à 99 €/mois : que contient l’offre ?</h2>
       <ToolFiche tool={tool('ia-rank')} />
       <CompareLink slug="ia-rank" />
+
+      <h2 id="geotoolbox">GEO Toolbox à 99 $/mois : huit moteurs, mais lesquels ?</h2>
+      <ToolFiche tool={tool('geotoolbox')} />
 
       <h2 id="ahrefs">Ahrefs Brand Radar : que paie-t-on vraiment ?</h2>
       <ToolFiche tool={tool('ahrefs')} />
