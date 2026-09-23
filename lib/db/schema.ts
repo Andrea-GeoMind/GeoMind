@@ -206,7 +206,10 @@ export const siteMetadata = pgTable('site_metadata', {
     .unique()
     .references(() => sites.id, { onDelete: 'cascade' }),
   description: text('description'),
-  keywords: text('keywords').array().notNull().default(sql`'{}'::text[]`),
+  keywords: text('keywords')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -504,7 +507,7 @@ export const actionStates = pgTable(
     ruleKey: text('rule_key').notNull(),
     /** '' pour les issues site-scope, sinon l'URL de la page concernée */
     pageUrl: text('page_url').notNull().default(''),
-    source: text('source', { enum: ['technical', 'content'] }).notNull(),
+    source: text('source', { enum: ['technical', 'content', 'authority'] }).notNull(),
     status: actionStatusEnum('status').notNull().default('todo'),
     markedDoneAt: timestamp('marked_done_at', { withTimezone: true }),
     verifiedAt: timestamp('verified_at', { withTimezone: true }),
@@ -582,7 +585,7 @@ export const recommendations = pgTable(
   },
   (table) => ({
     issueVariantUnique: unique().on(table.issueId, table.variant),
-  }),
+  })
 )
 
 // ─── publishers ───────────────────────────────────────────────────────────────

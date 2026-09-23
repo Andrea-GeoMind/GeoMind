@@ -9,6 +9,9 @@ import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issue
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
 import { getActionFixesByRule } from '@/lib/analysis/action-fixes.server'
+import { getOffSitePresenceByAnalysisId } from '@/lib/db/queries/off-site-presence'
+import { buildAuthorityActions } from '@/lib/analysis/authority-actions'
+import { OFF_SITE_PLATFORMS } from '@/lib/analysis/offsite-platforms'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { ActionCard, type ActionItem } from '@/components/features/action-plan/action-card'
 
@@ -44,15 +47,27 @@ export default async function ActionPlanPage({ params }: Props) {
     )
   }
 
-  const [technical, content, states, fixesByRule] = await Promise.all([
-    latest.status === 'success'
-      ? getTechnicalIssuesByAnalysisId(latest.id)
-      : Promise.resolve([]),
+  const [technical, content, states, fixesByRule, offSite] = await Promise.all([
+    latest.status === 'success' ? getTechnicalIssuesByAnalysisId(latest.id) : Promise.resolve([]),
     latest.status === 'success' ? getContentIssuesByAnalysisId(latest.id) : Promise.resolve([]),
     getActionStatesBySiteId(siteId),
     // Correctifs prêts à coller indexés par ruleKey (fusion Studio → Plan d'action)
     getActionFixesByRule(site),
+    latest.status === 'success' ? getOffSitePresenceByAnalysisId(latest.id) : Promise.resolve([]),
   ])
+
+  // Le plan ne lisait que Technique et Contenu : il restait muet sur
+  // l'autorité, même à 0. Les actions d'autorité sont dérivées de la note et
+  // des plateformes où le site est absent — pas détectées sur une page.
+  const platformNameById = new Map(OFF_SITE_PLATFORMS.map((p) => [p.id, p.name]))
+  const absentPlatformNames = offSite
+    .filter((p) => p.status === 'absent')
+    .map((p) => platformNameById.get(p.platformId) ?? p.platformId)
+
+  const authorityActions = buildAuthorityActions({
+    authorityScore: latest.status === 'success' ? (latest.authorityScore ?? null) : null,
+    absentPlatformNames,
+  })
 
   const stateByKey = new Map(states.map((s) => [`${s.ruleKey}::${s.pageUrl}`, s]))
 
@@ -78,6 +93,27 @@ export default async function ActionPlanPage({ params }: Props) {
       fix: fixesByRule[i.ruleKey],
     }
   })
+
+  // Actions d'autorité, enrichies de leur état durable comme les autres
+  const authorityItems: ActionItem[] = authorityActions.map((a) => {
+    const state = stateByKey.get(`${a.ruleKey}::`)
+    return {
+      ruleKey: a.ruleKey,
+      pageUrl: '',
+      source: 'authority' as const,
+      title: a.title,
+      description: a.description,
+      // Ces actions ne retirent pas de points : elles décrivent le travail
+      // hors site, pas un défaut constaté sur une page.
+      penalty: 0,
+      severity: a.severity,
+      effort: a.effort,
+      impact: a.impact,
+      status: (state?.status ?? 'todo') as ActionItem['status'],
+      verifiedAt: state?.verifiedAt?.toISOString() ?? null,
+    }
+  })
+  items.push(...authorityItems)
 
   // Actions vérifiées dont la règle a disparu des analyses (le succès accumulé)
   const currentKeys = new Set(items.map((i) => `${i.ruleKey}::${i.pageUrl}`))
@@ -178,8 +214,8 @@ export default async function ActionPlanPage({ params }: Props) {
         <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
           <Info size={15} className="mt-0.5 shrink-0 text-muted-foreground" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Aucun point faible détecté à la dernière analyse — votre plan d&apos;action est vide,
-            et c&apos;est une excellente nouvelle.
+            Aucun point faible détecté à la dernière analyse — votre plan d&apos;action est vide, et
+            c&apos;est une excellente nouvelle.
           </p>
         </div>
       ) : (

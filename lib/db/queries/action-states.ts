@@ -10,7 +10,7 @@ import { db } from '@/lib/db/client'
 import { actionStates } from '@/lib/db/schema'
 
 export type ActionStatus = 'todo' | 'done' | 'verified'
-export type ActionSource = 'technical' | 'content'
+export type ActionSource = 'technical' | 'content' | 'authority'
 
 export async function getActionStatesBySiteId(siteId: string) {
   return db.select().from(actionStates).where(eq(actionStates.siteId, siteId))
