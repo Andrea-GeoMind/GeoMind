@@ -13,10 +13,27 @@ export const MIN_OPPORTUNITIES = 3
 
 // ─── Émetteurs conditionnels techniques ───────────────────────────────────────
 // Déclenchés quand la règle de base passe (l'issue correspondante est absente).
+//
+// Piège : « la règle n'a pas tiré » ne veut pas dire « c'est en place ». Une
+// règle passe aussi quand l'objet qu'elle vérifie n'existe pas du tout —
+// schema_org_faq passe sur un site sans aucune FAQ. Un émetteur qui félicite
+// dans ce cas contredit la règle contenu qui, elle, signale l'absence de FAQ.
+// D'où `requiresEvidence` : l'opportunité n'est émise que si une preuve
+// positive est fournie par l'appelant.
 
-const TECHNICAL_CONDITIONAL: Array<{ whenRulePasses: string; issue: TechnicalIssue }> = [
+interface ConditionalEmitter<T> {
+  whenRulePasses: string
+  /** Preuve positive exigée — sans elle, l'opportunité reste muette. */
+  requiresEvidence?: 'faqExists'
+  issue: T
+}
+
+const TECHNICAL_CONDITIONAL: ConditionalEmitter<TechnicalIssue>[] = [
   {
     whenRulePasses: 'schema_org_faq',
+    // Sans cette exigence, un site sans FAQ lisait « Votre FAQ schema est en
+    // place — bravo » juste à côté de « Aucun contenu FAQ détecté ».
+    requiresEvidence: 'faqExists',
     issue: {
       ruleKey: 'opportunity_howto_schema',
       category: 'schema_org',
@@ -36,7 +53,7 @@ const TECHNICAL_CONDITIONAL: Array<{ whenRulePasses: string; issue: TechnicalIss
       category: 'accessibility',
       title: 'Passez au llms-full.txt',
       description:
-        'Votre llms.txt existe déjà. La version étendue llms-full.txt donne aux IA le contenu complet de vos pages clés en un seul fichier — encore plus de chances d\'être compris et cité.',
+        "Votre llms.txt existe déjà. La version étendue llms-full.txt donne aux IA le contenu complet de vos pages clés en un seul fichier — encore plus de chances d'être compris et cité.",
       sampleUrls: [],
       severity: 'opportunity',
       effort: 1,
@@ -64,7 +81,7 @@ const TECHNICAL_POOL: TechnicalIssue[] = [
     category: 'structure',
     title: 'Une page dédiée par question clé',
     description:
-      'Les IA citent plus volontiers une page qui répond précisément à une question qu\'une page générique. Créez une page dédiée pour chacune de vos 3 questions clients les plus fréquentes.',
+      "Les IA citent plus volontiers une page qui répond précisément à une question qu'une page générique. Créez une page dédiée pour chacune de vos 3 questions clients les plus fréquentes.",
     sampleUrls: [],
     severity: 'opportunity',
     effort: 3,
@@ -75,7 +92,7 @@ const TECHNICAL_POOL: TechnicalIssue[] = [
     category: 'accessibility',
     title: 'Suivez les passages des crawlers IA',
     description:
-      'GPTBot, ClaudeBot, PerplexityBot visitent-ils votre site ? Vérifiez vos logs serveur ou votre outil d\'analytics : leur fréquence de passage est un signal direct de votre visibilité IA.',
+      "GPTBot, ClaudeBot, PerplexityBot visitent-ils votre site ? Vérifiez vos logs serveur ou votre outil d'analytics : leur fréquence de passage est un signal direct de votre visibilité IA.",
     sampleUrls: [],
     severity: 'opportunity',
     effort: 2,
@@ -86,7 +103,7 @@ const TECHNICAL_POOL: TechnicalIssue[] = [
     category: 'schema_org',
     title: 'Validez vos données structurées régulièrement',
     description:
-      'Un schema cassé est invisible pour les IA. Prenez l\'habitude de valider vos données structurées après chaque mise à jour du site (validator.schema.org).',
+      "Un schema cassé est invisible pour les IA. Prenez l'habitude de valider vos données structurées après chaque mise à jour du site (validator.schema.org).",
     sampleUrls: [],
     severity: 'opportunity',
     effort: 1,
@@ -96,7 +113,7 @@ const TECHNICAL_POOL: TechnicalIssue[] = [
 
 // ─── Émetteurs conditionnels contenu ──────────────────────────────────────────
 
-const CONTENT_CONDITIONAL: Array<{ whenRulePasses: string; issue: ContentIssue }> = [
+const CONTENT_CONDITIONAL: ConditionalEmitter<ContentIssue>[] = [
   {
     whenRulePasses: 'content_not_fresh',
     issue: {
@@ -104,7 +121,7 @@ const CONTENT_CONDITIONAL: Array<{ whenRulePasses: string; issue: ContentIssue }
       category: 'coverage',
       title: 'Institutionnalisez votre cadence de publication',
       description:
-        'Votre contenu est frais — c\'est un vrai atout. Les IA favorisent les sources vivantes : fixez une cadence régulière (même 1 article/mois) pour entretenir ce signal.',
+        "Votre contenu est frais — c'est un vrai atout. Les IA favorisent les sources vivantes : fixez une cadence régulière (même 1 article/mois) pour entretenir ce signal.",
       sampleUrls: [],
       severity: 'opportunity',
       effort: 3,
@@ -166,9 +183,9 @@ const CONTENT_POOL: ContentIssue[] = [
   {
     ruleKey: 'opportunity_answer_first_writing',
     category: 'readability',
-    title: 'Adoptez l\'écriture « réponse d\'abord »',
+    title: "Adoptez l'écriture « réponse d'abord »",
     description:
-      'Commencez chaque page par la réponse à la question qu\'elle traite, puis développez. Les IA extraient les premiers paragraphes : donnez-leur la réponse toute prête.',
+      "Commencez chaque page par la réponse à la question qu'elle traite, puis développez. Les IA extraient les premiers paragraphes : donnez-leur la réponse toute prête.",
     sampleUrls: [],
     severity: 'opportunity',
     effort: 2,
@@ -178,19 +195,27 @@ const CONTENT_POOL: ContentIssue[] = [
 
 // ─── Complétion ───────────────────────────────────────────────────────────────
 
+/** Preuves positives que l'analyse peut fournir aux émetteurs conditionnels. */
+export interface OpportunityEvidence {
+  /** Le site a réellement du contenu FAQ (cf. lib/analysis/faq-detection). */
+  faqExists?: boolean
+}
+
 function complete<T extends { ruleKey: string; severity: string }>(
   detected: T[],
-  conditional: Array<{ whenRulePasses: string; issue: T }>,
-  pool: T[]
+  conditional: ConditionalEmitter<T>[],
+  pool: T[],
+  evidence: OpportunityEvidence
 ): T[] {
   const detectedKeys = new Set(detected.map((i) => i.ruleKey))
   const opportunities: T[] = []
 
-  // 1. Émetteurs conditionnels : la règle de base passe → l'opportunité s'active
-  for (const { whenRulePasses, issue } of conditional) {
-    if (!detectedKeys.has(whenRulePasses) && !detectedKeys.has(issue.ruleKey)) {
-      opportunities.push(issue)
-    }
+  // 1. Émetteurs conditionnels : la règle de base passe → l'opportunité
+  //    s'active, à condition que la preuve positive exigée soit là.
+  for (const { whenRulePasses, requiresEvidence, issue } of conditional) {
+    if (detectedKeys.has(whenRulePasses) || detectedKeys.has(issue.ruleKey)) continue
+    if (requiresEvidence && !evidence[requiresEvidence]) continue
+    opportunities.push(issue)
   }
 
   // 2. Complément depuis le pool statique jusqu'à la garantie MIN_OPPORTUNITIES
@@ -205,12 +230,23 @@ function complete<T extends { ruleKey: string; severity: string }>(
   return opportunities
 }
 
-/** Complète les issues techniques détectées pour garantir ≥ 3 opportunités. */
-export function completeTechnicalOpportunities(detected: TechnicalIssue[]): TechnicalIssue[] {
-  return complete(detected, TECHNICAL_CONDITIONAL, TECHNICAL_POOL)
+/**
+ * Complète les issues techniques détectées pour garantir ≥ 3 opportunités.
+ *
+ * `evidence` porte ce que la règle seule ne dit pas : une règle qui ne tire
+ * pas peut signifier « c'est en place » ou « l'objet n'existe pas ».
+ */
+export function completeTechnicalOpportunities(
+  detected: TechnicalIssue[],
+  evidence: OpportunityEvidence = {}
+): TechnicalIssue[] {
+  return complete(detected, TECHNICAL_CONDITIONAL, TECHNICAL_POOL, evidence)
 }
 
 /** Complète les issues contenu détectées pour garantir ≥ 3 opportunités. */
-export function completeContentOpportunities(detected: ContentIssue[]): ContentIssue[] {
-  return complete(detected, CONTENT_CONDITIONAL, CONTENT_POOL)
+export function completeContentOpportunities(
+  detected: ContentIssue[],
+  evidence: OpportunityEvidence = {}
+): ContentIssue[] {
+  return complete(detected, CONTENT_CONDITIONAL, CONTENT_POOL, evidence)
 }

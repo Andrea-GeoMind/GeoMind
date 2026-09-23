@@ -7,13 +7,9 @@ import { selectPagesForAnalysis } from '@/lib/analysis/page-selection'
 import { analysablePages } from '@/lib/analysis/page-health'
 import { crawlWasTruncated } from '@/lib/analysis/crawl-coverage'
 import { completeTechnicalOpportunities } from '@/lib/analysis/opportunities'
+import { hasFaqContent } from '@/lib/analysis/faq-detection'
 import { getPageAnalysisLimit } from '@/lib/quotas'
-import type {
-  TechnicalRuleFn,
-  TechnicalPageRuleFn,
-  TechnicalIssue,
-  FirecrawlPage,
-} from './types'
+import type { TechnicalRuleFn, TechnicalPageRuleFn, TechnicalIssue, FirecrawlPage } from './types'
 
 // ── Règles à scope SITE (une issue globale au plus) ───────────────────────────
 import { checkHttpsMissing } from './rules/https-missing'
@@ -100,7 +96,6 @@ export interface TechnicalAnalysisResult {
   issueCount: number
 }
 
-
 /**
  * Évaluation pure des règles techniques — aucune lecture ni écriture en base.
  *
@@ -143,7 +138,13 @@ export async function evaluateTechnicalRules(
   }
 
   const issues = [...siteIssues, ...pageIssues]
-  const allIssues = [...issues, ...completeTechnicalOpportunities(issues)]
+  // La preuve positive que la règle seule ne donne pas : schema_org_faq ne
+  // tire pas aussi bien quand la FAQ est balisée que quand il n'y a pas de
+  // FAQ du tout.
+  const allIssues = [
+    ...issues,
+    ...completeTechnicalOpportunities(issues, { faqExists: hasFaqContent(pages) }),
+  ]
 
   const score = computeIssuesScore(
     allIssues.map((i) => ({
@@ -178,11 +179,11 @@ export async function runTechnicalAnalysis({
 
   // Pages analysées selon le plan (§18.2)
   const pageLimit = await getPageAnalysisLimit(site.userId)
-  const { score, issues: detected, allIssues } = await evaluateTechnicalRules(
-    pages,
-    site.url,
-    pageLimit
-  )
+  const {
+    score,
+    issues: detected,
+    allIssues,
+  } = await evaluateTechnicalRules(pages, site.url, pageLimit)
 
   if (allIssues.length > 0) {
     await insertTechnicalIssues(

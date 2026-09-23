@@ -1,32 +1,12 @@
-import type { RuleInput, ContentIssue, FirecrawlPage } from '../types'
-
-/** Nombre minimal de titres interrogatifs (cumulés sur le site) pour considérer
- *  qu'un contenu FAQ — explicite ou implicite — existe. */
-const MIN_QUESTION_HEADINGS = 3
-
-function countQuestionHeadings(page: FirecrawlPage): number {
-  let count = 0
-
-  // Titres markdown terminés par « ? » : FAQ explicite ou Q&A implicite
-  if (page.markdown) {
-    count += (page.markdown.match(/^#{1,4}\s.*\?\s*$/gm) ?? []).length
-  }
-
-  // Titres H1/H2 remontés par les métadonnées du crawl
-  const { metadata } = page
-  if (metadata) {
-    const h1s = Array.isArray(metadata.h1) ? metadata.h1 : metadata.h1 ? [metadata.h1] : []
-    const h2s = metadata.h2 ?? []
-    count += [...h1s, ...h2s].filter((h) => h.trim().endsWith('?')).length
-  }
-
-  return count
-}
+import type { RuleInput, ContentIssue } from '../types'
+import { hasFaqContent } from '@/lib/analysis/faq-detection'
 
 /**
  * Règle SITE — aucun contenu FAQ (explicite ou implicite).
- * Les titres interrogatifs (terminés par « ? ») comptent comme du contenu FAQ :
- * ils matchent directement les questions que les utilisateurs posent aux IA.
+ *
+ * La détection vit dans lib/analysis/faq-detection.ts, partagée avec la règle
+ * technique `schema_org_faq` et avec les opportunités : les trois se
+ * contredisaient devant le client.
  */
 export async function checkNoFaqContent({
   pages,
@@ -37,8 +17,7 @@ export async function checkNoFaqContent({
   if (crawlTruncated) return null
   if (pages.length === 0) return null
 
-  const totalQuestions = pages.reduce((sum, p) => sum + countQuestionHeadings(p), 0)
-  if (totalQuestions >= MIN_QUESTION_HEADINGS) return null
+  if (hasFaqContent(pages)) return null
 
   return {
     ruleKey: 'no_faq_content',

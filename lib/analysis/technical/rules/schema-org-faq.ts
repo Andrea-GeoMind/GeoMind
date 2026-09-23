@@ -1,33 +1,18 @@
-import type { TechnicalIssue, RuleInput, FirecrawlPage } from '../types'
+import type { TechnicalIssue, RuleInput } from '../types'
 import { getSchemaTypes } from '@/lib/analysis/schema-helpers'
+import { faqPages } from '@/lib/analysis/faq-detection'
 
 /**
- * Détection durcie (V2) : une page est considérée « FAQ » dès qu'elle contient
- * du contenu de type questions/réponses, même sans titre interrogatif :
- * - ≥ 3 titres (H1-H4) se terminant par un point d'interrogation
- * - ≥ 3 questions en gras (pattern courant des FAQ : **Question ?**)
- * - ≥ 3 lignes Q/R explicites (« Q : », « Question : »)
- * - URL contenant /faq
+ * Règle — des pages de questions/réponses existent mais ne déclarent pas le
+ * balisage FAQPage.
+ *
+ * La détection des pages FAQ est partagée (lib/analysis/faq-detection.ts) avec
+ * la règle contenu `no_faq_content` et avec les opportunités.
  */
-function isFaqPage(page: FirecrawlPage): boolean {
-  const markdown = page.markdown ?? ''
-  const questionHeadings = markdown.match(/^#{1,4}.+\?/gm) ?? []
-  if (questionHeadings.length >= 3) return true
-  const boldQuestions = markdown.match(/\*\*[^*\n]+\?\s*\*\*/g) ?? []
-  if (boldQuestions.length >= 3) return true
-  const qaLines = markdown.match(/^>?\s*(?:Q|Question)\s*[:.]/gim) ?? []
-  if (qaLines.length >= 3) return true
-  try {
-    return /\/faq(?:\/|$|\.)/i.test(new URL(page.url).pathname)
-  } catch {
-    return false
-  }
-}
-
 export async function checkSchemaOrgFaq({ pages }: RuleInput): Promise<TechnicalIssue | null> {
-  const faqPages = pages.filter(isFaqPage)
-  if (faqPages.length === 0) return null
-  const missingSchema = faqPages.filter((p) => !getSchemaTypes(p).includes('FAQPage'))
+  const detected = faqPages(pages)
+  if (detected.length === 0) return null
+  const missingSchema = detected.filter((p) => !getSchemaTypes(p).includes('FAQPage'))
   if (missingSchema.length === 0) return null
   return {
     ruleKey: 'schema_org_faq',
