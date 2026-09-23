@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -68,6 +68,7 @@ export type ExpressAuditVariant = 'hero' | 'band'
 
 export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVariant }) {
   const [url, setUrl] = useState('')
+  const urlInputRef = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [stepIdx, setStepIdx] = useState(0)
   const [result, setResult] = useState<AuditResponse | null>(null)
@@ -81,11 +82,21 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
 
   const onNavy = variant === 'hero'
 
+  // Le champ est contrôlé : tant que React n'a pas hydraté, ce qu'on tape
+  // s'inscrit dans le DOM mais sera écrasé par l'état vide au premier rendu
+  // client. Le visiteur voit sa saisie disparaître et croit que le champ n'a
+  // pas pris son clic. On adopte donc la valeur déjà présente dans le DOM au
+  // lieu de l'effacer.
+  useEffect(() => {
+    const typedBeforeHydration = urlInputRef.current?.value
+    if (typedBeforeHydration) setUrl((current) => current || typedBeforeHydration)
+  }, [])
+
   async function run(e: React.FormEvent) {
     e.preventDefault()
     if (!url.trim() || status === 'loading') return
     if (!url.includes('.') || url.trim().includes(' ')) {
-      setError('Entrez l\'adresse de votre site — exemple : monentreprise.fr')
+      setError("Entrez l'adresse de votre site — exemple : monentreprise.fr")
       setStatus('error')
       return
     }
@@ -151,6 +162,7 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
             className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <input
+            ref={urlInputRef}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="votresite.fr"
@@ -230,7 +242,9 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
                   <div key={c.key} className="flex items-start gap-2.5">
                     <XCircle size={15} className="mt-0.5 shrink-0 text-[--score-bad-500]" />
                     <div>
-                      <p className="text-sm font-semibold leading-snug text-foreground">{c.label}</p>
+                      <p className="text-sm font-semibold leading-snug text-foreground">
+                        {c.label}
+                      </p>
                       <p className="text-xs leading-relaxed text-muted-foreground">{c.hint}</p>
                     </div>
                   </div>
@@ -248,9 +262,7 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
             {failed.length === 0 && (
               <div className="mt-4 flex items-start gap-2.5">
                 <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-[--score-good-500]" />
-                <p className="text-sm text-muted-foreground">
-                  Les bases techniques sont en place.
-                </p>
+                <p className="text-sm text-muted-foreground">Les bases techniques sont en place.</p>
               </div>
             )}
           </div>
@@ -292,13 +304,10 @@ export function ExpressAudit({ variant = 'hero' }: { variant?: ExpressAuditVaria
               <div className="flex items-start gap-3">
                 <MailCheck size={18} className="mt-0.5 shrink-0 text-[--score-good-500]" />
                 <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    Lien envoyé à {email}
-                  </p>
+                  <p className="text-sm font-semibold text-foreground">Lien envoyé à {email}</p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    Ouvrez-le pour accéder à votre rapport : votre compte et le site{' '}
-                    {result.domain} sont créés en un clic, sans mot de passe. Pensez à vérifier vos
-                    indésirables.
+                    Ouvrez-le pour accéder à votre rapport : votre compte et le site {result.domain}{' '}
+                    sont créés en un clic, sans mot de passe. Pensez à vérifier vos indésirables.
                   </p>
                 </div>
               </div>
