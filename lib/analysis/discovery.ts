@@ -10,13 +10,11 @@ import { replacePrompts } from '@/lib/db/queries/prompts'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { callStructured } from '@/lib/ai/structured'
 import { DiscoveryOutputSchema, NeutralPromptsOutputSchema } from '@/lib/ai/schemas'
-import {
-  DISCOVERY_SYSTEM_PROMPT,
-  buildDiscoveryUserMessage,
-} from '@/lib/ai/prompts/discovery'
+import { DISCOVERY_SYSTEM_PROMPT, buildDiscoveryUserMessage } from '@/lib/ai/prompts/discovery'
 import {
   NEUTRAL_PROMPTS_SYSTEM_PROMPT,
   buildNeutralPromptsUserMessage,
+  stripYearMentions,
 } from '@/lib/ai/prompts/neutral-prompts'
 import { isPromptNeutral } from '@/lib/analysis/neutrality'
 
@@ -73,7 +71,9 @@ export async function runDiscovery(siteId: string): Promise<DiscoveryResult> {
     model: HAIKU_MODEL,
   })
 
-  const rawPrompts = neutralPromptsResult.data.prompts
+  // Les modèles datent spontanément leurs questions (« … en 2024 ») : on
+  // retire l'année, que la consigne interdit déjà sans la garantir.
+  const rawPrompts = neutralPromptsResult.data.prompts.map(stripYearMentions)
 
   // ── Étape 3 : détection des prompts non-neutres (règle CLAUDE.md §6) ──────────
 
@@ -116,4 +116,3 @@ export async function runDiscovery(siteId: string): Promise<DiscoveryResult> {
     totalCostUsd: Math.round(totalCostUsd * 1_000_000) / 1_000_000,
   }
 }
-

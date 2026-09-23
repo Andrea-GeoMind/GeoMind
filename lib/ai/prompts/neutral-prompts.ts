@@ -34,6 +34,7 @@ Règles ABSOLUES :
 - Chaque prompt doit demander les sites web ou URLs dans la réponse.
 - Varie les angles : ne reformule pas 10 fois la même question.
 - Rédigez en français sauf si le business est clairement anglophone.
+- N'écris AUCUNE année dans les prompts (ni « en 2024 », ni « en 2025 », ni « cette année »). Une question datée vieillit mal et restreint la réponse du moteur, alors qu'on veut la liste la plus large possible.
 
 Répartis les prompts entre ces 5 styles (2 prompts par style) :
 
@@ -60,4 +61,33 @@ Mots-clés : ${params.keywords.join(', ')}
 IMPORTANT : N'utilise JAMAIS ces termes dans tes prompts : "${params.siteName}", "${params.siteUrl}", ni aucun nom de marque ou domaine identifiable de ce business.
 
 Génère les ${NEUTRAL_PROMPTS_COUNT} prompts citation-inducing (2 par style).`
+}
+
+/**
+ * Retire les mentions d'année d'un prompt généré.
+ *
+ * La consigne ci-dessus les interdit, mais un modèle n'obéit pas toujours : il
+ * n'a aucune notion de la date du jour et retombe volontiers sur une année de
+ * son corpus d'entraînement (« les meilleurs plombiers à Lyon en 2024 »). Une
+ * question datée mesure mal : elle restreint la réponse du moteur et vieillit
+ * dès le 1er janvier.
+ *
+ * Fonction pure, appliquée à chaque prompt avant l'enregistrement.
+ */
+export function stripYearMentions(prompt: string): string {
+  return (
+    prompt
+      // « en 2024 », « pour 2025 », « de 2024-2025 » — la préposition part avec
+      .replace(/\s+(?:en|pour|de|d['’])\s*(?:19|20)\d{2}(?:\s*[-–/]\s*(?:19|20)\d{2})?/gi, '')
+      // Année entre parenthèses : « (2024) »
+      .replace(/\s*\(\s*(?:19|20)\d{2}(?:\s*[-–/]\s*(?:19|20)\d{2})?\s*\)/g, '')
+      // Année isolée ou plage, en fin de segment : « … agences 2024-2025 ? »
+      .replace(/\s+(?:19|20)\d{2}(?:\s*[-–/]\s*(?:19|20)\d{2})?(?=\s|$|[?.,!])/g, '')
+      // « cette année », « l'année prochaine » — même défaut, sans chiffre
+      .replace(/\s+(?:cette\s+ann[ée]e|l['’]ann[ée]e\s+(?:prochaine|derni[èe]re))/gi, '')
+      // Ménage des espaces doubles uniquement. On ne touche PAS à l'espace
+      // avant « ? » : en typographie française, il est correct.
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  )
 }
