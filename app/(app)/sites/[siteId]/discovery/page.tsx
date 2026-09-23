@@ -59,8 +59,8 @@ export default async function DiscoveryPage({ params }: Props) {
           <span className="font-semibold text-foreground">
             Posez les questions comme vos clients les poseraient — sans citer votre nom.
           </span>{' '}
-          Si une question mentionne votre marque, c&apos;est normal que les IA vous trouvent :
-          elle ne compte pas dans le score.
+          Si une question mentionne votre marque, c&apos;est normal que les IA vous trouvent : elle
+          ne compte pas dans le score.
         </p>
       </div>
 
@@ -71,11 +71,12 @@ export default async function DiscoveryPage({ params }: Props) {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 ring-1 ring-primary/20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-          <div className="space-y-1.5 max-w-sm">
+          <div className="max-w-sm space-y-1.5">
             <p className="font-extrabold tracking-tight text-foreground">Découverte en cours…</p>
             <p className="text-sm leading-relaxed text-muted-foreground">
               GeoMind crawle votre site et génère votre profil GEO : description, mots-clés,
-              concurrents et prompts de test. Cette étape prend 20 à 40 secondes.
+              concurrents et questions de test. La première découverte prend en général 1 à 2
+              minutes.
             </p>
           </div>
           <LaunchDiscoveryButton siteId={siteId} />
@@ -120,8 +121,8 @@ export default async function DiscoveryPage({ params }: Props) {
               Prêt à lancer l&apos;analyse ?
             </h2>
             <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
-              GEOMIND va interroger les {ENGINE_COUNT} moteurs IA ({ENGINE_LIST}) avec vos
-              prompts neutres et analyser où votre site est cité.
+              GEOMIND va interroger les {ENGINE_COUNT} moteurs IA ({ENGINE_LIST}) avec vos prompts
+              neutres et analyser où votre site est cité.
             </p>
             <RunAnalysisButton siteId={siteId} siteName={site.name} />
           </section>

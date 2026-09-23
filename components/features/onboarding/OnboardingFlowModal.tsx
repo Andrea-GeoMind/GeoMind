@@ -2,7 +2,17 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, CheckCircle, Rocket, Tag, Users, MessageSquare, X, Plus, AlertTriangle } from 'lucide-react'
+import {
+  Loader2,
+  CheckCircle,
+  Rocket,
+  Tag,
+  Users,
+  MessageSquare,
+  X,
+  Plus,
+  AlertTriangle,
+} from 'lucide-react'
 import { validateAndLaunchAction } from '@/app/(app)/onboarding/validate-and-launch-action'
 import { launchDiscoveryAction } from '@/app/(app)/sites/[siteId]/discovery/launch-action'
 import type { AnalysisProgressResponse } from '@/app/api/analysis/[analysisId]/progress/route'
@@ -26,20 +36,30 @@ type Failure = {
   kind: 'discovery' | 'analysis-error' | 'analysis-slow'
 }
 
-// La découverte est annoncée à 20-40 s — au-delà de 2 min, quelque chose
-// cloche (site inaccessible, crawl bloqué) : on arrête d'attendre en silence.
-const DISCOVERY_TIMEOUT_S = 120
+// La découverte est annoncée à 1-2 min. Au-delà de 4 min, quelque chose cloche
+// (site inaccessible, crawl bloqué) : on arrête d'attendre en silence. L'écart
+// avec DISCOVERY_SLOW_AFTER_S laisse le temps de lire « c'est plus long que
+// d'habitude » avant de basculer en échec.
+const DISCOVERY_TIMEOUT_S = 240
 // L'analyse est annoncée à 2-4 min — au-delà de 10 min on propose de sortir.
 const ANALYSIS_TIMEOUT_S = 600
 // Au-delà de 4 polls consécutifs en échec (~20 s), on signale la connexion.
 const MAX_POLL_FAILURES = 4
 
 const CRAWL_STEPS = [
-  { label: 'Crawl des pages de votre site…', at: 0 },
-  { label: 'Analyse de votre activité…', at: 12 },
-  { label: 'Génération des mots-clés…', at: 22 },
-  { label: 'Création des prompts neutres…', at: 30 },
+  { label: 'Crawl des pages de votre site', at: 0 },
+  { label: 'Analyse de votre activité', at: 12 },
+  { label: 'Génération des mots-clés', at: 22 },
+  { label: 'Création des questions de test', at: 30 },
 ]
+
+/**
+ * Au-delà de cette durée, on le dit au lieu de laisser croire que ça avance.
+ * La découverte enchaîne un crawl et trois appels de modèle : sa durée dépend
+ * de la taille du site et de la charge des fournisseurs, elle n'est pas
+ * prévisible à la seconde.
+ */
+const DISCOVERY_SLOW_AFTER_S = 120
 
 // ─── Hook : intervalle pausé quand l'onglet est caché ─────────────────────────
 
@@ -54,11 +74,18 @@ function useActiveInterval(cb: () => void, delay: number) {
       id = setInterval(() => cbRef.current(), delay)
     }
     function stop() {
-      if (id) { clearInterval(id); id = null }
+      if (id) {
+        clearInterval(id)
+        id = null
+      }
     }
 
     function onVisibility() {
-      if (document.hidden) { stop() } else { start() }
+      if (document.hidden) {
+        stop()
+      } else {
+        start()
+      }
     }
 
     start()
@@ -73,9 +100,10 @@ function useActiveInterval(cb: () => void, delay: number) {
 // ─── Sous-composant : étape Crawl ─────────────────────────────────────────────
 
 function CrawlingPhase({ elapsed }: { elapsed: number }) {
-  const step = [...CRAWL_STEPS].reverse().find((s) => elapsed >= s.at) ?? CRAWL_STEPS[0]!
-  // Plafonne à 90% — les derniers % ne se débloquent que quand le job répond
-  const pct = Math.min(Math.round((elapsed / 40) * 90), 90)
+  // Index de l'étape en cours. Les étapes sont indicatives : elles décrivent ce
+  // que fait le job, pas une progression mesurée.
+  const currentIndex = CRAWL_STEPS.reduce((acc, s, i) => (elapsed >= s.at ? i : acc), 0)
+  const takingLonger = elapsed >= DISCOVERY_SLOW_AFTER_S
 
   return (
     <div className="flex flex-col items-center gap-8 text-center">
@@ -87,22 +115,48 @@ function CrawlingPhase({ elapsed }: { elapsed: number }) {
         <p className="text-sm text-muted-foreground">
           GeoMind crawle votre site et génère votre profil GEO.
           <br />
-          Cette étape prend 20 à 40 secondes.
+          La première découverte prend en général 1 à 2 minutes.
         </p>
       </div>
-      <div className="w-full space-y-2">
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span className="font-medium text-indigo-600">{step.label}</span>
-          <span className="tabular-nums">{elapsed} s</span>
-        </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-[width] duration-1000 ease-linear"
-            style={{ width: `${Math.max(pct, 3)}%` }}
-          />
-        </div>
-        <p className="text-right text-xs tabular-nums text-muted-foreground/60">{pct}%</p>
-      </div>
+
+      {/* Liste d'étapes, sans pourcentage : la durée réelle dépend de la taille
+          du site et de la charge des modèles. Afficher un pourcentage calculé
+          sur un minuteur revenait à inventer une progression — elle restait
+          collée à 90 % dès que le job dépassait la fenêtre annoncée. */}
+      <ol className="w-full space-y-2 text-left">
+        {CRAWL_STEPS.map((s, i) => {
+          const done = i < currentIndex
+          const active = i === currentIndex
+          return (
+            <li key={s.label} className="flex items-center gap-2.5 text-sm">
+              {done ? (
+                <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+              ) : active ? (
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-indigo-600" />
+              ) : (
+                <span className="h-4 w-4 shrink-0 rounded-full border border-border" />
+              )}
+              <span
+                className={
+                  done
+                    ? 'text-muted-foreground line-through decoration-muted-foreground/40'
+                    : active
+                      ? 'font-medium text-foreground'
+                      : 'text-muted-foreground/60'
+                }
+              >
+                {s.label}
+              </span>
+            </li>
+          )
+        })}
+      </ol>
+
+      <p className="text-xs tabular-nums text-muted-foreground">
+        {takingLonger
+          ? `${elapsed} s — c'est plus long que d'habitude, on continue d'attendre.`
+          : `${elapsed} s écoulées`}
+      </p>
     </div>
   )
 }
@@ -114,7 +168,12 @@ function ReviewingPhase({
   onValidate,
 }: {
   data: DiscoveryData
-  onValidate: (edits: { description: string; keywords: string[]; competitors: { url: string; name: string }[]; prompts: { text: string }[] }) => void
+  onValidate: (edits: {
+    description: string
+    keywords: string[]
+    competitors: { url: string; name: string }[]
+    prompts: { text: string }[]
+  }) => void
 }) {
   const [description, setDescription] = useState(data.description)
   const [keywords, setKeywords] = useState<string[]>(data.keywords)
@@ -148,7 +207,9 @@ function ReviewingPhase({
         </div>
         <div>
           <h2 className="text-lg font-bold tracking-tight">Profil GEO généré !</h2>
-          <p className="text-xs text-muted-foreground">Vérifiez et ajustez avant de lancer l&apos;analyse.</p>
+          <p className="text-xs text-muted-foreground">
+            Vérifiez et ajustez avant de lancer l&apos;analyse.
+          </p>
         </div>
       </div>
 
@@ -212,7 +273,11 @@ function ReviewingPhase({
               <div key={i} className="flex items-center gap-2">
                 <input
                   value={c.url}
-                  onChange={(e) => setCompetitorsList((prev) => prev.map((x, j) => j === i ? { ...x, url: e.target.value } : x))}
+                  onChange={(e) =>
+                    setCompetitorsList((prev) =>
+                      prev.map((x, j) => (j === i ? { ...x, url: e.target.value } : x))
+                    )
+                  }
                   placeholder="https://concurrent.fr"
                   className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
@@ -240,16 +305,22 @@ function ReviewingPhase({
           <Rocket size={12} /> Questions de test pour les IA
         </label>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Les questions que vos clients poseraient à ChatGPT — sans citer votre nom, sinon le
-          test serait biaisé. Modifiez-les librement.
+          Les questions que vos clients poseraient à ChatGPT — sans citer votre nom, sinon le test
+          serait biaisé. Modifiez-les librement.
         </p>
         <div className="space-y-2">
           {promptsList.map((p, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="mt-2 shrink-0 text-xs font-bold text-muted-foreground">{i + 1}.</span>
+              <span className="mt-2 shrink-0 text-xs font-bold text-muted-foreground">
+                {i + 1}.
+              </span>
               <textarea
                 value={p.text}
-                onChange={(e) => setPromptsList((prev) => prev.map((x, j) => j === i ? { text: e.target.value } : x))}
+                onChange={(e) =>
+                  setPromptsList((prev) =>
+                    prev.map((x, j) => (j === i ? { text: e.target.value } : x))
+                  )
+                }
                 rows={2}
                 className="flex-1 resize-none rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               />
@@ -275,7 +346,7 @@ function ReviewingPhase({
             <Loader2 size={14} className="animate-spin" /> Lancement…
           </span>
         ) : (
-          'Valider et lancer l\'analyse GEO →'
+          "Valider et lancer l'analyse GEO →"
         )}
       </button>
     </div>
@@ -336,7 +407,8 @@ function AnalyzingPhase({
         </p>
       )}
       <p className="text-xs text-muted-foreground/50">
-        Vous pouvez fermer cet onglet : l’analyse continue en arrière-plan et vos résultats vous attendront sur la Vue d’ensemble.
+        Vous pouvez fermer cet onglet : l’analyse continue en arrière-plan et vos résultats vous
+        attendront sur la Vue d’ensemble.
       </p>
     </div>
   )
@@ -409,7 +481,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
   const [discoveryData, setDiscoveryData] = useState<DiscoveryData | null>(null)
   const [analysisId, setAnalysisId] = useState<string | null>(null)
   const [analysisProgress, setAnalysisProgress] = useState(2)
-  const [analysisStep, setAnalysisStep] = useState('Démarrage de l\'analyse…')
+  const [analysisStep, setAnalysisStep] = useState("Démarrage de l'analyse…")
   const [analysisElapsed, setAnalysisElapsed] = useState(0)
   const [crawlElapsed, setCrawlElapsed] = useState(0)
   const [pollFailures, setPollFailures] = useState(0)
@@ -420,7 +492,10 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
   // Bloquer fermeture de l'onglet
   useEffect(() => {
     if (phase === 'done' || phase === 'failed') return
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [phase])
@@ -430,7 +505,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
     useCallback(() => {
       if (phase !== 'crawling') return
       fetch(`/api/site/${siteId}/discovery-status`)
-        .then((r) => r.ok ? r.json() : null)
+        .then((r) => (r.ok ? r.json() : null))
         .then((json) => {
           setPollFailures(0)
           if (json?.ready) {
@@ -448,7 +523,7 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
     useCallback(() => {
       if (phase !== 'analyzing' || !analysisId) return
       fetch(`/api/analysis/${analysisId}/progress`)
-        .then((r) => r.ok ? r.json() : null)
+        .then((r) => (r.ok ? r.json() : null))
         .then((json: AnalysisProgressResponse | null) => {
           if (!json) {
             setPollFailures((n) => n + 1)
@@ -461,9 +536,9 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
           if (json.status === 'error') {
             setFailure({
               kind: 'analysis-error',
-              title: 'L\'analyse a échoué',
+              title: "L'analyse a échoué",
               message:
-                'Un incident technique a interrompu l\'analyse. Vos crédits ont été remboursés automatiquement — vous pouvez la relancer depuis la vue d\'ensemble.',
+                "Un incident technique a interrompu l'analyse. Vos crédits ont été remboursés automatiquement — vous pouvez la relancer depuis la vue d'ensemble.",
             })
             setPhase('failed')
           }
@@ -489,16 +564,16 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
         kind: 'discovery',
         title: 'La découverte prend trop de temps',
         message:
-          'Votre site est peut-être lent, inaccessible, ou bloque les robots. Vérifiez que l\'adresse est correcte et accessible, puis réessayez.',
+          "Votre site est peut-être lent, inaccessible, ou bloque les robots. Vérifiez que l'adresse est correcte et accessible, puis réessayez.",
       })
       setPhase('failed')
     }
     if (phase === 'analyzing' && analysisElapsed > ANALYSIS_TIMEOUT_S) {
       setFailure({
         kind: 'analysis-slow',
-        title: 'L\'analyse prend plus de temps que prévu',
+        title: "L'analyse prend plus de temps que prévu",
         message:
-          'Elle continue de tourner en arrière-plan — vous pouvez attendre encore ou consulter la vue d\'ensemble : les résultats s\'y afficheront dès qu\'ils seront prêts.',
+          "Elle continue de tourner en arrière-plan — vous pouvez attendre encore ou consulter la vue d'ensemble : les résultats s'y afficheront dès qu'ils seront prêts.",
       })
       setPhase('failed')
     }
@@ -511,18 +586,21 @@ export function OnboardingFlowModal({ siteId }: { siteId: string }) {
     }
   }, [phase, siteId, router])
 
-  const handleValidate = useCallback(async (edits: Parameters<typeof validateAndLaunchAction>[1]) => {
-    setPhase('launching')
-    const result = await validateAndLaunchAction(siteId, edits)
-    if ('error' in result) {
-      setError(result.error)
-      setPhase('reviewing')
-      return
-    }
-    setAnalysisElapsed(0)
-    setAnalysisId(result.analysisId)
-    setPhase('analyzing')
-  }, [siteId])
+  const handleValidate = useCallback(
+    async (edits: Parameters<typeof validateAndLaunchAction>[1]) => {
+      setPhase('launching')
+      const result = await validateAndLaunchAction(siteId, edits)
+      if ('error' in result) {
+        setError(result.error)
+        setPhase('reviewing')
+        return
+      }
+      setAnalysisElapsed(0)
+      setAnalysisId(result.analysisId)
+      setPhase('analyzing')
+    },
+    [siteId]
+  )
 
   const handleRetryDiscovery = useCallback(async () => {
     setIsRetrying(true)

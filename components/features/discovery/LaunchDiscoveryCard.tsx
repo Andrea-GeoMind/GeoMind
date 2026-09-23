@@ -22,7 +22,7 @@ export function LaunchDiscoveryCard({ onLaunch }: Props) {
         setError(result.error)
         return
       }
-      // Redirige vers ?discovering=true → la page serveur affiche DiscoveryLoadingPoller
+      // Redirige vers ?discovering=true → la page serveur affiche l'état d'attente
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.push(`${pathname}?discovering=true` as any)
     })
@@ -49,8 +49,8 @@ export function LaunchDiscoveryCard({ onLaunch }: Props) {
       <div className="space-y-1">
         <p className="font-medium text-foreground">Aucune découverte lancée</p>
         <p className="text-sm text-muted-foreground">
-          GeoMind va crawler votre site, analyser votre activité et générer automatiquement
-          la description, les mots-clés, les concurrents et les prompts neutres.
+          GeoMind va crawler votre site, analyser votre activité et générer automatiquement la
+          description, les mots-clés, les concurrents et les prompts neutres.
         </p>
       </div>
       <div className="flex flex-col items-center gap-3">
