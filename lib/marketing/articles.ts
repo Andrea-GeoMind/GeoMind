@@ -127,6 +127,92 @@ export const ARTICLES: ArticleMeta[] = [
     readingMinutes: 9,
   },
   {
+    slug: 'pourquoi-chatgpt-ne-cite-pas-entreprise-locale',
+    toc: [
+      { id: 'ce-qu-il-regarde', label: 'Ce que ChatGPT regarde vraiment en local' },
+      { id: 'categorie', label: '1. Votre catégorie Google ne dit pas votre métier' },
+      { id: 'avis', label: '2. Vous avez trop peu d’avis pour entrer dans le champ' },
+      { id: 'annuaires', label: '3. Aucune fiche ne vous décrit ailleurs que chez vous' },
+      { id: 'pages-prestation', label: '4. Votre site n’a pas de page par prestation' },
+      { id: 'mauvais-test', label: '5. Vous avez peut-être mal testé' },
+      { id: 'par-ou-commencer', label: 'Par où commencer, dans l’ordre' },
+      { id: 'limites', label: 'Ce que cette réponse ne garantit pas' },
+    ],
+    howTo: {
+      name: 'Corriger l’absence de son entreprise locale dans ChatGPT',
+      steps: [
+        {
+          id: 'categorie',
+          name: 'Corriger la catégorie principale de votre fiche Google',
+          text: 'Ouvrez votre fiche Google Business Profile et vérifiez que la catégorie principale est exactement le métier sur lequel vous voulez être trouvé. Une catégorie approximative ne vous fait pas descendre : elle vous retire de la liste.',
+        },
+        {
+          id: 'avis',
+          name: 'Installer une demande d’avis continue',
+          text: 'Demandez un avis Google après chaque prestation terminée, toute l’année, plutôt qu’en campagne ponctuelle. Sur les métiers observés à Lyon, les entreprises recommandées se situaient entre 77 et 226 avis.',
+        },
+        {
+          id: 'annuaires',
+          name: 'Se faire décrire sur deux ou trois annuaires',
+          text: 'Renseignez entièrement une fiche Pages Jaunes, et la plateforme de référence de votre secteur. C’est à partir de ces fiches que le moteur vous décrit : sans elles, vous êtes cité en une ligne, ou pas du tout.',
+        },
+        {
+          id: 'pages-prestation',
+          name: 'Créer une page par prestation',
+          text: 'Remplacez la page « Services » générique par une page par prestation, chacune répondant dès sa première phrase à la question qu’un client pose, avec un prix ou un délai.',
+        },
+        {
+          id: 'mauvais-test',
+          name: 'Refaire le test correctement',
+          text: 'Reposez la question en discussion temporaire, sans jamais citer votre nom d’entreprise, et plusieurs fois. Un test depuis votre compte habituel renvoie une réponse contaminée par votre historique.',
+        },
+      ],
+    },
+    takeaways: [
+      'En recherche locale, ChatGPT lit des fiches d’annuaires et de Google, pas votre site : lors de notre relevé de septembre 2026, il n’a ouvert aucune page d’entreprise.',
+      'La catégorie principale de votre fiche Google décide de votre présence dans la liste : mal renseignée, elle vous en retire entièrement.',
+      'Le nombre d’avis Google est le signal qui départage le plus souvent — sans être une règle absolue, contre-exemples à l’appui.',
+      'Être cité et être décrit sont deux choses différentes : la description vient des annuaires, pas de chez vous.',
+    ],
+    related: [
+      'chatgpt-artisans-lyon',
+      'geo-commerce-local',
+      'entreprise-pas-citee-chatgpt',
+    ],
+    faq: [
+      {
+        question: 'Pourquoi ChatGPT cite-t-il mon concurrent et pas moi, alors que mon site est meilleur ?',
+        answer:
+          'Parce qu’en recherche locale il ne compare pas les sites. Lors de notre relevé de septembre 2026 sur dix métiers lyonnais, ChatGPT n’a ouvert aucune page d’entreprise : il a travaillé sur les extraits d’annuaires et de fiches Google. Ce qui départage est le nombre d’avis, la catégorie de la fiche et l’existence d’une fiche détaillée ailleurs — pas la qualité du site.',
+      },
+      {
+        question: 'Combien d’avis Google faut-il pour être cité par une IA ?',
+        answer:
+          'Il n’existe pas de seuil officiel. Sur les métiers que nous avons testés à Lyon en septembre 2026, les entreprises recommandées se situaient entre 77 et 226 avis, et aucune en dessous de 43 chez les électriciens. Mais un menuisier à 223 avis était absent et deux entreprises à 25 avis étaient recommandées : le nombre d’avis pèse lourd sans décider seul.',
+      },
+      {
+        question: 'Ma catégorie Google peut-elle vraiment m’empêcher d’être cité ?',
+        answer:
+          'Oui, et c’est le cas le plus frappant que nous ayons relevé. Sur la requête « architecte d’intérieur » à Lyon, l’entreprise la mieux notée de la liste consultée — 71 avis — était écartée parce que sa fiche Google la classait « décoratrice ». Un cabinet à 13 avis était retenu à sa place. La catégorie ne fait pas descendre dans un classement : elle retire de la liste.',
+      },
+      {
+        question: 'Combien de temps faut-il pour être cité après avoir corrigé ces points ?',
+        answer:
+          'Nous ne pouvons pas le chiffrer honnêtement : nous n’avons pas mesuré de délai. La correction de catégorie est la plus rapide à prendre effet puisqu’elle change ce que le moteur lit immédiatement ; l’accumulation d’avis et les fiches d’annuaires demandent des mois. Aucune de ces actions ne garantit d’être cité — elles portent sur les signaux utilisés, ce qui est la seule chose qu’on puisse maîtriser.',
+      },
+      {
+        question: 'Comment tester correctement si ChatGPT me cite ?',
+        answer:
+          'Posez la question en discussion temporaire, sans historique ni mémoire, sans jamais écrire le nom de votre entreprise, et formulez-la comme un client le ferait : le métier, la ville, le besoin. Reposez-la plusieurs fois, les réponses varient. Un test depuis votre compte habituel va chercher votre nom dans la conversation et vous renvoie une réponse qui ne mesure rien.',
+      },
+    ],
+    title: 'Pourquoi ChatGPT ne cite pas mon entreprise locale ?',
+    description:
+      'Parce qu’il ne lit pas votre site. Les cinq causes réelles, relevées sur dix métiers lyonnais en septembre 2026, et ce qu’on peut corriger.',
+    datePublished: '2026-09-23',
+    readingMinutes: 8,
+  },
+  {
     slug: 'meilleurs-outils-geo-2026',
     toc: [
       { id: 'comment-nous-avons-compare', label: 'Comment nous avons comparé' },
@@ -280,9 +366,9 @@ export const ARTICLES: ArticleMeta[] = [
       'Un mauvais test donne une fausse réponse : un prompt qui cite votre marque ne mesure pas votre visibilité.',
     ],
     related: [
+      'pourquoi-chatgpt-ne-cite-pas-entreprise-locale',
       'erreurs-geo-frequentes',
       'comment-etre-cite-par-chatgpt',
-      'savoir-si-chatgpt-parle-de-mon-entreprise',
     ],
     title: 'Mon entreprise n’apparaît pas dans ChatGPT : que faire ?',
     description:
@@ -556,7 +642,11 @@ export const ARTICLES: ArticleMeta[] = [
       'Les annuaires de votre secteur valent le détour : les IA les recoupent pour vérifier que vous existez vraiment.',
       "Sur votre site, une page par prestation et par zone desservie déclenche plus de citations qu'une page « Services » générique.",
     ],
-    related: ['geo-ecommerce', 'comment-etre-cite-par-chatgpt', 'erreurs-geo-frequentes'],
+    related: [
+      'pourquoi-chatgpt-ne-cite-pas-entreprise-locale',
+      'chatgpt-artisans-lyon',
+      'comment-etre-cite-par-chatgpt',
+    ],
     title: 'GEO local : être recommandé par les IA près de chez vous',
     description:
       'Restaurants, artisans, commerces, professions libérales : comment devenir la réponse des IA quand un client cherche un professionnel dans votre ville.',
