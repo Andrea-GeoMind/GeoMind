@@ -67,7 +67,7 @@ export const ARTICLES: ArticleMeta[] = [
     toc: [
       { id: 'comment-nous-avons-compare', label: 'Comment nous avons comparé' },
       { id: 'le-tableau-comparatif', label: 'Le tableau comparatif' },
-      { id: 'otterly', label: 'Otterly.ai à 29 $/mois : est-ce suffisant ?' },
+      { id: 'otterly', label: 'Otterly.ai à 29 €/mois : est-ce suffisant ?' },
       { id: 'meteoria', label: 'Meteoria : que vaut le suivi quotidien à 75 €/mois ?' },
       { id: 'writesonic', label: 'Writesonic mesure-t-il ou rédige-t-il ?' },
       { id: 'qwairy', label: 'Qwairy couvre-t-il vraiment dix moteurs à 79 € ?' },
@@ -114,19 +114,19 @@ export const ARTICLES: ArticleMeta[] = [
       'Les prix d’entrée publics vont de 29 $ à 300 $ par mois. Profound, Yext et les agences ne publient plus de prix du tout.',
       'Claude est le moteur le plus souvent absent ou vendu en option — jusqu’à 439 $/mois chez Otterly, absent des offres en libre-service de Peec.',
       'Un outil dont l’interface et les prompts générés sont en anglais ne mesure pas votre visibilité sur le marché français.',
-      'GeoMind est le moins cher des outils français (gratuit, puis 19 €/mois) et couvre Claude dès le plan gratuit, mais il suit 10 questions par analyse là où Qwairy, Meteoria ou Peec en relèvent 25 à 100 chaque jour.',
+      'GeoMind couvre Claude dès son plan gratuit, mais il suit 10 questions par analyse là où Qwairy, Meteoria ou Peec en relèvent 25 à 100 chaque jour — et ses plans payants ne sont pas encore ouverts à la vente.',
     ],
     faq: [
       {
         question: 'Existe-t-il un outil GEO gratuit ?',
         answer:
-          'Deux plans gratuits permanents existent, tous deux français : GeoMind (un site, 1 000 crédits de bienvenue non renouvelés, soit environ deux analyses complètes) et Qwairy (120 crédits, sans carte bancaire). Les autres proposent des essais : 7 jours chez Peec AI, Scrunch et Meteoria, 14 jours chez Otterly, 7 jours limités à 50 questions par jour chez Profound. Chez Ahrefs, le suivi de prompts personnalisés est inclus dans tout plan payant à partir de 129 $/mois.',
+          'Deux plans gratuits permanents existent, tous deux français : GeoMind (un site, 1 000 crédits de bienvenue non renouvelés, soit environ deux analyses complètes) et Qwairy (120 crédits, sans carte bancaire). Les autres proposent des essais : 7 jours chez Peec AI, Scrunch et Meteoria, 14 jours chez Otterly, 7 jours limités à 50 questions par jour chez Profound. Chez Ahrefs, le suivi de prompts personnalisés est inclus dans tout plan payant à partir de 129 $/mois. À noter : chez GeoMind, le plan gratuit est la seule offre ouverte — les plans payants sont en liste d’attente.',
       },
       {
         question:
           'Quel est l’outil le moins cher pour suivre ChatGPT, Claude, Gemini et Perplexity ensemble ?',
         answer:
-          'Au relevé de septembre 2026, GeoMind couvre ces quatre moteurs dès son plan gratuit puis à 19 €/mois ; Qwairy les couvre, avec six autres, à 79 € HT/mois ; Scrunch AI à partir de 300 $/mois. Otterly.ai facture Claude en option de 29 à 439 $/mois selon le plan, Peec AI ne le propose pas dans ses offres en libre-service, Meteoria l’annonce mais impose de choisir trois moteurs, et Ahrefs le réserve à ses contrats entreprise.',
+          'Au relevé de septembre 2026, GeoMind couvre ces quatre moteurs dès son plan gratuit — seule offre ouverte, ses plans payants étant en liste d’attente ; Qwairy les couvre, avec six autres, à 79 € HT/mois ; Scrunch AI à partir de 300 $/mois. Otterly.ai facture Claude en option de 29 à 439 €/mois selon le plan, Peec AI ne le propose pas dans ses offres en libre-service, Meteoria l’annonce mais impose de choisir trois moteurs, et Ahrefs le réserve à ses contrats entreprise.',
       },
       {
         question: 'Pourquoi les prix vont-ils de 29 $ à plus de 2 000 $ par mois ?',
@@ -144,80 +144,8 @@ export const ARTICLES: ArticleMeta[] = [
           'Pas en valeur absolue. Les modèles ne répondent jamais deux fois exactement pareil, et chaque outil calcule son score avec ses propres questions et sa propre pondération : deux outils donneront deux notes différentes pour le même site. Ce qui est exploitable, c’est la tendance mesurée dans un même outil sur 30 à 90 jours, et la liste des sources citées à votre place.',
       },
     ],
-    itemList: [
-      {
-        name: 'Otterly.ai',
-        url: 'https://otterly.ai',
-        description:
-          'Suivi quotidien de la visibilité IA à partir de 29 $/mois, 15 questions, quatre moteurs, Claude et Gemini en options payantes. Interface en anglais.',
-      },
-      {
-        name: 'Meteoria',
-        url: 'https://meteoria.ai',
-        description:
-          'Plateforme française de suivi quotidien de la visibilité IA à partir de 75 €/mois, 25 questions par jour, trois moteurs au choix parmi huit. Interface et support en français.',
-      },
-      {
-        name: 'Qwairy',
-        url: 'https://qwairy.co',
-        description:
-          'Outil français de suivi de la visibilité IA sur dix moteurs dont Claude et Mistral, à partir de 79 € HT/mois pour 100 questions, avec accès MCP et connexion Search Console. Interface en anglais.',
-      },
-      {
-        name: 'Peec AI',
-        url: 'https://peec.ai',
-        description:
-          'Plateforme d’analyse de la visibilité IA à partir de 85 €/mois, 50 questions, trois moteurs au choix parmi six. Interface en anglais.',
-      },
-      {
-        name: 'Profound',
-        url: 'https://www.tryprofound.com',
-        description:
-          'Plateforme de visibilité IA orientée grands comptes, jusqu’à neuf moteurs, sans prix public depuis 2026 : accès par démonstration commerciale.',
-      },
-      {
-        name: 'Scrunch AI',
-        url: 'https://scrunch.com',
-        description:
-          'Suivi de visibilité IA sur sept moteurs dont Claude et Perplexity, à partir de 300 $/mois au mois ou 250 $/mois avec engagement annuel.',
-      },
-      {
-        name: 'Ahrefs Brand Radar',
-        url: 'https://ahrefs.com/brand-radar',
-        description:
-          'Module de visibilité IA d’Ahrefs sur six moteurs, à partir de 50 $/mois inclus dans un plan Ahrefs payant, ou 199 $/mois en abonnement autonome. Interface disponible en français.',
-      },
-      {
-        name: 'Semrush AI Visibility Toolkit',
-        url: 'https://www.semrush.com/pricing/ai/',
-        description:
-          'Module de visibilité IA de Semrush à 94,94 €/mois par domaine avec engagement annuel, 25 questions suivies, quatre moteurs. Interface disponible en français.',
-      },
-      {
-        name: 'Writesonic',
-        url: 'https://writesonic.com',
-        description:
-          'Plateforme qui associe rédaction de contenu et suivi de visibilité IA, à partir de 79 $/mois avec engagement annuel, trois moteurs hors contrat entreprise.',
-      },
-      {
-        name: 'Yext Scout',
-        url: 'https://www.yext.com/platform/scout',
-        description:
-          'Module de visibilité IA de la plateforme Yext, mesuré par point de vente sur cinq moteurs, vendu sur devis aux réseaux multi-établissements.',
-      },
-      {
-        name: 'ia-rank.com',
-        url: 'https://ia-rank.com',
-        description:
-          'Offre française d’optimisation de la visibilité IA à 99 €/mois sans engagement, quatre moteurs annoncés, livrée sous forme de rapports mensuels.',
-      },
-      {
-        name: 'GeoMind',
-        url: 'https://geomind.fr',
-        description:
-          'Outil français d’audit de visibilité IA sur ChatGPT, Claude, Gemini et Perplexity, gratuit pour un site puis de 19 à 149 €/mois. Interface et recommandations en français.',
-      },
-    ],
+    // itemList : calculée depuis lib/marketing/geo-tools.ts dans la page de
+    // l'article — une description d'outil ne doit exister qu'à un seul endroit.
     related: ['choisir-outil-visibilite-ia', 'suivre-citations-ia', 'quest-ce-que-le-geo'],
     title: 'Les meilleurs outils GEO en 2026 : comparatif',
     description:

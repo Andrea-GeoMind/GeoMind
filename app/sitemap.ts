@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { ARTICLES } from '@/lib/marketing/articles'
 import { SECTEURS } from '@/lib/marketing/secteurs'
+import { COMPARISONS } from '@/lib/marketing/comparisons'
 
 /** Sitemap des pages publiques — règle GEO élémentaire (cf. règles produit). */
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -34,6 +35,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    // Pages de comparaison « GeoMind vs X » — entre les articles (0.7) et la
+    // page outil (0.8) : elles captent une intention d'achat précise.
+    ...COMPARISONS.map((c) => ({
+      url: `${base}/comparatif/geomind-vs-${c.toolSlug}`,
+      lastModified,
+      changeFrequency: 'monthly' as const,
+      priority: 0.75,
+    })),
     ...ARTICLES.map((a) => ({
       url: `${base}/blog/${a.slug}`,
       lastModified: new Date(a.datePublished),
