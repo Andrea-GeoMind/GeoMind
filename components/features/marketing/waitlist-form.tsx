@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 
 interface WaitlistFormProps {
   plan: 'solo' | 'pro' | 'business'
-  source: 'pricing' | 'billing'
+  source: 'pricing' | 'billing' | 'home'
   highlighted?: boolean
 }
 

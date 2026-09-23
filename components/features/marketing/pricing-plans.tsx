@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { PLAN_LIMITS, PLAN_PRICES, type BillingPeriod } from '@/lib/plans'
 import { WaitlistForm } from '@/components/features/marketing/waitlist-form'
 import {
+  WELCOME_ANALYSES,
   WELCOME_BONUS_CREDITS,
   formatCreditsAmount,
   formatCreditsAsUsage,
@@ -22,9 +23,12 @@ interface PlanCardData {
   annual: number
   credits: number
   features: string[]
-  cta: string
-  /** Mention d'essai gratuit affichée sous le CTA (PLAN item 25) */
-  trialNote?: string
+  /**
+   * Libellé du bouton — réservé au plan gratuit. Les plans payants affichent
+   * le formulaire de liste d'attente : leur donner un CTA « Essayer » a produit
+   * exactement la promesse fausse qu'on vient de retirer de l'accueil.
+   */
+  cta?: string
   highlighted?: boolean
 }
 
@@ -38,7 +42,7 @@ const PLANS: PlanCardData[] = [
     credits: PLAN_LIMITS.free.creditsPerMonth,
     features: [
       '1 site',
-      '1 analyse complète offerte',
+      `${WELCOME_ANALYSES} analyses complètes offertes`,
       'Coach IA, correctifs prêts à coller, Concurrents',
       'Réputation, Local, Pixel',
       'Surveillance mensuelle + historique 30 j',
@@ -59,7 +63,6 @@ const PLANS: PlanCardData[] = [
       'Mémoire du coach IA · les 15 publishers',
       'Historique 90 jours',
     ],
-    cta: 'Essayer Solo',
   },
   {
     waitlistPlan: 'pro',
@@ -75,8 +78,6 @@ const PLANS: PlanCardData[] = [
       'Analyse page par page (10 pages)',
       'Export PDF des rapports · historique 1 an',
     ],
-    cta: 'Essayer Pro — 7 jours offerts',
-    trialNote: '7 jours d’essai gratuit, annulable à tout moment',
     highlighted: true,
   },
   {
@@ -93,17 +94,29 @@ const PLANS: PlanCardData[] = [
       'Support prioritaire (< 24 h)',
       'Historique illimité',
     ],
-    cta: 'Essayer Business',
   },
 ]
 
-export function PricingPlans() {
+export function PricingPlans({
+  source = 'pricing',
+  showPeriodToggle = true,
+}: {
+  /** Origine de l'inscription en liste d'attente. */
+  source?: 'pricing' | 'home'
+  /** L'accueil n'affiche que le tarif mensuel : le détail est sur /pricing. */
+  showPeriodToggle?: boolean
+} = {}) {
   const [period, setPeriod] = useState<BillingPeriod>('monthly')
 
   return (
     <div>
       {/* Toggle mensuel / annuel */}
-      <div className="mb-10 flex items-center justify-center gap-3">
+      <div
+        className={cn(
+          'mb-10 flex items-center justify-center gap-3',
+          !showPeriodToggle && 'hidden'
+        )}
+      >
         <button
           type="button"
           onClick={() => setPeriod('monthly')}
@@ -190,12 +203,12 @@ export function PricingPlans() {
                   variant={plan.highlighted ? 'default' : 'outline'}
                   className="mt-5 rounded-lg"
                 >
-                  <Link href="/signup">{plan.cta}</Link>
+                  <Link href="/signup">{plan.cta ?? 'Commencer gratuitement'}</Link>
                 </Button>
               ) : (
                 <WaitlistForm
                   plan={plan.waitlistPlan}
-                  source="pricing"
+                  source={source}
                   highlighted={plan.highlighted}
                 />
               )}

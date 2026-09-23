@@ -14,6 +14,7 @@ import { buildAuthorityActions } from '@/lib/analysis/authority-actions'
 import { OFF_SITE_PLATFORMS } from '@/lib/analysis/offsite-platforms'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { ActionCard, type ActionItem } from '@/components/features/action-plan/action-card'
+import { recoverablePoints } from '@/lib/analysis/scoring'
 
 export const metadata: Metadata = {
   title: 'Plan d’action',
@@ -144,6 +145,12 @@ export default async function ActionPlanPage({ params }: Props) {
   const totalHandled = done.length + verified.length
   const total = items.length + verifiedGone.length
   const remainingPenalty = todo.reduce((sum, i) => sum + i.penalty, 0)
+  // Gain réel d'une correction complète : l'écart au 100 sur les deux piliers
+  // notés. La somme brute des pénalités annonçait 108 points quand les notes
+  // n'en laissaient que 29 à reprendre.
+  const recoverable =
+    (recoverablePoints(latest.technicalScore) ?? 0) +
+    (recoverablePoints(latest.contentScore) ?? 0)
 
   const COLUMNS: { title: string; icon: typeof ListTodo; hint: string; list: ActionItem[] }[] = [
     {
@@ -187,10 +194,10 @@ export default async function ActionPlanPage({ params }: Props) {
               {totalHandled}/{total} action{total > 1 ? 's' : ''} traitée
               {totalHandled > 1 ? 's' : ''}
             </p>
-            {remainingPenalty > 0 && (
+            {remainingPenalty > 0 && recoverable > 0 && (
               <p className="text-xs text-muted-foreground">
-                Encore <strong className="text-foreground">{remainingPenalty} points</strong> de
-                pénalité à récupérer
+                Jusqu&apos;à <strong className="text-foreground">{recoverable} points</strong> à
+                récupérer sur vos notes Technique et Contenu
               </p>
             )}
           </div>

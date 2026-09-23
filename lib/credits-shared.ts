@@ -33,6 +33,16 @@ export const CREDIT_COSTS = {
 
 export const WELCOME_BONUS_CREDITS = 1_000
 
+/**
+ * Analyses complètes couvertes par le bonus de bienvenue.
+ *
+ * Longtemps annoncé « 1 analyse offerte » un peu partout, alors que 1 000
+ * crédits en paient deux — la page Tarifs se contredisait dans la même carte
+ * (« ≈ 2 analyses complètes » puis « 1 analyse complète offerte »). On dérive
+ * le chiffre au lieu de l'écrire à la main.
+ */
+export const WELCOME_ANALYSES = Math.floor(WELCOME_BONUS_CREDITS / CREDIT_COSTS.fullAnalysis)
+
 /** Filet de sécurité si le webhook Stripe de renouvellement n'est pas passé */
 const PAID_PLAN_RESET_FALLBACK_MS = 32 * 24 * 60 * 60 * 1000
 

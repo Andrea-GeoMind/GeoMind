@@ -8,7 +8,7 @@ import { trackEvent } from '@/lib/posthog'
 const inputSchema = z.object({
   email: z.email({ message: 'Email invalide. Vérifiez la saisie.' }),
   plan: z.enum(['solo', 'pro', 'business', 'pack']),
-  source: z.enum(['pricing', 'billing']),
+  source: z.enum(['pricing', 'billing', 'home']),
 })
 
 /**

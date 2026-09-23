@@ -6,7 +6,6 @@ import {
   BarChart3,
   Search,
   Lightbulb,
-  CheckCircle2,
   Shield,
   Wrench,
   FileText,
@@ -21,17 +20,12 @@ import {
   ArrowRight,
   Globe,
 } from 'lucide-react'
-import { PLAN_PRICES, PLAN_LIMITS } from '@/lib/plans'
-import { CREDIT_COSTS } from '@/lib/credits-shared'
+import { PricingPlans } from '@/components/features/marketing/pricing-plans'
+import { CREDIT_COSTS, WELCOME_ANALYSES } from '@/lib/credits-shared'
 import { ExpressAudit } from '@/components/features/marketing/express-audit'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { IA_ENGINES, ENGINE_LABELS, ENGINE_LIST } from '@/lib/analysis/authority-table'
 import { SECTEURS } from '@/lib/marketing/secteurs'
-
-/** Nombre d'analyses complètes couvertes par l'allocation mensuelle d'un plan. */
-function analysesPerMonth(plan: keyof typeof PLAN_LIMITS): number {
-  return Math.floor(PLAN_LIMITS[plan].creditsPerMonth / CREDIT_COSTS.fullAnalysis)
-}
 
 // FAQ de la landing — source unique pour l'affichage ET le balisage
 // Schema.org FAQPage (règle GEO schema-org-faq que le produit audite chez
@@ -233,7 +227,10 @@ export default function MarketingHome() {
               </span>
               <span className="text-white/20">·</span>
               <span>
-                <strong className="font-semibold text-white">1 analyse offerte</strong>, sans
+                <strong className="font-semibold text-white">
+                  {WELCOME_ANALYSES} analyses offertes
+                </strong>
+                , sans
                 carte bancaire
               </span>
               <span className="text-white/20">·</span>
@@ -514,103 +511,12 @@ export default function MarketingHome() {
           <SectionHeading
             kicker="Tarifs"
             title="Des tarifs simples, sans engagement."
-            intro="Commencez gratuitement. Passez au Pro quand vous êtes prêt."
+            intro="Le plan Gratuit est disponible dès maintenant. Les plans payants ouvrent bientôt."
           />
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                name: 'Gratuit',
-                forWho: 'Pour découvrir',
-                price: 0,
-                features: [
-                  '1 site',
-                  '1 analyse complète offerte',
-                  'Score GEO + points faibles essentiels',
-                  'Coach IA',
-                ],
-                cta: 'Commencer gratuitement',
-                highlighted: false,
-              },
-              {
-                name: 'Solo',
-                forWho: 'Pour les indépendants',
-                price: PLAN_PRICES.solo.monthly,
-                features: [
-                  `${PLAN_LIMITS.solo.sites} sites`,
-                  `Jusqu'à ${analysesPerMonth('solo')} analyses / mois`,
-                  'Analyse page par page (5 pages)',
-                  'Coach IA avec mémoire',
-                ],
-                cta: 'Essayer Solo',
-                highlighted: false,
-              },
-              {
-                name: 'Pro',
-                forWho: 'Pour les TPE/PME qui veulent agir',
-                trialNote: '7 jours d’essai gratuit, annulable à tout moment',
-                price: PLAN_PRICES.pro.monthly,
-                features: [
-                  `${PLAN_LIMITS.pro.sites} sites`,
-                  `Jusqu'à ${analysesPerMonth('pro')} analyses / mois`,
-                  'Recommandations complètes (IA avancée)',
-                  'Export PDF · Historique 1 an',
-                ],
-                cta: 'Essayer Pro — 7 jours offerts',
-                highlighted: true,
-              },
-              {
-                name: 'Business',
-                forWho: 'Pour les agences & multi-sites',
-                price: PLAN_PRICES.business.monthly,
-                features: [
-                  `${PLAN_LIMITS.business.sites} sites`,
-                  `Jusqu'à ${analysesPerMonth('business')} analyses / mois`,
-                  'Export PDF white-label',
-                  'Historique illimité · Support prioritaire',
-                ],
-                cta: 'Essayer Business',
-                highlighted: false,
-              },
-            ].map(({ name, forWho, price, features, cta, highlighted }) => (
-              <div
-                key={name}
-                className={
-                  highlighted
-                    ? 'relative flex flex-col rounded-2xl border-2 border-primary bg-card p-7 shadow-lg shadow-primary/10'
-                    : 'flex flex-col rounded-2xl border border-border bg-card p-7'
-                }
-              >
-                {highlighted && (
-                  <span className="absolute -top-3.5 left-7 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Populaire
-                  </span>
-                )}
-                <h3 className="text-lg font-bold text-foreground">{name}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">{forWho}</p>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-foreground">{price}&nbsp;€</span>
-                  <span className="text-sm text-muted-foreground">HT/mois</span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-3 text-sm text-muted-foreground">
-                  {features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-[--score-good-500]" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  asChild
-                  variant={highlighted ? 'default' : 'outline'}
-                  className="mt-8 rounded-lg"
-                >
-                  <Link href={price === 0 ? '/signup' : '/pricing'}>{cta}</Link>
-                </Button>
-              </div>
-            ))}
-          </div>
+          <PricingPlans source="home" showPeriodToggle={false} />
           <p className="mt-6 text-sm text-muted-foreground">
-            1 analyse complète = 400 crédits. Chaque plan inclut des crédits mensuels, utilisables
+            1 analyse complète = {CREDIT_COSTS.fullAnalysis} crédits. Chaque plan inclut des
+            crédits mensuels, utilisables
             librement entre analyses et questions au Coach IA.{' '}
             <Link href="/pricing" className="underline hover:text-foreground">
               Voir le détail des plans

@@ -141,6 +141,21 @@ export interface ScorableIssue {
 
 const CATEGORY_PENALTY_CAP = 30
 
+/**
+ * Points réellement récupérables sur un pilier : l'écart qui sépare la note de
+ * 100, une fois le plafond par catégorie et la proratisation des règles de page
+ * appliqués.
+ *
+ * L'interface affichait la somme brute des pénalités : « 12 points faibles ·
+ * −45 pts » à côté d'une note de 87, et « encore 108 points de pénalité à
+ * récupérer » quand le gain réel était de 29. Un client qui corrige tout doit
+ * retrouver le chiffre qu'on lui a promis.
+ */
+export function recoverablePoints(score: number | null): number | null {
+  if (score === null) return null
+  return Math.max(0, 100 - score)
+}
+
 export function computeIssuesScore(issues: ScorableIssue[], pagesAnalyzed: number): number {
   const safePageCount = Math.max(1, pagesAnalyzed)
 

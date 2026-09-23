@@ -20,6 +20,7 @@ import { OverviewPolling } from '@/components/features/overview/overview-polling
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import type { TechnicalIssueRow } from '@/components/features/technical/issue-card'
+import { recoverablePoints } from '@/lib/analysis/scoring'
 
 export const metadata: Metadata = {
   title: 'Technique',
@@ -93,7 +94,10 @@ export default async function TechnicalPage({ params }: Props) {
     pageUrl: r.pageUrl,
   }))
 
-  const totalPenalty = issues.reduce((sum, i) => sum + i.penalty, 0)
+  // Ce que vaut vraiment la correction de tout : l'écart au 100, pas la somme
+  // brute des pénalités, que le plafond par catégorie et la proratisation des
+  // règles de page ramènent toujours plus bas.
+  const recoverable = recoverablePoints(latest.technicalScore)
 
   return (
     <div className="space-y-6 p-6 sm:p-8">
@@ -165,7 +169,7 @@ export default async function TechnicalPage({ params }: Props) {
                   <span className="text-sm text-muted-foreground">
                     {issues.length === 0
                       ? 'aucun point faible'
-                      : `point${issues.length > 1 ? 's' : ''} faible${issues.length > 1 ? 's' : ''}${totalPenalty > 0 ? ` · −${totalPenalty} pts` : ''}`}
+                      : `point${issues.length > 1 ? 's' : ''} faible${issues.length > 1 ? 's' : ''}${recoverable !== null && recoverable > 0 ? ` · ${recoverable} pts à récupérer` : ''}`}
                   </span>
                 </>
               )}

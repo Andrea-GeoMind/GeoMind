@@ -1,5 +1,6 @@
 import Header from '@/components/features/marketing/header'
 import Footer from '@/components/features/marketing/footer'
+import { WELCOME_ANALYSES } from '@/lib/credits-shared'
 
 // JSON-LD Organization + WebSite + SoftwareApplication — fiche d'identité
 // structurée de GeoMind pour les moteurs de recherche et les moteurs de
@@ -108,7 +109,7 @@ const ORGANIZATION_JSON_LD = {
             name: 'Gratuit',
             price: '0',
             priceCurrency: 'EUR',
-            description: '1 analyse complète offerte, sans carte bancaire',
+            description: `${WELCOME_ANALYSES} analyses complètes offertes, sans carte bancaire`,
           },
           { '@type': 'Offer', name: 'Solo', price: '19', priceCurrency: 'EUR' },
           { '@type': 'Offer', name: 'Pro', price: '59', priceCurrency: 'EUR' },

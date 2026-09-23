@@ -6,6 +6,7 @@ import '@/lib/env'
 import { Toaster } from '@/components/ui/toaster'
 import { CookieBanner } from '@/components/cookie-banner'
 import { PostHogProvider } from '@/components/posthog-provider'
+import { WELCOME_ANALYSES } from '@/lib/credits-shared'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -46,13 +47,13 @@ export const metadata: Metadata = {
     siteName: 'GEOMIND',
     title: 'GEOMIND — Êtes-vous cité par ChatGPT ?',
     description:
-      'Auditez votre visibilité dans les moteurs IA (ChatGPT, Perplexity, Gemini, Claude) et obtenez un plan d’action concret. 1 analyse offerte, sans carte bancaire.',
+      `Auditez votre visibilité dans les moteurs IA (ChatGPT, Perplexity, Gemini, Claude) et obtenez un plan d’action concret. ${WELCOME_ANALYSES} analyses offertes, sans carte bancaire.`,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'GEOMIND — Êtes-vous cité par ChatGPT ?',
     description:
-      'Auditez votre visibilité dans les moteurs IA et obtenez un plan d’action concret. 1 analyse offerte.',
+      `Auditez votre visibilité dans les moteurs IA et obtenez un plan d’action concret. ${WELCOME_ANALYSES} analyses offertes.`,
   },
   appleWebApp: {
     capable: true,

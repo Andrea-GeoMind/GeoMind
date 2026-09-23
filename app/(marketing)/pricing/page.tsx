@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Check, X } from 'lucide-react'
 import { PricingPlans } from '@/components/features/marketing/pricing-plans'
+import { WELCOME_ANALYSES } from '@/lib/credits-shared'
 
 export const metadata: Metadata = {
   title: 'Tarifs — Gratuit, Solo 19 €, Pro 59 €, Business 149 €',
   description:
-    'Des tarifs simples et sans engagement pour auditer votre visibilité dans ChatGPT, Perplexity, Gemini et Claude. 1 analyse complète offerte, sans carte bancaire.',
+    `Des tarifs simples et sans engagement pour auditer votre visibilité dans ChatGPT, Perplexity, Gemini et Claude. ${WELCOME_ANALYSES} analyses complètes offertes, sans carte bancaire.`,
   alternates: { canonical: '/pricing' },
 }
 
@@ -71,7 +72,12 @@ export default function PricingPage() {
                 <ComparisonRow label="Sites" values={['1', '2', '5', '15']} striped />
                 <ComparisonRow
                   label="Analyses complètes (400 crédits)"
-                  values={['1 offerte', '≈ 12 / mois', '≈ 50 / mois', '≈ 200 / mois']}
+                  values={[
+                    `${WELCOME_ANALYSES} offertes`,
+                    '≈ 12 / mois',
+                    '≈ 50 / mois',
+                    '≈ 200 / mois',
+                  ]}
                 />
                 <ComparisonRow
                   label="Coach IA GEO"
