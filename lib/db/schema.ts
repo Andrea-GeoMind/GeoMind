@@ -307,6 +307,34 @@ export const authoritySources = pgTable('authority_sources', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+// ─── authority_failures ───────────────────────────────────────────────────────
+// Appels IA qui n'ont pas abouti, avec leur motif.
+//
+// Sans cette table, un échec ne laissait aucune trace exploitable : le code
+// loggait en console et alertait Sentry, puis oubliait. Le 15/09/2026, deux
+// questions sur dix n'ont obtenu aucune réponse des quatre moteurs et
+// l'analyse s'est déclarée réussie ; impossible, après coup, de dire pourquoi
+// ni même de savoir que c'était arrivé. On persiste désormais le motif, et
+// l'interface s'en sert pour dire franchement ce qui manque.
+
+export const authorityFailures = pgTable('authority_failures', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  analysisId: uuid('analysis_id')
+    .notNull()
+    .references(() => analyses.id, { onDelete: 'cascade' }),
+  promptId: uuid('prompt_id')
+    .notNull()
+    .references(() => prompts.id, { onDelete: 'cascade' }),
+  engine: iaEngineEnum('engine').notNull(),
+  /** 'forced' | 'spontaneous' — le mode spontané n'entre pas dans le score. */
+  mode: text('mode').notNull().default('forced'),
+  /** Motif technique, tronqué : statut HTTP, timeout, ou erreur de validation. */
+  reason: text('reason').notNull(),
+  /** Nombre de tentatives effectuées avant d'abandonner. */
+  attempts: integer('attempts').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── citation_checks ──────────────────────────────────────────────────────────
 // Série temporelle de la visibilité (PLAN item 11) : 1 ligne = « le prompt P,
 // posé au moteur M, le jour J, en mode X, a cité (ou non) le site ».

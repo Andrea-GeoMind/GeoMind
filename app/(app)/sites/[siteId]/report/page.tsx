@@ -14,6 +14,8 @@ import { getTechnicalIssuesByAnalysisId } from '@/lib/db/queries/technical-issue
 import { getContentIssuesByAnalysisId } from '@/lib/db/queries/content-issues'
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
 import { getAuthorityResultsByAnalysisId } from '@/lib/db/queries/authority-results'
+import { getUnansweredPrompts } from '@/lib/db/queries/authority-failures'
+import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
 import { getCompetitorsBySiteId } from '@/lib/db/queries/competitors'
 import { getActionStatesBySiteId } from '@/lib/db/queries/action-states'
 import { analyzeCompetitors } from '@/lib/analysis/competitors'
@@ -95,14 +97,18 @@ export default async function ReportPage({ params, searchParams }: Props) {
     )
   }
 
-  const [technical, content, rolling, authorityRows, declared, actionStates] = await Promise.all([
-    getTechnicalIssuesByAnalysisId(latest.id),
-    getContentIssuesByAnalysisId(latest.id),
-    getRollingCitationRate(siteId, 30, 'forced'),
-    getAuthorityResultsByAnalysisId(latest.id),
-    getCompetitorsBySiteId(siteId),
-    getActionStatesBySiteId(siteId),
-  ])
+  const [technical, content, rolling, authorityRows, declared, actionStates, unanswered, sitePrompts] =
+    await Promise.all([
+      getTechnicalIssuesByAnalysisId(latest.id),
+      getContentIssuesByAnalysisId(latest.id),
+      getRollingCitationRate(siteId, 30, 'forced'),
+      getAuthorityResultsByAnalysisId(latest.id),
+      getCompetitorsBySiteId(siteId),
+      getActionStatesBySiteId(siteId),
+      getUnansweredPrompts(latest.id),
+      getPromptsBySiteId(siteId),
+    ])
+  const neutralPromptCount = sitePrompts.filter((p) => p.isNeutral).length
 
   // Part de voix — mêmes calculs que l'onglet Concurrents, pour que le rapport
   // et l'application ne puissent pas diverger.
@@ -235,6 +241,17 @@ export default async function ReportPage({ params, searchParams }: Props) {
               Taux de citation moyen sur 30 jours : <strong>{rolling.rate}%</strong> (
               {rolling.cited}/{rolling.total} mesures). Les réponses des IA varient naturellement
               — la tendance compte plus que le chiffre du jour.
+            </p>
+          )}
+          {/* Un rapport envoyé à un client ne peut pas taire une mesure partielle. */}
+          {unanswered.length > 0 && (
+            <p className="mt-2 text-xs text-amber-700">
+              <strong>Mesure partielle.</strong> {unanswered.length} question
+              {unanswered.length > 1 ? 's' : ''} sur {neutralPromptCount} n&apos;
+              {unanswered.length > 1 ? 'ont' : 'a'} obtenu aucune réponse des moteurs lors de
+              cette analyse : les notes ci-dessus portent sur{' '}
+              {neutralPromptCount - unanswered.length} question
+              {neutralPromptCount - unanswered.length > 1 ? 's' : ''}.
             </p>
           )}
         </section>

@@ -18,6 +18,9 @@ import { RetryAnalysisButton } from '@/components/features/overview/retry-analys
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
 import { AuthorityMethodologyNote } from '@/components/features/analysis/methodology-note'
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
+import { getUnansweredPrompts } from '@/lib/db/queries/authority-failures'
+import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
+import { IncompleteAnalysisNotice } from '@/components/features/analysis/incomplete-analysis-notice'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 
 export const metadata: Metadata = {
@@ -101,6 +104,13 @@ export default async function AuthorityPage({ params }: Props) {
     getRollingCitationRate(siteId, 30, 'spontaneous'),
   ])
 
+  // Questions restées sans aucune réponse : le score ne porte pas sur elles.
+  const [unanswered, allPrompts] = await Promise.all([
+    latest.status === 'success' ? getUnansweredPrompts(latest.id) : Promise.resolve([]),
+    getPromptsBySiteId(siteId),
+  ])
+  const neutralPromptCount = allPrompts.filter((p) => p.isNeutral).length
+
   return (
     <div className="space-y-6 p-6 sm:p-8">
       <OverviewPolling status={latest.status} />
@@ -112,6 +122,11 @@ export default async function AuthorityPage({ params }: Props) {
           Fréquence à laquelle les moteurs IA citent {site.name} dans leurs réponses
         </p>
       </div>
+
+      <IncompleteAnalysisNotice
+        unanswered={unanswered}
+        totalPrompts={neutralPromptCount}
+      />
 
       {/* Error banner */}
       {isError && (

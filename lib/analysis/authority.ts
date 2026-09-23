@@ -8,6 +8,10 @@ import { getAnalysisById } from '@/lib/db/queries/analyses'
 import { insertAuthorityResult } from '@/lib/db/queries/authority-results'
 import { insertAuthoritySources } from '@/lib/db/queries/authority-sources'
 import { insertCitationChecks } from '@/lib/db/queries/citation-checks'
+import {
+  insertAuthorityFailures,
+  type AuthorityFailureInsert,
+} from '@/lib/db/queries/authority-failures'
 import { logEstimatedBatchCost } from '@/lib/ai/cost'
 import { extractDomain } from '@/lib/ai/parse'
 import { createEngines, ENGINE_MODELS } from '@/lib/ai/engines'
@@ -38,23 +42,61 @@ const FREE_TIER_FORCED_PROMPTS = 3
 
 // ─── Pool de concurrence simple (sans dépendance externe) ─────────────────────
 
-async function runWithConcurrency<T>(
-  tasks: (() => Promise<T>)[],
+/**
+ * Pool de concurrence. Une tâche qui lève ne doit pas vider la file.
+ *
+ * Avant : `results[i] = await tasks[i]()` sans garde. La première exception
+ * faisait rejeter `Promise.all`, la fonction rendait la main pendant que les
+ * autres workers continuaient en arrière-plan, et leurs écritures atterrissaient
+ * après coup. On isole donc chaque tâche : elle est responsable de son propre
+ * échec, le pool se contente de vider la file.
+ */
+async function runWithConcurrency(
+  tasks: (() => Promise<void>)[],
   limit: number
-): Promise<T[]> {
-  const results: T[] = new Array(tasks.length)
+): Promise<void> {
   let index = 0
 
   async function worker() {
     while (index < tasks.length) {
       const i = index++
-      results[i] = await tasks[i]()
+      try {
+        await tasks[i]!()
+      } catch (err) {
+        // Une tâche gère déjà ses erreurs attendues ; ici on rattrape
+        // l'imprévu (écriture en base, par exemple) sans perdre le reste.
+        console.error('[GeoMind/authority] tâche abandonnée :', err)
+      }
     }
   }
 
-  const workers = Array.from({ length: Math.min(limit, tasks.length) }, worker)
-  await Promise.all(workers)
-  return results
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker))
+}
+
+/** Tentatives par appel IA, la première incluse. */
+const MAX_ATTEMPTS = 3
+
+/** Attente avant la n-ième reprise : 1 s, puis 3 s. */
+export const DEFAULT_RETRY_DELAYS_MS = [1_000, 3_000]
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Vrai pour les erreurs qui valent une reprise : saturation, quota, panne
+ * passagère, coupure réseau. Un refus du modèle ou une réponse malformée ne
+ * changera pas au deuxième essai.
+ */
+export function isRetryableEngineError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err)
+  return /\b(429|408|409|425|500|502|503|504)\b|rate.?limit|timeout|timed out|ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed|overloaded|capacity/i.test(
+    message
+  )
+}
+
+/** Motif court, borné, lisible dans l'interface. */
+export function failureReason(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err)
+  return message.replace(/\s+/g, ' ').trim().slice(0, 300)
 }
 
 // ─── Types publics ─────────────────────────────────────────────────────────────
@@ -67,16 +109,33 @@ export interface AuthorityAnalysisResult {
   spontaneousSuccessfulCalls: number
   totalCostUsd: number
   citationsFound: number
+  /**
+   * Nombre de RÉPONSES citant le domaine client — pas de sources.
+   *
+   * Comptait auparavant les sources : une réponse citant deux pages du domaine
+   * pesait double, et le score dépassait le taux de citation réel (41 au lieu
+   * de 38 sur l'analyse du 15/09/2026). Le dénominateur, lui, a toujours été
+   * un nombre de réponses : les deux unités doivent concorder.
+   */
   clientCitationsFound: number
+  /** Appels du mode forcé qui n'ont pas abouti, toutes reprises épuisées. */
+  failedCalls: number
+  /** Questions dont aucun moteur n'a répondu — elles rendent l'analyse incomplète. */
+  unansweredPromptIds: string[]
 }
 
 // ─── runAuthorityAnalysis ──────────────────────────────────────────────────────
 
 export async function runAuthorityAnalysis(
   analysisId: string,
-  options: { tier?: 'free' | 'full' } = {}
+  options: {
+    tier?: 'free' | 'full'
+    /** Attentes entre reprises. Réglable pour les tests et pour le réglage fin. */
+    retryDelaysMs?: number[]
+  } = {}
 ): Promise<AuthorityAnalysisResult> {
   const tier = options.tier ?? 'full'
+  const retryDelaysMs = options.retryDelaysMs ?? DEFAULT_RETRY_DELAYS_MS
   const analysis = await getAnalysisById(analysisId)
   if (!analysis) throw new Error(`Analyse introuvable : ${analysisId}`)
 
@@ -100,6 +159,8 @@ export async function runAuthorityAnalysis(
       totalCostUsd: 0,
       citationsFound: 0,
       clientCitationsFound: 0,
+      failedCalls: 0,
+      unansweredPromptIds: [],
     }
   }
 
@@ -162,25 +223,55 @@ export async function runAuthorityAnalysis(
   let clientCitationsFound = 0
   /** Échecs par moteur — sert à distinguer une panne d'un aléa réseau isolé. */
   const failuresByEngine = new Map<IAEngineName, number>()
+  /** Échecs persistés en fin de salve, pour que l'interface puisse les montrer. */
+  const failures: AuthorityFailureInsert[] = []
+  /** Questions ayant obtenu au moins une réponse en mode forcé. */
+  const answeredPromptIds = new Set<string>()
 
   const runnableTasks = tasks.map((task) => async () => {
-    let response: IAResponse
-    try {
-      const raw = await task.engine.query(task.promptText)
-      // Validation runtime (règle §8) — une réponse malformée = appel échoué
-      response = IAResponseSchema.parse(raw)
-    } catch (err) {
+    let response: IAResponse | null = null
+    let lastError: unknown
+    let attempts = 0
+
+    // Reprise sur erreur passagère. Sans elle, une fenêtre de saturation
+    // emportait des questions entières : les tâches sont ordonnées par
+    // question et MAX_CONCURRENCY vaut 8, soit exactement 2 questions × 4
+    // moteurs en vol — d'où les deux questions perdues d'un coup le 15/09.
+    while (attempts < MAX_ATTEMPTS) {
+      attempts++
+      try {
+        const raw = await task.engine.query(task.promptText)
+        // Validation runtime (règle §8) — une réponse malformée = appel échoué
+        response = IAResponseSchema.parse(raw)
+        break
+      } catch (err) {
+        lastError = err
+        if (attempts >= MAX_ATTEMPTS || !isRetryableEngineError(err)) break
+        await sleep(retryDelaysMs[attempts - 1] ?? retryDelaysMs.at(-1) ?? 0)
+      }
+    }
+
+    if (response === null) {
       // Log mais ne fait pas échouer l'analyse (règle §10 + §8)
       console.error(
-        `[GeoMind/authority] IA ${task.engine.name} erreur sur prompt ${task.promptId}:`,
-        err
+        `[GeoMind/authority] IA ${task.engine.name} erreur sur prompt ${task.promptId} ` +
+          `après ${attempts} tentative(s) :`,
+        lastError
       )
-      captureEngineFailure(task.engine.name, err, {
+      captureEngineFailure(task.engine.name, lastError, {
         step: 'authority',
         analysisId,
         promptId: task.promptId,
       })
       failuresByEngine.set(task.engine.name, (failuresByEngine.get(task.engine.name) ?? 0) + 1)
+      failures.push({
+        analysisId,
+        promptId: task.promptId,
+        engine: task.engine.name,
+        mode: task.mode,
+        reason: failureReason(lastError),
+        attempts,
+      })
       return
     }
 
@@ -211,7 +302,10 @@ export async function runAuthorityAnalysis(
 
       await insertAuthoritySources(sourcesWithClientFlag)
       citationsFound += response.sources.length
-      clientCitationsFound += sourcesWithClientFlag.filter((s) => s.isClientDomain).length
+      // Une réponse citant trois pages du domaine reste UNE citation : le
+      // dénominateur compte des réponses, le numérateur doit en faire autant.
+      if (clientIndex >= 0) clientCitationsFound++
+      answeredPromptIds.add(task.promptId)
     }
 
     // Série temporelle (PLAN item 11) : chaque appel devient un point de
@@ -238,6 +332,16 @@ export async function runAuthorityAnalysis(
 
   await runWithConcurrency(runnableTasks, MAX_CONCURRENCY)
 
+  // Les échecs sont écrits en une fois, après la salve : l'interface et le
+  // rapport s'en servent pour dire ce qui manque plutôt que de le taire.
+  if (failures.length > 0) {
+    try {
+      await insertAuthorityFailures(failures)
+    } catch (err) {
+      console.error('[GeoMind/authority] échecs non persistés :', err)
+    }
+  }
+
   // Un moteur qui a raté 100 % de ses appels est en panne, pas victime du réseau.
   for (const [engineName, failed] of failuresByEngine) {
     captureEngineOutage(engineName, {
@@ -248,6 +352,10 @@ export async function runAuthorityAnalysis(
     })
   }
 
+  const unansweredPromptIds = neutralPrompts
+    .map((p) => p.id)
+    .filter((id) => !answeredPromptIds.has(id))
+
   return {
     totalCalls: tasks.length,
     successfulCalls,
@@ -255,5 +363,7 @@ export async function runAuthorityAnalysis(
     totalCostUsd: Math.round(totalCostUsd * 1_000_000) / 1_000_000,
     citationsFound,
     clientCitationsFound,
+    failedCalls: failures.filter((f) => f.mode === 'forced').length,
+    unansweredPromptIds,
   }
 }

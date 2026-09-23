@@ -25,6 +25,7 @@ import { summarizePixelEvents } from '@/lib/analysis/pixel'
 import { computeDeltas } from '@/lib/analysis/compare'
 import { promptsChangedSince } from '@/lib/analysis/prompt-changes'
 import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
+import { getUnansweredPrompts } from '@/lib/db/queries/authority-failures'
 import { getScoreMaturity, getPriorityAction } from '@/lib/analysis/scoring'
 import { ScoreGauge } from '@/components/charts/score-gauge'
 import { ScoreCard } from '@/components/features/analysis/score-card'
@@ -32,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { OverviewPolling } from '@/components/features/overview/overview-polling'
 import { RetryAnalysisButton } from '@/components/features/overview/retry-analysis-button'
 import { NoAnalysisState } from '@/components/features/analysis/no-analysis-state'
+import { IncompleteAnalysisNotice } from '@/components/features/analysis/incomplete-analysis-notice'
 import { CoachAutoOpen } from '@/components/features/coach/coach-auto-open'
 
 export const metadata: Metadata = {
@@ -83,6 +85,12 @@ export default async function OverviewPage({ params }: Props) {
 
   const successfulPair =
     latest.status === 'success' ? await getLatestSuccessfulAnalyses(siteId, 2) : []
+
+  // Questions restées sans réponse : le Score GEO global n'est alors qu'une
+  // moyenne partielle, et le dire vaut mieux que de le laisser croire.
+  const unanswered =
+    latest.status === 'success' ? await getUnansweredPrompts(latest.id) : []
+  const neutralPromptCount = sitePrompts.filter((p) => p.isNeutral).length
 
   const currentAnalysis = successfulPair[0] ?? null
   const previousAnalysis = successfulPair[1] ?? null
@@ -161,6 +169,8 @@ export default async function OverviewPage({ params }: Props) {
         introSeen={site.coachIntroSeen}
         analysisSuccess={latest.status === 'success'}
       />
+
+      <IncompleteAnalysisNotice unanswered={unanswered} totalPrompts={neutralPromptCount} />
 
       {/* Jeu de questions modifié : la comparaison n'a plus de sens. */}
       {promptsChanged && rawDeltas !== null && (
