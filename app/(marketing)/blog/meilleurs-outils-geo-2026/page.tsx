@@ -47,6 +47,14 @@ const ROWS: ToolRow[] = [
     target: 'TPE, commerces locaux',
   },
   {
+    name: 'Meteoria',
+    price: '75 €/mois',
+    engines:
+      '3 au choix parmi 8 annoncés (ChatGPT, AI Overviews, AI Mode, Gemini, Perplexity, Grok, Copilot, Claude)',
+    language: 'Français',
+    target: 'PME, agences, grands comptes',
+  },
+  {
     name: 'Otterly.ai',
     price: '29 $/mois',
     engines: 'ChatGPT, AI Overviews, Perplexity, Copilot (4) · Gemini, Claude, AI Mode en option',
@@ -66,6 +74,14 @@ const ROWS: ToolRow[] = [
     engines: 'Essai : ChatGPT, Gemini, AI Overviews · contrat : jusqu’à 9',
     language: 'Anglais',
     target: 'Grands comptes',
+  },
+  {
+    name: 'Qwairy',
+    price: '79 € HT/mois (65 € en annuel)',
+    engines:
+      'ChatGPT, Perplexity, Gemini, Claude, Copilot, AI Overviews, AI Mode, Grok, Mistral, DeepSeek (10)',
+    language: 'Anglais (éditeur français)',
+    target: 'PME, agences, équipes SEO',
   },
   {
     name: 'Scrunch AI',
@@ -110,6 +126,13 @@ const SOURCES: Source[] = [
     label: 'help.otterly.ai — plans et moteurs inclus',
     href: 'https://help.otterly.ai/pricing-of-otterlyai',
   },
+  { tool: 'Meteoria', label: 'meteoria.ai', href: 'https://meteoria.ai' },
+  {
+    tool: 'Meteoria',
+    label: 'meteoria.ai — Meteoria vs Qwairy (moteurs et plans)',
+    href: 'https://meteoria.ai/blog/meteoria-vs-qwairy',
+  },
+  { tool: 'Qwairy', label: 'qwairy.co/pricing', href: 'https://qwairy.co/pricing' },
   { tool: 'Peec AI', label: 'peec.ai/pricing', href: 'https://peec.ai/pricing' },
   {
     tool: 'Profound',
@@ -163,6 +186,8 @@ export default function Page() {
       <p>
         <strong>Pour une TPE ou un artisan français</strong>, GeoMind (gratuit, puis 19 €/mois, en
         français) ou Otterly.ai (29 $/mois, en anglais).{' '}
+        <strong>Pour une PME française qui veut un relevé quotidien</strong>, Meteoria (75 €/mois,
+        en français) ou Qwairy (79 € HT/mois, dix moteurs).{' '}
         <strong>Pour une équipe SEO déjà équipée</strong>, le module de Semrush (94,94 €/mois) ou
         d’Ahrefs (199 $/mois en autonome).{' '}
         <strong>Pour une marque qui suit des centaines de questions</strong>, Peec AI dès 85 €/mois,
@@ -172,10 +197,10 @@ export default function Page() {
 
       <h2 id="comment-nous-avons-compare">Comment nous avons comparé</h2>
       <p>
-        Une précision avant tout : <strong>nous éditons GeoMind</strong>, l’un des dix outils de ce
-        comparatif. Nous l’avons traité avec la même grille que les autres, ses limites sont écrites
-        au même endroit que celles des concurrents, et le tableau est classé par ordre alphabétique
-        — pas par un score qui nous mettrait en tête.
+        Une précision avant tout : <strong>nous éditons GeoMind</strong>, l’un des douze outils de
+        ce comparatif. Nous l’avons traité avec la même grille que les autres, ses limites sont
+        écrites au même endroit que celles des concurrents, et le tableau est classé par ordre
+        alphabétique — pas par un score qui nous mettrait en tête.
       </p>
       <p>
         Les prix ont été relevés le {RELEVE} sur les pages de tarifs des éditeurs, listées en{' '}
@@ -274,6 +299,36 @@ export default function Page() {
         vous pouvez saisir les vôtres en français, mais il faut le faire.
       </p>
 
+      <h2 id="meteoria">Meteoria : que vaut le suivi quotidien à 75 €/mois ?</h2>
+      <p>
+        <strong>Prix.</strong> Starter à 75 €/mois pour 25 questions relevées chaque jour, Pro à 175
+        € (100 questions), Advanced à 420 € (300 questions), Enterprise à partir de 700 €. Deux mois
+        offerts en annuel. Essai gratuit d’une semaine, sans carte bancaire. Sièges, projets,
+        marques et pays illimités sur tous les plans.
+      </p>
+      <p>
+        <strong>Moteurs.</strong> Huit annoncés — ChatGPT, Google AI Overviews, AI Mode, Gemini,
+        Perplexity, Grok, Copilot et Claude — mais <em>trois au choix par plan</em>. Au moment du
+        relevé, Claude figure dans la liste des huit sur une page du site et « à venir » sur une
+        autre : vérifiez avant de le choisir.
+      </p>
+      <p>
+        <strong>Langue et cible.</strong> Plateforme et support en français, éditeur français,
+        hébergement en Europe. Cible affichée : des PME aux grands comptes, avec des références
+        comme Cdiscount, La Poste ou Matmut, et les agences SEO.
+      </p>
+      <p>
+        <strong>Point fort.</strong> La rigueur de la mesure : chaque question est relevée
+        quotidiennement avec 15 à 30 passes pour lisser la variabilité des réponses, là où la
+        plupart des outils font un seul passage. Le tout en français, avec les sources citées et la
+        corrélation au trafic via Google Analytics, Matomo ou Looker Studio.
+      </p>
+      <p>
+        <strong>Point faible.</strong> Trois moteurs sur huit au plan d’entrée, c’est un arbitrage
+        de plus qu’avec Qwairy au même prix. Et 25 questions à 75 €, c’est le ratio le plus serré
+        des outils français : suffisant pour un site, pas pour un portefeuille de marques.
+      </p>
+
       <h2 id="writesonic">Writesonic mesure-t-il ou rédige-t-il ?</h2>
       <p>
         <strong>Prix.</strong> Starter à 79 $/mois, Basic à 199 $, Growth à 399 $ — tous facturés à
@@ -297,6 +352,37 @@ export default function Page() {
         <strong>Point faible.</strong> Trois moteurs seulement hors contrat entreprise : ni
         Perplexity ni Claude, alors que ce sont deux moteurs que vos clients B2B utilisent. Et
         l’engagement annuel est obligatoire : 79 $/mois signifie 948 $ d’un coup.
+      </p>
+
+      <h2 id="qwairy">Qwairy couvre-t-il vraiment dix moteurs à 79 € ?</h2>
+      <p>
+        <strong>Prix.</strong> Starter à 79 € HT/mois (65 € en annuel, facturé 790 €) pour 100
+        questions et un espace de travail, Growth à 199 € (165 € en annuel) pour 300 questions et
+        cinq espaces, Business à 449 € (374 €) pour 800 questions et vingt espaces, Enterprise sur
+        devis. Un plan gratuit de 120 crédits permet d’essayer sans carte bancaire.
+      </p>
+      <p>
+        <strong>Moteurs.</strong> Dix, dès le premier plan : ChatGPT, Perplexity, Gemini, Claude,
+        Copilot, Google AI Overviews, AI Mode, Grok, Mistral et DeepSeek. C’est la couverture la
+        plus large du comparatif à prix public, et la seule à inclure Mistral.
+      </p>
+      <p>
+        <strong>Langue et cible.</strong> Éditeur français (« Made in France », données hébergées en
+        Europe), mais site et interface en anglais au moment du relevé. Cible : les PME, les agences
+        et les équipes SEO ou contenu, avec une grille agences séparée.
+      </p>
+      <p>
+        <strong>Point fort.</strong> Le rapport couverture-prix, et l’intégration à votre outillage
+        : connexion Google Search Console et Bing Webmaster Tools, accès MCP dès le premier plan
+        (vous interrogez vos données depuis Claude ou un autre assistant), API REST à partir de
+        Growth. Le suivi se règle en quotidien, hebdomadaire ou mensuel.
+      </p>
+      <p>
+        <strong>Point faible.</strong> L’interface en anglais pour un produit qui se présente comme
+        français, et une facturation en crédits qu’il faut comprendre avant d’acheter : 1 300
+        crédits par mois au premier plan, et un relevé quotidien sur dix moteurs les consomme vite.
+        Le connecteur Looker Studio et l’analyse des robots IA sont réservés au plan Business à 449
+        €.
       </p>
 
       <h2 id="peec-ai">Peec AI vaut-il ses 85 €/mois ?</h2>
@@ -499,10 +585,11 @@ export default function Page() {
         français. Cible : les TPE et PME françaises sans équipe marketing.
       </p>
       <p>
-        <strong>Point fort.</strong> C’est l’offre la moins chère du comparatif qui couvre Claude
-        nativement, et la seule pensée en français de bout en bout : les questions sont générées
-        dans la langue de vos clients, et chaque problème détecté vient avec une fiche qui explique
-        quoi faire. Le plan gratuit va jusqu’au bout d’une analyse complète, sans carte bancaire.
+        <strong>Point fort.</strong> C’est le moins cher des outils français — gratuit, puis 19 €
+        contre 75 € chez Meteoria et 79 € chez Qwairy — et il couvre Claude dès le plan gratuit. Les
+        questions sont générées dans la langue de vos clients, et chaque problème détecté vient avec
+        une fiche qui explique quoi faire. Le plan gratuit va jusqu’au bout d’une analyse complète,
+        sans carte bancaire.
       </p>
       <p>
         <strong>Point faible.</strong> Plusieurs, et il faut les lire avant de choisir.
@@ -516,11 +603,12 @@ export default function Page() {
         <li>
           <strong>Suivi hebdomadaire sur les plans payants, pas quotidien</strong> : un relevé
           automatique chaque lundi sur un échantillon de 3 questions, et un relevé mensuel sur le
-          plan gratuit. Les analyses complètes se lancent à la demande.
+          plan gratuit. Les analyses complètes se lancent à la demande. Meteoria et Qwairy, eux,
+          relèvent chaque jour.
         </li>
         <li>
           <strong>Pas de Google AI Overviews ni d’AI Mode</strong> — les réponses IA qui s’affichent
-          directement dans Google. Semrush, Ahrefs, Otterly et Peec les couvrent.
+          directement dans Google. Semrush, Ahrefs, Otterly, Peec, Qwairy et Meteoria les couvrent.
         </li>
         <li>
           <strong>
@@ -539,8 +627,8 @@ export default function Page() {
       <p>
         Si vous cochez « une TPE ou une PME française, un ou quelques sites, un budget inférieur à
         60 €/mois et personne pour lire une interface SEO en anglais », GeoMind est fait pour vous.
-        Si vous suivez des centaines de questions, avez besoin d’AI Overviews ou d’une API, prenez
-        Peec ou Semrush.
+        Si vous suivez des centaines de questions, avez besoin d’AI Overviews, d’un relevé quotidien
+        ou d’une API, prenez Qwairy, Meteoria ou Peec.
       </p>
 
       <h2 id="quel-outil-pour-quel-profil">Quel outil pour quel profil</h2>
@@ -552,13 +640,16 @@ export default function Page() {
           tout engagement annuel avant d’avoir vu deux mois de tendance.
         </li>
         <li>
-          <strong>PME française avec un responsable marketing.</strong> GeoMind Pro pour l’audit et
-          le plan d’action, ou le module Semrush si vous êtes déjà client Semrush et voulez AI
-          Overviews. Ce sont deux besoins différents : audit du site contre suivi de position.
+          <strong>PME française avec un responsable marketing.</strong> Meteoria (75 €, en français)
+          ou Qwairy (79 € HT, dix moteurs) pour un suivi quotidien ; GeoMind Pro pour l’audit du
+          site et le plan d’action ; le module Semrush si vous êtes déjà client Semrush. Ce sont
+          deux besoins différents : suivi de position contre audit du site — beaucoup de PME
+          finissent par en prendre un de chaque.
         </li>
         <li>
-          <strong>Agence SEO ou web.</strong> Peec AI (grille agences en crédits, utilisateurs
-          illimités) pour le suivi multi-clients ; GeoMind Business pour des rapports PDF en marque
+          <strong>Agence SEO ou web.</strong> Meteoria (sièges et marques illimités, en français) ou
+          Peec AI (grille agences en crédits) pour le suivi multi-clients ; Qwairy pour ses espaces
+          de travail par client et son API ; GeoMind Business pour des rapports PDF en marque
           blanche destinés à des clients TPE ; Scrunch si vos clients exigent Claude et Perplexity
           dès le premier plan.
         </li>
