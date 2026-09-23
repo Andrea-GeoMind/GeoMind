@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import type { Route } from 'next'
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { Swords, Info, Trophy } from 'lucide-react'
+import { Swords, Info, Trophy, SlidersHorizontal } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
@@ -45,9 +47,7 @@ export default async function CompetitorsPage({ params }: Props) {
   }
 
   const [rawResults, declared] = await Promise.all([
-    latest.status === 'success'
-      ? getAuthorityResultsByAnalysisId(latest.id)
-      : Promise.resolve([]),
+    latest.status === 'success' ? getAuthorityResultsByAnalysisId(latest.id) : Promise.resolve([]),
     getCompetitorsBySiteId(siteId),
   ])
 
@@ -70,7 +70,7 @@ export default async function CompetitorsPage({ params }: Props) {
   const analysis = analyzeCompetitors(
     results,
     site.url,
-    declared.map((c) => ({ url: c.url, name: c.name })),
+    declared.map((c) => ({ url: c.url, name: c.name }))
   )
 
   const maxShare = Math.max(...analysis.standings.map((s) => s.shareOfVoice), 1)
@@ -87,6 +87,16 @@ export default async function CompetitorsPage({ params }: Props) {
           Sur les questions de votre secteur, qui les IA citent-elles le plus — vous, ou vos
           concurrents ?
         </p>
+        {/* Découvrabilité : ce classement dépend entièrement des questions
+            posées, mais leur édition vivait dans un onglet où personne ne la
+            cherchait. */}
+        <Link
+          href={`/sites/${siteId}/discovery` as Route}
+          className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        >
+          <SlidersHorizontal size={14} />
+          Modifier les questions testées
+        </Link>
       </div>
 
       {latest.status !== 'success' ? (
@@ -181,7 +191,8 @@ export default async function CompetitorsPage({ params }: Props) {
                 {s.citedResponses > 0 ? (
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span>
-                      Cité par : <strong>{s.engines.map((e) => ENGINE_LABELS[e]).join(', ')}</strong>
+                      Cité par :{' '}
+                      <strong>{s.engines.map((e) => ENGINE_LABELS[e]).join(', ')}</strong>
                     </span>
                     {s.sampleUrls.length > 0 && s.kind !== 'client' && (
                       <span className="truncate">

@@ -2,7 +2,19 @@ import type { Route } from 'next'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { AlertCircle, RefreshCw, TrendingUp, TrendingDown, Minus, ArrowRight, Lightbulb, Info, Radar, Radio } from 'lucide-react'
+import {
+  AlertCircle,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ArrowRight,
+  Lightbulb,
+  Info,
+  Radar,
+  Radio,
+  SlidersHorizontal,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserCredits } from '@/lib/credits'
 import { getSiteById } from '@/lib/db/queries/sites'
@@ -10,7 +22,9 @@ import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries
 import { getRollingCitationRate } from '@/lib/db/queries/citation-checks'
 import { getPixelEvents } from '@/lib/db/queries/pixel'
 import { summarizePixelEvents } from '@/lib/analysis/pixel'
-import { computeDeltas, } from '@/lib/analysis/compare'
+import { computeDeltas } from '@/lib/analysis/compare'
+import { promptsChangedSince } from '@/lib/analysis/prompt-changes'
+import { getPromptsBySiteId } from '@/lib/db/queries/prompts'
 import { getScoreMaturity, getPriorityAction } from '@/lib/analysis/scoring'
 import { ScoreGauge } from '@/components/charts/score-gauge'
 import { ScoreCard } from '@/components/features/analysis/score-card'
@@ -55,9 +69,10 @@ export default async function OverviewPage({ params }: Props) {
   }
 
   // Résumés remontés des onglets Suivi & Pixel : l'info clé sans changer d'onglet.
-  const [rolling, pixelEvents] = await Promise.all([
+  const [rolling, pixelEvents, sitePrompts] = await Promise.all([
     getRollingCitationRate(siteId, 30),
     site.pixelKey ? getPixelEvents(siteId, 30) : Promise.resolve([]),
+    getPromptsBySiteId(siteId),
   ])
   const pixelSummary = summarizePixelEvents(pixelEvents)
   const showTrendSummary = rolling.rate !== null
@@ -72,7 +87,13 @@ export default async function OverviewPage({ params }: Props) {
   const currentAnalysis = successfulPair[0] ?? null
   const previousAnalysis = successfulPair[1] ?? null
 
-  const deltas =
+  // Le score d'autorité est le taux de citation sur un jeu de questions donné.
+  // Si ce jeu a changé depuis l'analyse précédente, les deux notes ne mesurent
+  // pas la même chose : on retire les flèches plutôt que d'afficher un écart
+  // qui raconterait une progression qui n'a pas eu lieu.
+  const promptsChanged = promptsChangedSince(previousAnalysis?.createdAt ?? null, sitePrompts)
+
+  const rawDeltas =
     currentAnalysis?.globalScore !== null &&
     currentAnalysis?.authorityScore !== null &&
     currentAnalysis?.technicalScore !== null &&
@@ -85,19 +106,21 @@ export default async function OverviewPage({ params }: Props) {
     previousAnalysis !== null
       ? computeDeltas(
           {
-            globalScore:    currentAnalysis.globalScore!,
+            globalScore: currentAnalysis.globalScore!,
             authorityScore: currentAnalysis.authorityScore!,
             technicalScore: currentAnalysis.technicalScore!,
-            contentScore:   currentAnalysis.contentScore!,
+            contentScore: currentAnalysis.contentScore!,
           },
           {
-            globalScore:    previousAnalysis.globalScore!,
+            globalScore: previousAnalysis.globalScore!,
             authorityScore: previousAnalysis.authorityScore!,
             technicalScore: previousAnalysis.technicalScore!,
-            contentScore:   previousAnalysis.contentScore!,
+            contentScore: previousAnalysis.contentScore!,
           }
         )
       : null
+
+  const deltas = promptsChanged ? null : rawDeltas
 
   const globalScore = currentAnalysis?.globalScore ?? null
 
@@ -109,7 +132,7 @@ export default async function OverviewPage({ params }: Props) {
       ? getPriorityAction(
           currentAnalysis.authorityScore,
           currentAnalysis.technicalScore ?? 0,
-          currentAnalysis.contentScore ?? 0,
+          currentAnalysis.contentScore ?? 0
         )
       : null
 
@@ -139,14 +162,25 @@ export default async function OverviewPage({ params }: Props) {
         analysisSuccess={latest.status === 'success'}
       />
 
+      {/* Jeu de questions modifié : la comparaison n'a plus de sens. */}
+      {promptsChanged && rawDeltas !== null && (
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+          <Info size={15} className="shrink-0 text-muted-foreground" />
+          <span>
+            <strong>Questions de test modifiées</strong> depuis la dernière analyse, comparaison non
+            disponible.
+          </span>
+        </div>
+      )}
+
       {/* Méthodologie enrichie (§18.3) */}
       {methodologyChanged && deltas !== null && (
         <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-foreground">
           <Info size={15} className="shrink-0 text-primary" />
           <span>
-            <strong>Méthodologie enrichie</strong> — notre audit analyse désormais plus de
-            critères qu&apos;avant. Une variation de score peut refléter ce changement plutôt
-            qu&apos;une évolution réelle de votre site.
+            <strong>Méthodologie enrichie</strong> — notre audit analyse désormais plus de critères
+            qu&apos;avant. Une variation de score peut refléter ce changement plutôt qu&apos;une
+            évolution réelle de votre site.
           </span>
         </div>
       )}
@@ -156,8 +190,7 @@ export default async function OverviewPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           <AlertCircle size={16} className="shrink-0" />
           <span className="flex-1">
-            L&apos;analyse a échoué.{' '}
-            {latest.errorMessage ?? 'Une erreur inattendue est survenue.'}
+            L&apos;analyse a échoué. {latest.errorMessage ?? 'Une erreur inattendue est survenue.'}
           </span>
           <RetryAnalysisButton siteId={siteId} siteName={site.name} />
         </div>
@@ -204,8 +237,7 @@ export default async function OverviewPage({ params }: Props) {
               <Skeleton className="h-3 w-28 rounded-full" />
             ) : globalMaturity ? (
               <p className="text-sm text-[#B2C8DE]">
-                Niveau :{' '}
-                <span className="font-semibold text-white">{globalMaturity.label}</span>
+                Niveau : <span className="font-semibold text-white">{globalMaturity.label}</span>
               </p>
             ) : null}
 
@@ -237,9 +269,21 @@ export default async function OverviewPage({ params }: Props) {
 
       {/* 3 pillar score cards */}
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          Détail par pilier
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Détail par pilier
+          </h2>
+          {/* Découvrabilité : la note d'autorité dépend entièrement des
+              questions posées, mais leur édition vivait dans un onglet où
+              personne n'allait la chercher. */}
+          <Link
+            href={`/sites/${siteId}/discovery` as Route}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            <SlidersHorizontal size={14} />
+            Modifier les questions testées
+          </Link>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {isInProgress ? (
             <>
