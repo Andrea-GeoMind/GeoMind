@@ -10,6 +10,7 @@ import { LowCreditsBanner } from '@/components/features/credits/low-credits-bann
 import { CoachProvider } from '@/components/features/coach/coach-provider'
 import { CoachFloatingButton } from '@/components/features/coach/coach-floating-button'
 import { CoachFloatingPanel } from '@/components/features/coach/coach-floating-panel'
+import { InstallPrompt } from '@/components/install-prompt'
 
 const LOW_CREDIT_BANNER_RATIO = 0.2
 
@@ -63,6 +64,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
         <CoachFloatingButton creditsBadge={credits?.amount ?? null} />
         <CoachFloatingPanel />
+        {/* Proposition d'installation de la PWA : réservée à l'espace connecté.
+            Montée dans le layout racine, elle s'affichait sur le blog et les
+            pages publiques, où le visiteur n'a aucune raison d'installer une
+            application dont il n'est pas encore client. */}
+        <InstallPrompt />
       </CoachProvider>
     </AnalysisLockProvider>
   )

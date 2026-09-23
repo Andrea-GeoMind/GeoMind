@@ -4,7 +4,6 @@ import './globals.css'
 // Validation des variables d'environnement au boot — crash explicitement si manquantes
 import '@/lib/env'
 import { Toaster } from '@/components/ui/toaster'
-import { InstallPrompt } from '@/components/install-prompt'
 import { CookieBanner } from '@/components/cookie-banner'
 import { PostHogProvider } from '@/components/posthog-provider'
 
@@ -77,7 +76,6 @@ export default function RootLayout({
         <PostHogProvider>
           {children}
           <Toaster />
-          <InstallPrompt />
           <CookieBanner />
         </PostHogProvider>
       </body>
