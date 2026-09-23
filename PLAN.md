@@ -74,5 +74,31 @@
 
 ---
 
+## À FAIRE AVANT L'OUVERTURE DES PLANS PAYANTS
+
+- [ ] **39. Perte d'historique d'autorité à l'édition des questions** — `authority_results.prompt_id`
+  est déclaré `onDelete: cascade`. Supprimer une question de test efface donc **toutes les réponses
+  qu'elle avait produites, dans toutes les analyses passées**. Deux conséquences : l'historique
+  d'autorité est amputé sans que personne ne le sache, et la détection « les questions ont changé »
+  (`lib/analysis/prompt-changes.ts`) ne peut pas voir une suppression, puisque la preuve disparaît
+  avec le changement. Aujourd'hui l'impact est limité — seul le plan gratuit est ouvert, donc peu
+  d'historique en jeu. **À traiter avant d'ouvrir les plans payants**, où l'historique devient une
+  promesse vendue (90 jours sur Solo, 1 an sur Pro, illimité sur Business).
+
+  Comparer deux solutions, retenir **la plus simple qui ne perde jamais d'historique** :
+
+  1. **Figer le jeu de questions sur l'analyse.** Colonne dédiée sur `analyses` (jeu de questions
+     ou empreinte), écrite au lancement. Avantage : la comparaison devient exacte, suppressions
+     comprises. Coût : une migration, et un champ à maintenir à chaque évolution du format.
+  2. **Archiver les questions au lieu de les supprimer.** `deletedAt` sur `prompts`, aucune
+     suppression physique, cascade retirée. Avantage : rien ne se perd jamais, et les réponses
+     passées restent rattachées à leur question. Coût : une migration aussi, plus tous les points
+     de lecture à filtrer sur `deletedAt IS NULL`.
+
+  La seconde paraît la plus proche de l'exigence « ne jamais perdre d'historique », mais elle touche
+  plus de code. À trancher au moment de s'y mettre, pas avant. — **M**
+
+---
+
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
 **North-star metric** : sites surveillés actifs par semaine.
