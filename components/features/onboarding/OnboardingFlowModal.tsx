@@ -200,38 +200,45 @@ function ReviewingPhase({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-500/30">
           <CheckCircle className="h-5 w-5 text-emerald-600" />
         </div>
         <div>
           <h2 className="text-lg font-bold tracking-tight">Profil GEO généré !</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Vérifiez et ajustez avant de lancer l&apos;analyse.
           </p>
         </div>
       </div>
 
-      {/* Description */}
+      {/* Description — la description générée fait souvent 5 à 8 lignes :
+          `rows={3}` + `resize-none` la tronquait sans moyen de la déplier. */}
       <div className="space-y-2">
-        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <MessageSquare size={12} /> Description
+        <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <MessageSquare size={14} className="text-muted-foreground" /> Description
         </label>
+        <p className="text-xs text-muted-foreground">
+          Ce que GeoMind a compris de votre activité. C&apos;est elle qui sert à générer les
+          questions posées aux IA — relisez-la.
+        </p>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className="w-full resize-none rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+          rows={6}
+          className="min-h-[7rem] w-full resize-y rounded-lg border border-border bg-muted/30 px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
 
-      {/* Mots-clés + Concurrents côte à côte sur grand écran */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      {/* Empilé en pleine largeur : côte à côte, les deux colonnes se
+          partageaient la largeur d'une modale déjà contrainte, et les champs
+          d'URL de concurrents devenaient illisibles. */}
+      <div className="space-y-8">
         {/* Mots-clés */}
         <div className="space-y-2">
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <Tag size={12} /> Mots-clés
+          <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Tag size={14} className="text-muted-foreground" /> Mots-clés
           </label>
           <div className="flex flex-wrap gap-1.5">
             {keywords.map((kw) => (
@@ -252,7 +259,7 @@ function ReviewingPhase({
               onChange={(e) => setKwInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
               placeholder="Ajouter un mot-clé…"
-              className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 rounded-lg border border-border bg-muted/30 px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button
               onClick={addKeyword}
@@ -265,8 +272,8 @@ function ReviewingPhase({
 
         {/* Concurrents */}
         <div className="space-y-2">
-          <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <Users size={12} /> Concurrents détectés
+          <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Users size={14} className="text-muted-foreground" /> Concurrents détectés
           </label>
           <div className="space-y-1.5">
             {competitorsList.map((c, i) => (
@@ -278,8 +285,8 @@ function ReviewingPhase({
                       prev.map((x, j) => (j === i ? { ...x, url: e.target.value } : x))
                     )
                   }
-                  placeholder="https://concurrent.fr"
-                  className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="concurrent.fr"
+                  className="flex-1 rounded-lg border border-border bg-muted/30 px-3.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <button
                   onClick={() => setCompetitorsList((prev) => prev.filter((_, j) => j !== i))}
@@ -301,8 +308,8 @@ function ReviewingPhase({
 
       {/* Prompts */}
       <div className="space-y-2">
-        <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Rocket size={12} /> Questions de test pour les IA
+        <label className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Rocket size={14} className="text-muted-foreground" /> Questions de test pour les IA
         </label>
         <p className="text-xs leading-relaxed text-muted-foreground">
           Les questions que vos clients poseraient à ChatGPT — sans citer votre nom, sinon le test
@@ -322,7 +329,7 @@ function ReviewingPhase({
                   )
                 }
                 rows={2}
-                className="flex-1 resize-none rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                className="min-h-[3.5rem] flex-1 resize-y rounded-lg border border-border bg-muted/30 px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <button
                 onClick={() => setPromptsList((prev) => prev.filter((_, j) => j !== i))}
