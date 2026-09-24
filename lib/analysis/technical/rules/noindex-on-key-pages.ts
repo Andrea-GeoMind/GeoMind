@@ -47,31 +47,41 @@ function isParameterised(url: string): boolean {
 }
 
 /**
- * Directives d'indexation effectivement constatées sur la page.
+ * Directives constatées par NOTRE propre lecture, avec un user-agent de
+ * navigateur : `robotsSelf` (head du document) et l'en-tête `X-Robots-Tag`.
  *
- * Le champ `robots` de Firecrawl n'est volontairement pas consulté : le
- * 2026-09-23 il annonçait `noindex` sur deux sites qui n'en portent aucun,
- * vérification faite en HTTP brut, en en-têtes et dans un navigateur. On ne
- * retient que ce qu'on a extrait soi-même du HTML brut (`robotsHtml`) et
- * l'en-tête `X-Robots-Tag` relevé par la sonde.
+ * Le champ `robots` de Firecrawl n'est pas consulté, et `robotsHtml` — extrait
+ * du `rawHtml` de Firecrawl — ne l'est plus non plus : les deux viennent de la
+ * même requête, donc se recouper l'un l'autre ne prouve rien. C'est ce qui a
+ * laissé passer le faux positif de `lembellie-lyon.com` le 24/09.
  *
- * `null` signifie « aucune des deux sources n'est disponible » : la page est
- * antérieure à ces relevés, et la règle se tait plutôt que de deviner.
+ * `null` signifie « page jamais sondée » : la règle se tait plutôt que de
+ * deviner.
  */
 function observedDirectives(metadata: Record<string, unknown> | null | undefined): string[] | null {
   if (!metadata) return null
 
-  const fromHtml = metadata.robotsHtml
-  const htmlKnown = Array.isArray(fromHtml)
-  const htmlDirectives = htmlKnown ? fromHtml.filter((d): d is string => typeof d === 'string') : []
+  const fromSelf = metadata.robotsSelf
+  const selfKnown = Array.isArray(fromSelf)
+  const selfDirectives = selfKnown ? fromSelf.filter((d): d is string => typeof d === 'string') : []
 
   // `null` = sondée, pas d'en-tête. `undefined` = jamais sondée.
   const rawHeader = metadata.xRobotsTag
   const headerKnown = typeof rawHeader === 'string' || rawHeader === null
   const headerDirectives = typeof rawHeader === 'string' ? parseXRobotsTag(rawHeader) : []
 
-  if (!htmlKnown && !headerKnown) return null
-  return [...htmlDirectives, ...headerDirectives]
+  if (!selfKnown && !headerKnown) return null
+  return [...selfDirectives, ...headerDirectives]
+}
+
+/** Robot d'IA à qui le site réserve une consigne, relevé par la sonde. */
+function robotsForBot(
+  metadata: Record<string, unknown> | null | undefined
+): { bot: string } | null {
+  const value = metadata?.robotsForBot
+  if (!value || typeof value !== 'object') return null
+  const bot = (value as { bot?: unknown }).bot
+  return typeof bot === 'string' && bot !== '' ? { bot } : null
 }
 
 /**
@@ -85,17 +95,43 @@ export const checkNoindexOnKeyPages: TechnicalPageRuleFn = async (page) => {
 
   const directives = observedDirectives(page.metadata)
   if (directives === null) return null
-  if (!hasNoindex(directives)) return null
 
-  return {
-    ruleKey: 'noindex_on_key_pages',
-    category: 'accessibility',
-    title: 'Page clé en noindex',
-    description:
-      "Cette page stratégique (accueil ou premier niveau) porte une directive noindex : vous demandez explicitement aux moteurs — y compris ceux qui alimentent ChatGPT et Perplexity — de ne jamais l'indexer. Elle ne sera donc jamais citée, retirez cette directive si ce n'est pas voulu.",
-    sampleUrls: [page.url],
-    severity: 'major',
-    effort: 1,
-    impact: 3,
+  if (hasNoindex(directives)) {
+    return {
+      ruleKey: 'noindex_on_key_pages',
+      category: 'accessibility',
+      title: 'Page clé en noindex',
+      description:
+        "Cette page stratégique (accueil ou premier niveau) porte une directive noindex : vous demandez explicitement aux moteurs — y compris ceux qui alimentent ChatGPT et Perplexity — de ne jamais l'indexer. Elle ne sera donc jamais citée, retirez cette directive si ce n'est pas voulu.",
+      sampleUrls: [page.url],
+      severity: 'major',
+      effort: 1,
+      impact: 3,
+    }
   }
+
+  // Rien pour un navigateur, mais le site réserve une consigne à un robot
+  // précis. C'est un constat différent, et on le nomme : « noindex » sans
+  // préciser à qui laisserait croire à une erreur de configuration générale.
+  const forBot = robotsForBot(page.metadata)
+  if (forBot) {
+    return {
+      ruleKey: 'noindex_on_key_pages',
+      category: 'accessibility',
+      title: `Votre site sert une consigne noindex à ${forBot.bot}`,
+      description:
+        `Un navigateur reçoit cette page normalement, mais lorsqu'elle est demandée avec le ` +
+        `user-agent de ${forBot.bot}, le site renvoie une directive noindex. Ce robot ne ` +
+        `l'indexera donc jamais, et le moteur de réponse qu'il alimente ne pourra pas vous ` +
+        `citer depuis cette page. C'est en général le fait d'un pare-feu applicatif ou d'un ` +
+        `module anti-robots : vérifiez auprès de votre hébergeur que les robots d'IA sont ` +
+        `autorisés.`,
+      sampleUrls: [page.url],
+      severity: 'major',
+      effort: 1,
+      impact: 3,
+    }
+  }
+
+  return null
 }

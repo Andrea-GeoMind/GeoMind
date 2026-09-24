@@ -176,7 +176,7 @@ describe('checkNoindexOnKeyPages', () => {
   it('returns an issue when a depth-1 page has noindex', async () => {
     const page = {
       url: 'https://example.com/services',
-      metadata: { robotsHtml: ['noindex, nofollow'] },
+      metadata: { robotsSelf: ['noindex, nofollow'] },
     }
     const result = await checkNoindexOnKeyPages(page, INPUT)
     expect(result).not.toBeNull()
@@ -188,19 +188,19 @@ describe('checkNoindexOnKeyPages', () => {
   })
 
   it('returns an issue when the home page has noindex', async () => {
-    const page = { url: 'https://example.com/', metadata: { robotsHtml: ['NOINDEX'] } }
+    const page = { url: 'https://example.com/', metadata: { robotsSelf: ['NOINDEX'] } }
     const result = await checkNoindexOnKeyPages(page, INPUT)
     expect(result).not.toBeNull()
   })
 
   it('returns null when noindex is on a deep page (depth > 1)', async () => {
-    const page = { url: 'https://example.com/blog/old-post', metadata: { robotsHtml: ['noindex'] } }
+    const page = { url: 'https://example.com/blog/old-post', metadata: { robotsSelf: ['noindex'] } }
     const result = await checkNoindexOnKeyPages(page, INPUT)
     expect(result).toBeNull()
   })
 
   it('returns null when robots allows indexing', async () => {
-    const page = { url: 'https://example.com/services', metadata: { robotsHtml: ['index, follow'] } }
+    const page = { url: 'https://example.com/services', metadata: { robotsSelf: ['index, follow'] } }
     const result = await checkNoindexOnKeyPages(page, INPUT)
     expect(result).toBeNull()
   })

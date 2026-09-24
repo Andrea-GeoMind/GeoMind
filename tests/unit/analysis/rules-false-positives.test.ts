@@ -8,13 +8,13 @@ const input = { pages: [], siteUrl: 'https://x.fr' }
 const filler = (n: number) => Array.from({ length: n }, (_, i) => `mot${i}`).join(' ')
 
 describe('checkNoindexOnKeyPages', () => {
-  // `robotsHtml` = ce qu'on a extrait du HTML brut nous-mêmes. Le champ
+  // `robotsSelf` = ce que NOTRE requête a lu dans le head. Le champ
   // `robots` de Firecrawl est volontairement ignoré depuis le 23/09.
   const page = (url: string) => ({
     url,
     markdown: '# T',
     statusCode: 200,
-    metadata: { robots: 'noindex, nofollow', robotsHtml: ['noindex, nofollow'] },
+    metadata: { robots: 'noindex, nofollow', robotsSelf: ['noindex, nofollow'] },
   })
 
   it("ne reproche pas son noindex à une page de connexion — c'est la bonne pratique", async () => {

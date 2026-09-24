@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { checkNoindexOnKeyPages } from '@/lib/analysis/technical/rules/noindex-on-key-pages'
 import {
   extractMetaRobots,
+  mainHead,
   parseXRobotsTag,
   hasNoindex,
 } from '@/lib/crawl/robots-directives'
@@ -20,7 +21,7 @@ describe('la règle n’affirme rien sur le seul champ robots de Firecrawl', () 
     // Le cas exact de lembellie-lyon.com.
     const page = {
       url: 'https://www.lembellie-lyon.com/',
-      metadata: { robots: 'noindex', robotsHtml: [], xRobotsTag: null },
+      metadata: { robots: 'noindex', robotsSelf: [], xRobotsTag: null },
     }
     expect(await checkNoindexOnKeyPages(page, INPUT)).toBeNull()
   })
@@ -29,7 +30,7 @@ describe('la règle n’affirme rien sur le seul champ robots de Firecrawl', () 
     // Firecrawl a renvoyé ["noindex","noindex"] sur une variante eatbu.
     const page = {
       url: 'https://exemple.fr/',
-      metadata: { robots: ['noindex', 'noindex'], robotsHtml: [], xRobotsTag: null },
+      metadata: { robots: ['noindex', 'noindex'], robotsSelf: [], xRobotsTag: null },
     }
     expect(await checkNoindexOnKeyPages(page, INPUT)).toBeNull()
   })
@@ -42,7 +43,7 @@ describe('la règle n’affirme rien sur le seul champ robots de Firecrawl', () 
   })
 
   it('signale quand le HTML brut le confirme', async () => {
-    const page = { url: 'https://exemple.fr/', metadata: { robotsHtml: ['noindex, follow'] } }
+    const page = { url: 'https://exemple.fr/', metadata: { robotsSelf: ['noindex, follow'] } }
     expect((await checkNoindexOnKeyPages(page, INPUT))?.severity).toBe('major')
   })
 
@@ -50,14 +51,14 @@ describe('la règle n’affirme rien sur le seul champ robots de Firecrawl', () 
     // Directive invisible dans le HTML : c’est tout l’intérêt de la sonde.
     const page = {
       url: 'https://exemple.fr/services',
-      metadata: { robotsHtml: [], xRobotsTag: 'noindex' },
+      metadata: { robotsSelf: [], xRobotsTag: 'noindex' },
     }
     expect((await checkNoindexOnKeyPages(page, INPUT))?.ruleKey).toBe('noindex_on_key_pages')
   })
 })
 
 describe('pages légitimement en noindex', () => {
-  const noindexed = (url: string) => ({ url, metadata: { robotsHtml: ['noindex'] } })
+  const noindexed = (url: string) => ({ url, metadata: { robotsSelf: ['noindex'] } })
 
   it('ne reproche pas son noindex à une page cookies ou légale', async () => {
     // `/cookies` de lembellie porte « follow, noindex, noarchive » : normal.
@@ -102,7 +103,7 @@ describe('seule l’URL racine sans paramètre est la page d’accueil', () => {
     // l’accueil. Les constructeurs de sites désindexent ces variantes exprès.
     const page = {
       url: 'https://l-atelier-du-square.eatbu.com/?lang=en',
-      metadata: { robotsHtml: ['noindex'] },
+      metadata: { robotsSelf: ['noindex'] },
     }
     expect(await checkNoindexOnKeyPages(page, INPUT)).toBeNull()
   })
@@ -113,7 +114,7 @@ describe('seule l’URL racine sans paramètre est la page d’accueil', () => {
       'https://x.fr/?utm_source=gmb',
       'https://x.fr/services?filtre=2',
     ]) {
-      expect(await checkNoindexOnKeyPages({ url, metadata: { robotsHtml: ['noindex'] } }, INPUT))
+      expect(await checkNoindexOnKeyPages({ url, metadata: { robotsSelf: ['noindex'] } }, INPUT))
         .toBeNull()
     }
   })
@@ -121,7 +122,7 @@ describe('seule l’URL racine sans paramètre est la page d’accueil', () => {
   it('signale toujours la racine nue et le premier niveau', async () => {
     for (const url of ['https://x.fr/', 'https://x.fr', 'https://x.fr/a-propos']) {
       expect(
-        await checkNoindexOnKeyPages({ url, metadata: { robotsHtml: ['noindex'] } }, INPUT)
+        await checkNoindexOnKeyPages({ url, metadata: { robotsSelf: ['noindex'] } }, INPUT)
       ).not.toBeNull()
     }
   })
@@ -168,5 +169,113 @@ describe('extraction des directives', () => {
     expect(hasNoindex(['none'])).toBe(true)
     expect(hasNoindex([])).toBe(false)
     expect(hasNoindex(null)).toBe(false)
+  })
+})
+
+/**
+ * Régression du 24/09/2026 — le faux positif de `lembellie-lyon.com`.
+ *
+ * Le `noindex` rapporté par Firecrawl appartenait à l'iframe utilitaire
+ * d'AddToAny. Firecrawl exécute le JavaScript et aplatit les iframes dans le
+ * HTML parent (`data-original-tag="iframe"`), si bien que le head d'un
+ * document tiers se retrouve au milieu du corps de la page.
+ */
+describe('un meta robots hors du head du document ne compte pas', () => {
+  // Reproduit la structure exacte relevée sur lembellie-lyon.com.
+  const pageAvecAddToAny = `<!DOCTYPE html><html lang="fr"><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>L'Embellie - Centre de Beauté</title>
+    </head><body>
+      <div id="a2a_sm_ifr" title="AddToAny Utility Frame" data-original-tag="iframe">
+        <!DOCTYPE html><html><head><title>A2A</title>
+        <meta name="robots" content="noindex"></head></html>
+      </div>
+      <h1>Institut de beauté à Lyon</h1>
+    </body></html>`
+
+  it('ignore le meta robots d’un widget tiers aplati dans le corps', () => {
+    expect(extractMetaRobots(pageAvecAddToAny)).toEqual([])
+    expect(hasNoindex(extractMetaRobots(pageAvecAddToAny))).toBe(false)
+  })
+
+  it('lit toujours celui du head du document principal', () => {
+    const html = `<html><head><meta name="robots" content="noindex"></head><body>x</body></html>`
+    expect(extractMetaRobots(html)).toEqual(['noindex'])
+  })
+
+  it('ne se laisse pas avoir par un head tiers placé avant le vrai', () => {
+    // Le head du document principal est le premier : on s'arrête à sa fermeture.
+    const html = `<html><head><title>Vrai</title></head><body>
+      <div data-original-tag="iframe"><head><meta name="robots" content="noindex"></head></div>
+    </body></html>`
+    expect(hasNoindex(extractMetaRobots(html))).toBe(false)
+  })
+
+  it('renvoie une liste vide quand le document n’a pas de head', () => {
+    expect(extractMetaRobots('<div>pas de head</div>')).toEqual([])
+  })
+
+  it('isole bien la tête du document principal', () => {
+    const html = '<html><head><title>Vrai</title></head><body><head>faux</head></body></html>'
+    expect(mainHead(html)).toContain('<title>Vrai</title>')
+    expect(mainHead(html)).not.toContain('faux')
+    // Fragment sans head : tout ce qui précède le body fait office de tête.
+    expect(mainHead('<meta name="robots" content="noindex"><body>x</body>')).toContain('robots')
+  })
+})
+
+describe('la règle ne se fie qu’à notre propre lecture', () => {
+  it('se tait quand seul Firecrawl voit le noindex', async () => {
+    // `robotsHtml` vient du rawHtml de Firecrawl : même requête que `robots`,
+    // donc pas une source indépendante. La sonde, elle, n'a rien vu.
+    const page = {
+      url: 'https://www.lembellie-lyon.com/',
+      metadata: {
+        robots: 'noindex',
+        robotsHtml: ['noindex'],
+        robotsSelf: [],
+        xRobotsTag: null,
+        robotsForBot: null,
+      },
+    }
+    expect(await checkNoindexOnKeyPages(page, INPUT)).toBeNull()
+  })
+
+  it('nomme le robot quand le site lui réserve la consigne', async () => {
+    const page = {
+      url: 'https://exemple.fr/',
+      metadata: {
+        robotsSelf: [],
+        xRobotsTag: null,
+        robotsForBot: { bot: 'GPTBot', directives: ['noindex'] },
+      },
+    }
+    const issue = await checkNoindexOnKeyPages(page, INPUT)
+    expect(issue?.title).toBe('Votre site sert une consigne noindex à GPTBot')
+    expect(issue?.severity).toBe('major')
+    // Le message doit dire que le navigateur, lui, reçoit la page normalement.
+    expect(issue?.description).toMatch(/navigateur reçoit cette page normalement/)
+  })
+
+  it('préfère le constat général quand le navigateur le voit aussi', async () => {
+    const page = {
+      url: 'https://exemple.fr/',
+      metadata: {
+        robotsSelf: ['noindex'],
+        robotsForBot: { bot: 'GPTBot', directives: ['noindex'] },
+      },
+    }
+    expect((await checkNoindexOnKeyPages(page, INPUT))?.title).toBe('Page clé en noindex')
+  })
+
+  it('ignore un robotsForBot mal formé', async () => {
+    // Donnée persistée : elle peut être incomplète ou d'une version antérieure.
+    for (const forBot of [{}, { bot: '' }, { bot: 42 }, 'GPTBot'] as unknown[]) {
+      const page = {
+        url: 'https://exemple.fr/',
+        metadata: { robotsSelf: [], robotsForBot: forBot } as Record<string, unknown>,
+      }
+      expect(await checkNoindexOnKeyPages(page, INPUT)).toBeNull()
+    }
   })
 })

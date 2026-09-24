@@ -39,9 +39,10 @@ export function buildPageMetadata(doc: FirecrawlDocument): Record<string, unknow
   const metadata: Record<string, unknown> = {
     ...(doc.metadata ?? {}),
     schemaOrgs: extractJsonLd(doc.rawHtml),
-    // Les directives d'indexation lues à la source. Le champ `robots` de
-    // Firecrawl est conservé tel quel au-dessus, mais il s'est révélé faux sur
-    // deux sites réels : la règle noindex exige désormais ce recoupement.
+    // Directives lues dans le head du rawHtml de Firecrawl. Conservé pour le
+    // diagnostic, mais AUCUNE règle ne doit s'y fier : ce HTML vient de la même
+    // requête que `metadata.robots`, donc l'un ne recoupe pas l'autre. La
+    // source qui fait foi est `metadata.robotsSelf`, posée par `probePages`.
     robotsHtml: extractMetaRobots(doc.rawHtml),
   }
   // Les titres viennent du HTML : le markdown de Firecrawl perd ceux placés dans
