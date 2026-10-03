@@ -8,6 +8,12 @@
  * reste). Ce cron interroge chaque moteur avec une question courte et alerte
  * Sentry dès qu'un moteur tombe — avant que ce soit un client qui le découvre.
  *
+ * Il sonde aussi l'envoi d'email et la base. Cette dernière sonde a une double
+ * utilité : vérifier que la base répond, et la garder éveillée. Le plan gratuit
+ * de Supabase met un projet en pause après sept jours sans requête, ce qui est
+ * arrivé le 2026-10-03 — le healthcheck tournait, mais ne touchait que les
+ * moteurs et Resend, donc Supabase ne voyait aucune activité.
+ *
  * Coût : 4 appels/jour sur un prompt très court, soit quelques centimes/mois.
  */
 
@@ -16,6 +22,8 @@ import { createEngines } from '@/lib/ai/engines'
 import type { IAEngine, IAEngineName } from '@/lib/ai/connectors/base'
 import { captureEngineFailure, captureEngineOutage, captureJobFailure } from '@/lib/monitoring'
 import { probeEmailDelivery } from '@/lib/email/health'
+import { probeDatabase, SLOW_QUERY_MS } from '@/lib/db/health'
+import { logAudit } from '@/lib/db/queries/audit-log'
 import { captureEmailFailure } from '@/lib/monitoring'
 
 /** Question courte mais réaliste : doit déclencher une recherche web et des sources. */
@@ -131,7 +139,43 @@ export const healthcheckEnginesFunction = inngest.createFunction(
         return health
       })
 
-      return { ...engines, email }
+      // Sonde de la base. Placée en premier dans l'ordre d'importance : sans
+      // elle, l'application ne sert plus à rien, et c'est la seule qui compte
+      // comme activité aux yeux de Supabase.
+      const database = await step.run('probe-database', async () => {
+        const health = await probeDatabase()
+        if (!health.ok) {
+          console.error('[healthcheck] base injoignable :', health.error)
+          captureJobFailure(
+            'healthcheck-database',
+            new Error(health.error ?? 'base injoignable')
+          )
+        } else if (health.durationMs > SLOW_QUERY_MS) {
+          console.warn(`[healthcheck] base lente : ${health.durationMs} ms`)
+          captureJobFailure(
+            'healthcheck-database-slow',
+            new Error(`Base lente : ${health.durationMs} ms pour un select 1`)
+          )
+        } else {
+          console.log(`[healthcheck] base : ok (${health.durationMs} ms)`)
+        }
+        return health
+      })
+
+      // Trace durable du passage. C'est ce qui permet de répondre « oui, il a
+      // tourné hier » sans accès au tableau de bord Inngest — et l'écriture
+      // compte elle aussi comme activité pour Supabase.
+      await step.run('record-run', () =>
+        logAudit('healthcheck.ran', null, {
+          enginesHealthy: engines.healthy,
+          enginesTotal: engines.total,
+          emailOk: email.ok,
+          databaseOk: database.ok,
+          databaseMs: database.durationMs,
+        })
+      )
+
+      return { ...engines, email, database }
     } catch (err) {
       captureJobFailure('healthcheck-engines', err)
       throw err
