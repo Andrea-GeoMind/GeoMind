@@ -66,3 +66,19 @@ describe('la maquette de l’accueil est un exemple déclaré', () => {
   })
 })
 
+describe('Réputation et Pixel décrivent ce qu’ils font vraiment', () => {
+  const src = lire('app/(marketing)/page.tsx')
+
+  it('la Réputation parle de contradictions entre IA, pas de vérité', () => {
+    // Elle ne connaît pas les vraies informations du client : elle compare
+    // les quatre IA entre elles. Et elle se lance à la demande.
+    expect(src).not.toMatch(/racontent des infos fausses/)
+    expect(src).not.toMatch(/avant que ça vous coûte un client/)
+    expect(src).toMatch(/on repère où elles se contredisent/)
+  })
+
+  it('le Pixel parle de clics et de formulaires, pas d’appels ni de devis', () => {
+    expect(src).not.toMatch(/appels, devis, rendez-vous/)
+    expect(src).toMatch(/clics sur votre numéro, sur vos liens de rendez-vous, envois de formulaire/)
+  })
+})

@@ -499,7 +499,9 @@ export default function MarketingHome() {
               {
                 icon: BarChart3,
                 title: 'La preuve par les chiffres',
-                body: 'Le Pixel GeoMind compte les visiteurs réels que les IA vous amènent, et ce qu’ils font : appels, devis, rendez-vous.',
+                // Il compte des CLICS (numéro, lien de rendez-vous) et des envois de
+                // formulaire : ni des appels passés, ni des devis signés.
+                body: 'Le Pixel compte les visiteurs venus des IA, et ce qu’ils font sur votre site : clics sur votre numéro, sur vos liens de rendez-vous, envois de formulaire.',
               },
               {
                 icon: Trophy,
@@ -509,7 +511,10 @@ export default function MarketingHome() {
               {
                 icon: AlertTriangle,
                 title: 'Ce que les IA disent de vous',
-                body: 'On détecte quand ChatGPT ou Gemini racontent des infos fausses sur vous (horaires, adresse) — avant que ça vous coûte un client.',
+                // L'analyse ne connaît pas vos vraies informations : elle compare
+                // ce que disent les quatre IA, et signale où elles divergent.
+                // Elle se lance à la demande, ce n'est pas une veille.
+                body: 'On demande aux quatre IA ce qu’elles savent de vous, et on repère où elles se contredisent — horaires, adresse, téléphone : le signe qu’au moins l’une se trompe.',
               },
               {
                 icon: TrendingUp,
