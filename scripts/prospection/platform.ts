@@ -43,6 +43,11 @@ const PLATFORM_SUFFIXES = [
   'pagesperso-orange.fr',
   'wixstudio.com',
   'eatbu.com', // constructeur de sites de restaurants (Zenchef)
+  // NB : `*.notaires.fr` et `*.avocat.fr` n'y figurent volontairement pas.
+  // C'est l'hébergement officiel proposé par les ordres professionnels, la
+  // norme pour un office notarial — pas un signe de site laissé de côté.
+  // Les classer ici les faisait passer en tête de sélection : 11 notaires sur
+  // 40 au premier dry-run du 03/10.
   'metro-webstudio.fr',
   'solocal-sites.fr',
 ]

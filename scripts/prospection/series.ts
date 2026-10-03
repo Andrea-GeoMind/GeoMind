@@ -42,6 +42,31 @@ export const SERIES: Record<string, Series> = {
     ],
     excludeEmergency: true,
   },
+  liberal: {
+    key: 'liberal',
+    label: 'Professions libérales et commerces de proximité — Lyon',
+    area: 'Lyon',
+    // Formulations au plus près de ce qu'un client tape : « psychologue » et
+    // non « psychologue en libéral », que personne ne cherche ainsi. Le
+    // caractère indépendant est assuré par les filtres de franchise et de
+    // réseau, pas par la requête.
+    categories: [
+      'ostéopathe',
+      'kinésithérapeute',
+      'diététicien',
+      'psychologue',
+      'avocat droit de la famille',
+      'notaire',
+      'agence immobilière',
+      'fleuriste',
+      'boulangerie artisanale',
+      'opticien',
+    ],
+    excludeEmergency: false,
+    note:
+      'mode léger recommandé : aucun audit de site, les emails de prospection ne portent ' +
+      'que sur ChatGPT et les avis',
+  },
   commerces: {
     key: 'commerces',
     label: 'Commerces et lieux de proximité — Lyon',

@@ -18,9 +18,13 @@ import { politeFetch } from './polite-fetch'
  * Marqueurs de navigation propres à un réseau. Le possessif est ce qui
  * distingue « Nos salles » (l'enseigne en a plusieurs) de « la salle »
  * (l'établissement parle de lui-même).
+ *
+ * Seulement des LIEUX, jamais des personnes : « nos opticiens » a écarté à tort
+ * un magasin unique qui invitait à « rencontrer nos opticiens lyonnais » — son
+ * équipe, pas ses boutiques (dry-run du 03/10).
  */
 const NETWORK_MARKERS = [
-  /\bnos\s+(salles|clubs|espaces|studios|centres|agences|boutiques|adresses|ateliers|instituts|magasins|restaurants|caves|salons)\b/i,
+  /\bnos\s+(salles|clubs|espaces|studios|centres|agences|boutiques|adresses|ateliers|instituts|magasins|restaurants|caves|salons|cabinets|boulangeries)\b/i,
   /\btoutes\s+nos\s+(salles|clubs|espaces|studios|adresses|boutiques)\b/i,
   /\bnos\s+points?\s+de\s+vente\b/i,
   /\b(trouve[rz]?|choisi(?:r|ssez))\s+(ta|ton|votre|un)\s+(salle|club|studio|espace|centre)\b/i,

@@ -8,7 +8,15 @@ import { isFranchise, detectSharedDomains, isEmergencyService } from './franchis
 import { findContactEmail } from './email'
 import { topIssues } from './issues'
 import { neglectScore, neglectSignals } from './neglect'
-import { writeCsv, writeListingsCsv, sortByScore, summarise, averageScore } from './csv'
+import {
+  writeCsv,
+  writeListingsCsv,
+  writeLightCsv,
+  sortByScore,
+  summarise,
+  averageScore,
+  type LightProspect,
+} from './csv'
 import { platformSubdomain, isCitySubdomain } from './platform'
 import { listingPlatform } from './listing'
 import { isNetworkSite } from './network'
@@ -30,6 +38,9 @@ import { DEFAULT_FILTERS, type Business, type Prospect } from './types'
  *   GOOGLE_PLACES_API_KEY=... pnpm tsx scripts/prospection/index.ts --limit 30
  *   ... --series commerces   jeu de catégories (défaut : artisans)
  *   ... --dry-run     recherche et filtre seulement, aucune dépense Firecrawl
+ *   ... --light       mode léger : Places + email par HTTP simple, AUCUN crédit
+ *                     Firecrawl, aucun score de site. Pour les emails qui ne
+ *                     parlent que de ChatGPT et des avis, l'audit ne sert à rien.
  *
  * La série refuse de démarrer si elle laisserait moins de `PRODUCTION_RESERVE`
  * crédits Firecrawl — les analyses clientes passent avant la prospection.
@@ -39,6 +50,8 @@ interface Options {
   series: Series
   limit: number
   dryRun: boolean
+  /** Mode léger : aucun audit de site, donc aucune dépense Firecrawl. */
+  light: boolean
   maxPages: number
   /** Plafond de crédits Firecrawl — la série s'arrête avant de le dépasser. */
   creditBudget: number
@@ -59,6 +72,7 @@ function parseArgs(argv: string[]): Options {
     series,
     limit: Number(get('--limit', '30')),
     dryRun: argv.includes('--dry-run'),
+    light: argv.includes('--light'),
     maxPages: Number(get('--max-pages', String(PROSPECT_MAX_PAGES))),
     creditBudget: Number(get('--credit-budget', '150')),
     ignoreReserve: argv.includes('--ignore-reserve'),
@@ -156,14 +170,15 @@ export function nameMatchesHost(name: string, website: string | null): boolean {
  */
 async function selectScreened(
   pool: Business[],
-  limit: number
+  limit: number,
+  prioritizePlatforms = true
 ): Promise<{ kept: Business[]; networks: { business: Business; evidence?: string }[] }> {
   const kept: Business[] = []
   const networks: { business: Business; evidence?: string }[] = []
   let pending = [...pool]
 
   while (kept.length < limit && pending.length > 0) {
-    const batch = roundRobin(pending, limit - kept.length)
+    const batch = roundRobin(pending, limit - kept.length, { prioritizePlatforms })
     if (batch.length === 0) break
     const taken = new Set(batch.map((b) => b.sourceId))
     pending = pending.filter((b) => !taken.has(b.sourceId))
@@ -236,6 +251,46 @@ async function auditOne(
   return base
 }
 
+/**
+ * Mode léger : l'email de chaque entreprise retenue, rien d'autre.
+ *
+ * Les emails de prospection ne parlent plus du site du prospect, seulement de
+ * ce que ChatGPT répond et de son nombre d'avis. L'audit de site — express,
+ * crawl Firecrawl, 57 règles — ne servait donc plus à rien pour prospecter, et
+ * coûtait 5 crédits par entreprise.
+ *
+ * Reste une requête HTTP simple par page candidate (`findContactEmail` :
+ * accueil, contact, mentions légales…), robots.txt respecté.
+ */
+async function runLight(
+  selected: Business[],
+  listings: { business: Business; platform: string }[],
+  opts: Options
+): Promise<void> {
+  const rows: LightProspect[] = []
+  for (const [i, b] of selected.entries()) {
+    process.stdout.write(`  [${i + 1}/${selected.length}] ${b.name}… `)
+    let email: string | null = null
+    try {
+      const target = b.website ? normalizePublicUrl(b.website) : null
+      if (target) email = await findContactEmail(target.toString())
+    } catch {
+      // Pas d'email : le prospect reste joignable par téléphone.
+    }
+    console.log(email ?? 'sans email')
+    rows.push({ ...b, email })
+  }
+
+  writeLightCsv(opts.out, rows)
+  if (listings.length > 0) writeListingsCsv(opts.listingsOut, listings)
+
+  const avecEmail = rows.filter((r) => r.email).length
+  console.log(`\n${opts.out} écrit — ${rows.length} entreprises, ${avecEmail} avec email.`)
+  if (listings.length > 0) {
+    console.log(`${opts.listingsOut} écrit — ${listings.length} sans site propre.`)
+  }
+}
+
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2))
 
@@ -245,7 +300,7 @@ async function main(): Promise<void> {
     process.exit(1)
   }
   const firecrawlKey = process.env.FIRECRAWL_API_KEY
-  if (!firecrawlKey && !opts.dryRun) {
+  if (!firecrawlKey && !opts.dryRun && !opts.light) {
     console.error('FIRECRAWL_API_KEY manquante.')
     process.exit(1)
   }
@@ -315,7 +370,7 @@ async function main(): Promise<void> {
 
   // Contrôle réseau : une requête HTTP par retenu, gratuite, avant Firecrawl.
   console.log(`\ncontrôle réseau sur les pages d'accueil retenues…`)
-  const { kept: selected, networks } = await selectScreened(flagged, opts.limit)
+  const { kept: selected, networks } = await selectScreened(flagged, opts.limit, !opts.light)
   if (networks.length > 0) {
     console.log(`  ${networks.length} écartée(s) — enseigne multi-établissements :`)
     for (const n of networks) {
@@ -324,11 +379,15 @@ async function main(): Promise<void> {
   }
 
   // ── Garde-fou de dépense ───────────────────────────────────────────────────
-  const estimated = selected.length * opts.maxPages
-  const remaining = firecrawlKey ? await firecrawlCredits(firecrawlKey) : null
+  // En mode léger, aucun crawl : on n'interroge même pas le solde.
+  const estimated = opts.light ? 0 : selected.length * opts.maxPages
+  const remaining =
+    firecrawlKey && !opts.light ? await firecrawlCredits(firecrawlKey) : null
   console.log(
-    `\nFirecrawl : ${selected.length} sites × ${opts.maxPages} pages = ~${estimated} crédits` +
-      (remaining !== null ? ` (solde ${remaining})` : '')
+    opts.light
+      ? `\nMode léger : ${selected.length} sites, aucun crédit Firecrawl.`
+      : `\nFirecrawl : ${selected.length} sites × ${opts.maxPages} pages = ~${estimated} crédits` +
+          (remaining !== null ? ` (solde ${remaining})` : '')
   )
 
   if (opts.dryRun) {
@@ -360,6 +419,11 @@ async function main(): Promise<void> {
     }
     return
   }
+  if (opts.light) {
+    await runLight(selected, listings, opts)
+    return
+  }
+
   const refusal = budgetRefusal({
     estimated,
     creditBudget: opts.creditBudget,

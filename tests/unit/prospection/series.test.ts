@@ -155,3 +155,98 @@ describe('réserve de crédits Firecrawl', () => {
     ).toBeNull()
   })
 })
+
+describe('série « liberal »', () => {
+  it('existe et ne filtre pas le dépannage', () => {
+    const s = getSeries('liberal')
+    expect(s.categories).toHaveLength(10)
+    expect(s.excludeEmergency).toBe(false)
+  })
+
+  it('écarte les réseaux d’optique, d’immobilier et de boulangerie', () => {
+    expect(isFranchise('Krys Lyon Part-Dieu', null)).toBe(true)
+    expect(isFranchise('Century 21 Lyon Brotteaux', null)).toBe(true)
+    expect(isFranchise('Marie Blachère Villeurbanne', null)).toBe(true)
+    expect(isFranchise('Boulangerie de la Croix-Rousse', 'https://www.paul.fr/lyon')).toBe(true)
+  })
+
+  it('ne confond pas un nom de rue ou de saint avec une chaîne', () => {
+    // « Paul » écartait autrefois tout commerce de la rue Paul Bert.
+    expect(isFranchise('Cabinet de kinésithérapie Paul Bert', 'https://kine-paulbert.fr')).toBe(false)
+    expect(isFranchise('Boulangerie Saint-Paul', 'https://boulangerie-saintpaul.fr')).toBe(false)
+    // « Banette » est une farine, pas une enseigne.
+    expect(isFranchise('Banette — Boulangerie Martin', 'https://boulangerie-martin.fr')).toBe(false)
+  })
+
+  it('ne range pas les sites des ordres professionnels parmi les plateformes', () => {
+    // Hébergement officiel, la norme pour un office notarial : pas un signe
+    // de négligence. Les classer ainsi donnait 11 notaires sur 40.
+    expect(platformSubdomain('https://etude-dupont-lyon.notaires.fr/')).toBeNull()
+    expect(platformSubdomain('https://martin.avocat.fr/')).toBeNull()
+  })
+
+  it('le mode léger ne priorise pas les plateformes', async () => {
+    const { roundRobin } = await import('@/scripts/prospection/select')
+    const b = (name: string, category: string, platform: string | null) => ({
+      name, category, platform, phone: null, address: null, website: `https://${name}.fr`,
+      reviewCount: 50, rating: 4.5, sourceId: name,
+    })
+    const pool = [
+      b('a1', 'notaire', 'wixsite.com'), b('a2', 'notaire', 'wixsite.com'),
+      b('a3', 'notaire', 'wixsite.com'), b('o1', 'opticien', null), b('f1', 'fleuriste', null),
+    ]
+    const leger = roundRobin(pool, 3, { prioritizePlatforms: false })
+    expect(new Set(leger.map((x) => x.category))).toEqual(new Set(['notaire', 'opticien', 'fleuriste']))
+    // Mode complet : la priorité aux plateformes reste en vigueur.
+    expect(roundRobin(pool, 3).every((x) => x.category === 'notaire')).toBe(true)
+  })
+
+  it('écarte les réseaux relevés au dry-run', () => {
+    expect(isFranchise('Maître X, responsable métier chez Marty', 'https://www.marty.life/')).toBe(true)
+    expect(listingPlatform('https://www.sessile.fr/trouvez-votre-fleuriste/okiosque-lyon/')).toBe('sessile.fr')
+  })
+
+  it('écarte les fiches d’annuaire de santé', () => {
+    expect(listingPlatform('https://www.doctolib.fr/osteopathe/lyon/jean-dupont')).toBe('doctolib.fr')
+    expect(listingPlatform('https://www.maiia.com/kinesitherapeute/69003-lyon/x')).toBe('maiia.com')
+  })
+})
+
+describe('sortie du mode léger', () => {
+  it('ne contient que les champs utiles à la prospection, sans aucun score', async () => {
+    const { toLightCsv } = await import('@/scripts/prospection/csv')
+    const csv = toLightCsv([
+      {
+        name: 'Cabinet Ostéo Test',
+        category: 'ostéopathe',
+        phone: '04 78 00 00 00',
+        address: '1 rue X, Lyon',
+        website: 'https://osteo-test.fr/',
+        reviewCount: 42,
+        rating: 4.9,
+        sourceId: 'p1',
+        email: 'contact@osteo-test.fr',
+      },
+    ])
+    const [entete, ligne] = csv.replace('﻿', '').trim().split('\n')
+    expect(entete).toBe('nom;categorie;avis;note;email;telephone;site')
+    expect(ligne).toBe(
+      'Cabinet Ostéo Test;ostéopathe;42;4.9;contact@osteo-test.fr;04 78 00 00 00;https://osteo-test.fr/'
+    )
+    expect(csv).not.toMatch(/score/i)
+  })
+})
+
+describe('marqueurs de réseau : des lieux, pas des personnes', () => {
+  it('ne prend pas l’équipe d’un magasin pour un réseau', () => {
+    // Relevé sur un opticien indépendant le 03/10.
+    expect(
+      detectNetworkMarkers('<p>rencontrer nos opticiens lyonnais et notre atelier</p>').isNetwork
+    ).toBe(false)
+  })
+
+  it('reconnaît toujours plusieurs cabinets ou boulangeries', () => {
+    expect(detectNetworkMarkers('<a>Nos cabinets</a>').isNetwork).toBe(true)
+    expect(detectNetworkMarkers('<a>Nos boulangeries</a>').isNetwork).toBe(true)
+  })
+})

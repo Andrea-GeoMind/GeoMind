@@ -68,6 +68,27 @@ const FRANCHISE_NAMES = [
   'la pataterie', 'au bureau', 'les 3 brasseurs', '3 brasseurs',
   'leon de bruxelles', 'flunch', 'vapiano', 'amorino', 'bistro regent',
   'la pizza de nico', 'pizza cosy', 'nachos', 'memphis coffee',
+
+  // ── Série « liberal » ────────────────────────────────────────────────────
+  // Optique
+  'krys', 'optic 2000', 'afflelou', 'atol', 'generale d optique', 'grand optical',
+  'lynx optique', 'optical center', 'opticiens mutualistes', 'ecouter voir',
+  'optique lafayette', 'acuitis', 'jimmy fairly', 'audika',
+  // Immobilier en réseau
+  'century 21', 'orpi', 'laforet', 'guy hoquet', 'era immobilier', 'stephane plaza',
+  'foncia', 'nestenn', 'citya', 'square habitat', 'arthurimmo', 'capifrance',
+  'iad france', 'safti', 'optimhome', 'proprietes privees', 'l adresse immobilier',
+  'barnes', 'sotheby', 'engel volkers', 'immobilier lafayette', 'nexity',
+  // Boulangerie en réseau — « Banette » n'est PAS listé : c'est une marque de
+  // farine, portée par des artisans indépendants. « Paul » non plus, par le
+  // nom : trop de commerces lyonnais portent un « Paul » (rue Paul Bert,
+  // Saint-Paul). Le domaine et le partage de domaine suffisent, comme pour
+  // Nicolas. Même raison pour « Visual » en optique.
+  'marie blachere', 'ange boulangerie', 'boulangerie ange', 'feuillette',
+  'boulangerie louise', 'la panetiere', 'le fournil de pierre',
+  // Fleuristes en réseau
+  'monceau fleurs', 'rapid flore', "rapid'flore", 'au nom de la rose', 'bergamotte',
+  'florajet', 'oogarden',
 ]
 
 /** Domaines de tête de réseau : plusieurs établissements, un seul site. */
@@ -90,6 +111,16 @@ const FRANCHISE_DOMAINS = [
   // Sous-domaine d'enseigne : `institut-presquile-lyon.guinot.com`.
   'guinot.com', 'yvesrocher.fr', 'thenewmeparis.com',
   'blackboxparis.com', 'desire-barbershop.com',
+  // Série « liberal »
+  'krys.com', 'optic2000.com', 'alainafflelou.fr', 'atol.fr', 'generale-optique.com',
+  'grandoptical.com', 'lynxoptique.com', 'optical-center.fr', 'acuitis.com',
+  'century21.fr', 'orpi.com', 'laforet.com', 'guy-hoquet.com', 'erafrance.com',
+  'stephaneplazaimmobilier.com', 'foncia.com', 'nestenn.com', 'citya.com',
+  'square-habitat.fr', 'arthurimmo.com', 'capifrance.fr', 'iadfrance.fr', 'safti.fr',
+  // Office notarial en ligne, pas une étude indépendante.
+  'marty.life',
+  'paul.fr', 'marieblachere.com', 'boulangerie-ange.fr', 'monceaufleurs.com',
+  'rapidflore.com', 'aunomdelarose.fr',
 ]
 
 function normalise(s: string): string {

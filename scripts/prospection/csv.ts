@@ -142,3 +142,27 @@ export function writeListingsCsv(
 ): void {
   writeFileSync(path, toListingsCsv(sortListings(rows)), 'utf8')
 }
+
+/**
+ * Prospect du mode léger : ce que Places renvoie, plus l'email. Aucun score —
+ * les emails de prospection ne parlent plus du site, l'audit est inutile.
+ */
+export type LightProspect = Business & { email: string | null }
+
+const LIGHT_HEADERS = ['nom', 'categorie', 'avis', 'note', 'email', 'telephone', 'site']
+
+export function toLightCsv(rows: LightProspect[]): string {
+  const lines = [LIGHT_HEADERS.join(';')]
+  for (const r of rows) {
+    lines.push(
+      [r.name, r.category, r.reviewCount, r.rating, r.email, r.phone, r.website]
+        .map(cell)
+        .join(';')
+    )
+  }
+  return '﻿' + lines.join('\n') + '\n'
+}
+
+export function writeLightCsv(path: string, rows: LightProspect[]): void {
+  writeFileSync(path, toLightCsv(rows), 'utf8')
+}

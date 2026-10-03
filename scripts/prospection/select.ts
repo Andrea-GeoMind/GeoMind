@@ -8,13 +8,21 @@ import type { Business } from './types'
  * menuisiers, carreleurs et déménageurs n'apparaissaient pas du tout. Un
  * échantillon déséquilibré ne dit rien de la qualité d'un métier.
  */
-export function roundRobin(businesses: Business[], limit: number): Business[] {
+export function roundRobin(
+  businesses: Business[],
+  limit: number,
+  options: { prioritizePlatforms?: boolean } = {}
+): Business[] {
   // Les sites sans domaine propre passent devant : leur visibilité est
   // structurellement faible et le premier conseil à leur donner est évident.
   // Sans ce tri, ils dépendaient du hasard du tourniquet — un seul des deux
   // éligibles était ressorti au dry-run du 19/09.
-  const priority = businesses.filter((b) => b.platform)
-  const rest = businesses.filter((b) => !b.platform)
+  //
+  // En mode léger, ce tri n'a plus de raison d'être : les emails ne parlent
+  // plus du site. Il ne ferait que déséquilibrer la série.
+  const prioritize = options.prioritizePlatforms ?? true
+  const priority = prioritize ? businesses.filter((b) => b.platform) : []
+  const rest = prioritize ? businesses.filter((b) => !b.platform) : [...businesses]
 
   const out: Business[] = priority.slice(0, limit)
   if (out.length >= limit) return out
