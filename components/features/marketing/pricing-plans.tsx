@@ -45,7 +45,7 @@ const PLANS: PlanCardData[] = [
       `${WELCOME_ANALYSES} analyses complètes offertes`,
       'Coach IA, correctifs prêts à coller, Concurrents',
       'Réputation, Local, Pixel',
-      'Surveillance mensuelle + historique 30 j',
+      'Historique des analyses : 30 jours',
     ],
     cta: 'Commencer gratuitement',
   },
@@ -73,7 +73,7 @@ const PLANS: PlanCardData[] = [
     credits: PLAN_LIMITS.pro.creditsPerMonth,
     features: [
       '5 sites',
-      'Surveillance hebdomadaire + alertes',
+      'Surveillance hebdomadaire + alertes email',
       'Recommandations complètes (IA avancée)',
       'Analyse page par page (10 pages)',
       'Export PDF des rapports · historique 1 an',

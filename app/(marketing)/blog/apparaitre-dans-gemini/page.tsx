@@ -229,8 +229,8 @@ export default function Page() {
         </li>
         <li>
           <strong>En continu — Mesure :</strong> répétez l&apos;audit Gemini chaque mois pour
-          suivre l&apos;évolution de vos citations. Un outil comme GeoMind automatise ce suivi
-          et vous alerte dès que votre visibilité progresse ou régresse.
+          suivre l&apos;évolution de vos citations. Un outil comme GeoMind repose les mêmes
+          questions à chaque analyse et vous montre si votre visibilité progresse ou régresse.
         </li>
       </ul>
     </ArticleLayout>

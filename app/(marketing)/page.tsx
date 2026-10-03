@@ -16,7 +16,6 @@ import {
   FileCode2,
   Trophy,
   AlertTriangle,
-  BellRing,
   ArrowRight,
   Globe,
 } from 'lucide-react'
@@ -57,7 +56,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Mon score peut-il bouger sans que je change rien ?',
-    a: 'Oui, un peu : les IA ne répondent jamais deux fois exactement pareil. C\'est pour ça que GeoMind suit la tendance sur 30 jours plutôt que le chiffre du jour, et vous alerte seulement quand un vrai changement se produit.',
+    a: 'Oui, un peu : les IA ne répondent jamais deux fois exactement pareil. C\'est pour ça que GeoMind affiche une tendance sur 30 jours plutôt que le chiffre du jour : comparez vos analyses entre elles, pas une mesure isolée.',
   },
   {
     q: 'Puis-je annuler à tout moment ?',
@@ -338,8 +337,8 @@ export default function MarketingHome() {
               </span>
               <h3 className="relative text-xl font-bold text-white">Sachez où vous en êtes</h3>
               <p className="relative mt-2 max-w-md text-sm leading-relaxed text-[#B2C8DE]">
-                Votre score GEO en temps réel : combien d&apos;IA vous citent, sur quels mots-clés,
-                et face à vos concurrents.
+                Votre score GEO à chaque analyse : combien d&apos;IA vous citent, sur quels
+                mots-clés, et face à vos concurrents.
               </p>
               <div className="relative mt-6 flex flex-wrap gap-3">
                 {[
@@ -417,7 +416,7 @@ export default function MarketingHome() {
                 scenario:
                   '« On a investi dans le SEO. Mais nos prospects posent maintenant leurs questions à une IA, et on ne sait même pas si on y existe. »',
                 outcome:
-                  'Vous suivez votre taux de citation mois après mois, recevez une alerte quand il bouge, et votre équipe applique un plan d\'action priorisé — vérifié automatiquement.',
+                  'Vous relancez une analyse quand vous le souhaitez pour suivre votre taux de citation, et votre équipe applique un plan d\'action priorisé — chaque correction déclarée est revérifiée à l\'analyse suivante.',
               },
               {
                 icon: Briefcase,
@@ -463,7 +462,7 @@ export default function MarketingHome() {
           <SectionHeading
             kicker="Bien plus qu'un score"
             title="GeoMind fait le travail, pas seulement le constat."
-            intro="Les autres outils vous donnent un tableau de bord. GeoMind vous donne les correctifs, la preuve que ça marche, et vous prévient quand ça bouge."
+            intro="Les autres outils vous donnent un tableau de bord. GeoMind vous donne les correctifs, et la preuve que ça marche."
           />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -488,9 +487,9 @@ export default function MarketingHome() {
                 body: 'On détecte quand ChatGPT ou Gemini racontent des infos fausses sur vous (horaires, adresse) — avant que ça vous coûte un client.',
               },
               {
-                icon: BellRing,
-                title: 'Surveillance automatique',
-                body: 'GeoMind re-vérifie votre visibilité chaque semaine et vous alerte par email : nouvelle citation, ou baisse à corriger.',
+                icon: TrendingUp,
+                title: 'Suivi dans le temps',
+                body: 'Relancez une analyse quand vous voulez : GeoMind la compare à la précédente et vous montre ce qui a bougé. La surveillance automatique, avec alertes email, arrivera avec les plans payants.',
               },
             ].map(({ icon: Icon, title, body }) => (
               <div key={title} className="rounded-2xl border border-border bg-card p-6">

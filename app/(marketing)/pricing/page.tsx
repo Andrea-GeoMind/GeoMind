@@ -112,7 +112,9 @@ export default function PricingPage() {
                 />
                 <ComparisonRow
                   label="Surveillance automatique + alertes email"
-                  values={['mensuelle', 'hebdomadaire', 'hebdomadaire', 'hebdomadaire']}
+                  // Pas de surveillance sur le plan Gratuit : elle arrivera avec les
+                  // plans payants, eux-mêmes annoncés « bientôt disponibles ».
+                  values={[false, 'hebdomadaire', 'hebdomadaire', 'hebdomadaire']}
                   striped
                 />
                 <ComparisonRow

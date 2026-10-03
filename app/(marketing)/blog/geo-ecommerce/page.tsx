@@ -273,8 +273,8 @@ export default function Page() {
         </li>
         <li>
           <strong>Mesurez l&apos;évolution</strong> chaque mois en reposant les mêmes questions
-          aux IA. Un outil comme GeoMind automatise ce suivi et vous alerte dès qu&apos;une
-          nouvelle citation apparaît ou disparaît.
+          aux IA. Un outil comme GeoMind repose les mêmes questions aux quatre moteurs à
+          chaque analyse et vous montre ce qui a changé depuis la précédente.
         </li>
       </ul>
       <p>
