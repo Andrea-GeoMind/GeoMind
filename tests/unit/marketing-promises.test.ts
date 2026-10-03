@@ -50,3 +50,19 @@ describe('aucune promesse de surveillance active', () => {
     )
   })
 })
+
+describe('la maquette de l’accueil est un exemple déclaré', () => {
+  const src = lire('app/(marketing)/page.tsx')
+
+  it('affiche un domaine fictif, pas geomind.fr', () => {
+    // Elle affichait « geomind.fr », 72/100, Autorité 68 : un faux score
+    // présenté comme celui de GeoMind, dont l'Autorité réelle était à 0.
+    expect(src).toMatch(/EXAMPLE_DOMAIN = 'boulangerie-exemple\.fr'/)
+    expect(src).not.toMatch(/^\s*geomind\.fr\s*$/m)
+  })
+
+  it('porte l’étiquette « Exemple » aux deux endroits', () => {
+    expect(src.match(/<ExampleBadge\b/g) ?? []).toHaveLength(2)
+  })
+})
+

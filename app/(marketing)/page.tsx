@@ -104,6 +104,29 @@ function SectionHeading({
 }
 
 /* ─── Mini product preview — rendered in pure Tailwind, no images needed ─── */
+/**
+ * Maquette d'aperçu. Les chiffres sont illustratifs et le domaine est fictif.
+ *
+ * Elle affichait « geomind.fr » avec 72/100 et une Autorité à 68 : un faux score
+ * présenté comme celui de GeoMind, dont l'Autorité réelle était à 0. Le domaine
+ * est désormais manifestement fictif et l'aperçu porte l'étiquette « Exemple ».
+ */
+const EXAMPLE_DOMAIN = 'boulangerie-exemple.fr'
+
+function ExampleBadge({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
+  return (
+    <span
+      className={
+        tone === 'dark'
+          ? 'rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/80'
+          : 'rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700'
+      }
+    >
+      Exemple
+    </span>
+  )
+}
+
 function ProductPreview() {
   return (
     <div className="w-full max-w-md rounded-2xl border border-border/60 bg-card shadow-2xl shadow-black/30 overflow-hidden">
@@ -116,8 +139,9 @@ function ProductPreview() {
         </div>
         <div className="mx-auto flex items-center gap-2 rounded-full bg-background px-3 py-1 text-[11px] text-muted-foreground border border-border/60">
           <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-          geomind.fr
+          {EXAMPLE_DOMAIN}
         </div>
+        <ExampleBadge />
       </div>
 
       {/* Content */}
@@ -340,7 +364,8 @@ export default function MarketingHome() {
                 Votre score GEO à chaque analyse : combien d&apos;IA vous citent, sur quels
                 mots-clés, et face à vos concurrents.
               </p>
-              <div className="relative mt-6 flex flex-wrap gap-3">
+              <div className="relative mt-6 flex flex-wrap items-center gap-3">
+                <ExampleBadge tone="dark" />
                 {[
                   { value: '72', label: 'Score GEO', accent: true },
                   { value: `${ENGINE_COUNT}/${ENGINE_COUNT}`, label: 'IA suivies', accent: false },
