@@ -1,11 +1,10 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ChevronLeft, ExternalLink, FileDown } from 'lucide-react'
+import { ExternalLink, FileDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { SiteLogo } from '@/components/features/sites/site-logo'
 import { getSiteById } from '@/lib/db/queries/sites'
 import { getLatestAnalysis, getLatestSuccessfulAnalyses } from '@/lib/db/queries/analyses'
-import { SiteNav } from '@/components/features/sites/site-nav'
 import { AnalysisLockInit } from '@/components/features/analysis/analysis-lock-init'
 import { CoachSiteBinding } from '@/components/features/coach/coach-site-binding'
 
@@ -54,55 +53,40 @@ export default async function SiteLayout({ children, params }: Props) {
         contentScore={latestSuccess?.contentScore ?? null}
       />
 
-      {/* Site header — bandeau navy, cohérent avec la sidebar (chrome premium) */}
-      <div className="border-b border-white/10 bg-[#16304B] px-6 py-5">
-        {/* Breadcrumb */}
-        <Link
-          href="/dashboard"
-          className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#B2C8DE] transition-colors hover:text-white"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" />
-          Tableau de bord
-        </Link>
-
-        {/* Site identity */}
-        <div className="flex items-center gap-3">
-          <SiteLogo
-            url={site.url}
-            name={site.name}
-            className="ring-white/15"
-            iconClassName="h-5 w-5 text-primary"
-          />
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-extrabold tracking-tight text-white">
-              {site.name}
-            </h1>
-            <a
-              href={site.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 truncate text-xs text-[#B2C8DE] transition-colors hover:text-white"
-            >
-              {site.url}
-              <ExternalLink className="h-3 w-3 shrink-0" />
-            </a>
-          </div>
-          {/* Export PDF (PLAN item 24) — la page gère le gate par plan */}
-          <Link
-            href={`/sites/${siteId}/report`}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-[#B2C8DE] transition-colors hover:bg-white/10 hover:text-white"
+      {/* Barre fine : identité (surtout utile sur mobile, où la sidebar est
+          dans le drawer) + action rapport. L'identité principale + les
+          sections vivent désormais dans la sidebar unifiée. */}
+      <div className="flex items-center gap-3 border-b border-border bg-card px-6 py-3">
+        <SiteLogo
+          url={site.url}
+          name={site.name}
+          className="h-8 w-8"
+          iconClassName="h-4 w-4 text-primary"
+        />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold tracking-tight text-foreground">{site.name}</p>
+          <a
+            href={site.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 truncate text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            <FileDown className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Rapport PDF</span>
-          </Link>
+            {site.url}
+            <ExternalLink className="h-3 w-3 shrink-0" />
+          </a>
         </div>
+        {/* Export PDF (PLAN item 24) — la page gère le gate par plan */}
+        <Link
+          href={`/sites/${siteId}/report`}
+          className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <FileDown className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Rapport PDF</span>
+        </Link>
       </div>
 
-      {/* Navigation du site : sidebar groupée (desktop) / barre horizontale (mobile) */}
-      <div className="flex flex-1 flex-col lg:flex-row">
-        <SiteNav siteId={siteId} />
-        <div className="min-w-0 flex-1">{children}</div>
-      </div>
+      {/* Contenu pleine largeur — plus de 2e panneau de navigation */}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }
