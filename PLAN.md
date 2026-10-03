@@ -98,6 +98,35 @@
   La seconde paraît la plus proche de l'exigence « ne jamais perdre d'historique », mais elle touche
   plus de code. À trancher au moment de s'y mettre, pas avant. — **M**
 
+- [ ] **40. Surveillance hebdomadaire réelle, coût chiffré par site** *(étape P8, demandé le
+  2026-10-03)* — Les cartes Solo, Pro et Business annoncent « Surveillance hebdomadaire + alertes
+  email ». **Elle n'a jamais tourné en production** : 0 mesure de surveillance en base depuis le
+  début, crons non enregistrés chez Inngest de juin à septembre, puis `MONITORING_PAUSED` posé
+  dans Vercel depuis le 19/09. À l'ouverture des plans payants, elle doit réellement tourner :
+
+  1. retirer `MONITORING_PAUSED` en production, puis `pnpm inngest:sync` ;
+  2. vérifier qu'un passage hebdomadaire écrit bien ses `citation_checks` (lignes sans
+     `analysis_id`), et qu'une alerte email part sur un vrai changement ;
+  3. **chiffrer le coût OpenRouter par site**, mesuré sur un passage réel et rapproché de la
+     facture OpenRouter.
+
+  Ordre de grandeur provisoire, à confirmer : un passage payant pose 3 questions
+  (`PAID_PROMPT_SAMPLE`) aux 4 moteurs, soit 12 appels. Sur les 269 appels d'analyse en base au
+  03/10, le coût moyen par question sur les 4 moteurs est de 0,059 $ — dont **0,040 $ pour Claude
+  seul**, soit 68 %. D'où ≈ 0,18 $ par passage, ≈ 0,76 $ par site et par mois en hebdomadaire.
+  Estimation tirée des analyses (mode forcé, réponses longues) : le mode réel de la surveillance
+  doit être mesuré, pas supposé.
+
+  Le test `tests/unit/marketing-promises.test.ts` interdit aujourd'hui toute promesse de
+  surveillance active sur les pages publiques : il cassera volontairement au lancement, pour que
+  les textes soient réécrits en connaissance de cause. — **M**
+
+- [ ] **41. Résiliation de l'abonnement en ligne** *(étape P8, reporté le 2026-09-23)* — La page
+  `/settings/billing` n'affiche ni portail Stripe, ni factures, ni bouton d'annulation pour un
+  abonnement sans `stripe_customer_id`. `createPortalSession` existe bien dans le code : il reste à
+  vérifier le parcours avec un vrai client Stripe. La FAQ Tarifs promet « annuler à tout moment »,
+  et la résiliation en ligne doit être aussi simple que la souscription. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
