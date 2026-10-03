@@ -6,6 +6,7 @@ import { buildPageMetadata } from '@/lib/crawl/pages'
 import { withRetry } from '@/lib/crawl/retry'
 import { firecrawlDocumentSchema } from '@/lib/crawl/schemas'
 import { probePages } from '@/lib/crawl/page-probe'
+import { isAnalyzablePage, isHtmlCandidateUrl } from '@/lib/crawl/html-pages'
 import { isCrawlTruncated, CRAWL_TRUNCATED_KEY } from '@/lib/analysis/crawl-coverage'
 
 export { withRetry } from '@/lib/crawl/retry'
@@ -95,6 +96,9 @@ export async function scrapeForDiscovery({
       const discovered = mapResult.links
         .map((l) => l.url)
         .filter((u): u is string => typeof u === 'string' && u.startsWith('http'))
+        // Les sitemaps et autres fichiers non-HTML sortent ici : les scraper
+        // coûterait un crédit chacun pour produire des constats absurdes.
+        .filter(isHtmlCandidateUrl)
         .slice(0, maxPages)
       // Toujours inclure la homepage
       if (!discovered.includes(site.url)) discovered.unshift(site.url)
@@ -119,9 +123,14 @@ export async function scrapeForDiscovery({
         if (!doc) return
         const parsed = firecrawlDocumentSchema.safeParse(doc)
         if (!parsed.success) return
+        // Second filet : une URL sans extension peut tout de même servir du
+        // XML ou du JSON. Le content-type tranche là où l'extension se tait.
+        const finalUrl = parsed.data.metadata?.url ?? url
+        const ct = (parsed.data.metadata as Record<string, unknown> | undefined)?.contentType
+        if (!isAnalyzablePage(finalUrl, typeof ct === 'string' ? ct : null)) return
         pages.push({
           siteId,
-          url: parsed.data.metadata?.url ?? url,
+          url: finalUrl,
           markdown: parsed.data.markdown ?? null,
           metadata: buildPageMetadata(parsed.data),
           statusCode: parsed.data.metadata?.statusCode ?? null,
@@ -172,6 +181,7 @@ export async function crawlSite({
   }
 
   const pages: FirecrawlPageInsert[] = []
+  const skipped: string[] = []
 
   for (const raw of crawlJob.data) {
     const parsed = firecrawlDocumentSchema.safeParse(raw)
@@ -180,6 +190,15 @@ export async function crawlSite({
     const doc = parsed.data
     const url = doc.metadata?.url ?? site.url
 
+    // Firecrawl suit les liens lui-même : les sitemaps arrivent jusqu'ici.
+    // Un `sitemap_index.xml` analysé comme une page se voyait reprocher un H1
+    // manquant, une langue non déclarée et des balises Open Graph absentes.
+    const contentType = (doc.metadata as Record<string, unknown> | undefined)?.contentType
+    if (!isAnalyzablePage(url, typeof contentType === 'string' ? contentType : null)) {
+      skipped.push(url)
+      continue
+    }
+
     pages.push({
       siteId,
       url,
@@ -187,6 +206,12 @@ export async function crawlSite({
       metadata: buildPageMetadata(doc),
       statusCode: doc.metadata?.statusCode ?? null,
     })
+  }
+
+  if (skipped.length > 0) {
+    console.log(
+      `[crawlSite] ${skipped.length} URL non-HTML écartée(s) : ${skipped.slice(0, 5).join(', ')}`
+    )
   }
 
   markCrawlTruncation(pages, { pagesFound: pages.length, maxPages })
