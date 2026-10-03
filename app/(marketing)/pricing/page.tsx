@@ -50,7 +50,7 @@ export default function PricingPage() {
                 Clé en main
               </p>
               <p className="mt-2 text-base leading-relaxed text-foreground">
-                Visibilité locale : {LOCAL_VISIBILITY_SERVICE.price}&nbsp;€, payé à la livraison.
+                Visibilité locale : {LOCAL_VISIBILITY_SERVICE.price}&nbsp;€, payés à la livraison.
                 Suivi optionnel à {LOCAL_VISIBILITY_SERVICE.followUpMonthly}&nbsp;€/mois.
               </p>
             </div>

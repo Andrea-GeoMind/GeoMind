@@ -13,6 +13,7 @@ import sitemap from '@/app/sitemap'
  */
 const lire = (p: string) => readFileSync(join(process.cwd(), p), 'utf8')
 const PAGE = lire('app/(marketing)/visibilite-locale/page.tsx')
+const PAGE_URL = 'https://geomind.fr/visibilite-locale'
 
 describe('texte de la page, à la lettre', () => {
   // Phrases sans prix : elles doivent figurer telles quelles dans la source.
@@ -31,6 +32,8 @@ describe('texte de la page, à la lettre', () => {
     'Dois-je vous donner mon mot de passe ?',
     "Non. Vous m'ajoutez comme gestionnaire de votre fiche Google, et vous pouvez me retirer quand vous voulez.",
     "Je n'ai pas de site.",
+    'Pourquoi payer à la livraison ?',
+    'Parce que vous devez voir le travail avant de le payer.',
     'Réserver un appel de 10 minutes',
   ]
   for (const phrase of PHRASES) {
@@ -51,6 +54,14 @@ describe('prix', () => {
     expect(LOCAL_VISIBILITY_SERVICE).toEqual({ price: 300, followUpMonthly: 49 })
   })
 
+  it('l’accord est « payés » partout, encart compris', () => {
+    // On paie 300 euros : le participe s'accorde au pluriel.
+    const pricing = lire('app/(marketing)/pricing/page.tsx')
+    expect(PAGE).toMatch(/payés à la livraison/)
+    expect(pricing).toMatch(/payés à la livraison/)
+    expect(PAGE + pricing).not.toMatch(/payé à la livraison/)
+  })
+
   it('aucun prix écrit en dur dans la page ni dans l’encart', () => {
     expect(PAGE).not.toMatch(/\b300\b/)
     expect(PAGE).not.toMatch(/\b49\b/)
@@ -61,12 +72,31 @@ describe('prix', () => {
 })
 
 describe('balisage Schema.org', () => {
-  it('déclare un Service avec une Offer en euros, sans périodicité', () => {
+  /** Bloc d'une offre, de son `'@id'` à la fin de son objet. */
+  const offre = (ancre: string) => {
+    const debut = PAGE.indexOf(`'@id': \`\${PAGE_URL}#${ancre}\``)
+    expect(debut).toBeGreaterThan(-1)
+    const fin = PAGE.indexOf("url: PAGE_URL,", debut)
+    return PAGE.slice(debut, fin)
+  }
+
+  it('déclare un Service avec deux offres en euros', () => {
     expect(PAGE).toMatch(/'@type': 'Service'/)
-    expect(PAGE).toMatch(/'@type': 'Offer'/)
-    expect(PAGE).toMatch(/priceCurrency: 'EUR'/)
-    // Paiement unique : aucune durée de facturation, à la différence d'un abonnement.
-    expect(PAGE).not.toMatch(/billingDuration|billingIncrement|UnitPriceSpecification/)
+    expect(PAGE.match(/'@type': 'Offer'/g) ?? []).toHaveLength(2)
+    expect(PAGE.match(/priceCurrency: 'EUR'/g)?.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('la prestation est un paiement unique, sans périodicité', () => {
+    const p = offre('offer')
+    expect(p).toMatch(/price: String\(price\)/)
+    expect(p).not.toMatch(/billingDuration|UnitPriceSpecification/)
+  })
+
+  it('le suivi est facturé au mois', () => {
+    const s = offre('suivi')
+    expect(s).toMatch(/price: String\(followUpMonthly\)/)
+    expect(s).toMatch(/'@type': 'UnitPriceSpecification'/)
+    expect(s).toMatch(/billingDuration: 'P1M'/)
   })
 
   it('déclare une FAQPage', () => {

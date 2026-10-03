@@ -34,11 +34,7 @@ const STEPS = [
   "Une démarche d'avis clients : un QR code et un message type à envoyer après chaque prestation, pour que les avis arrivent régulièrement.",
 ] as const
 
-/**
- * Questions fréquentes. La troisième (« Pourquoi… ») est arrivée tronquée dans
- * le texte fourni : elle n'est pas publiée tant que sa formulation complète
- * n'est pas connue, plutôt que d'en inventer une.
- */
+/** Questions fréquentes — affichées sur la page et balisées en FAQPage. */
 const FAQ_ITEMS = [
   {
     q: 'Dois-je vous donner mon mot de passe ?',
@@ -47,6 +43,10 @@ const FAQ_ITEMS = [
   {
     q: "Je n'ai pas de site.",
     a: "Le chantier porte alors sur votre fiche et vos annuaires, et je vous conseille sur une page simple si c'est utile.",
+  },
+  {
+    q: 'Pourquoi payer à la livraison ?',
+    a: 'Parce que vous devez voir le travail avant de le payer.',
   },
 ] as const
 
@@ -65,22 +65,44 @@ const SERVICE_JSON_LD = {
     name: 'Andrea Schwertz',
     worksFor: { '@id': 'https://geomind.fr/#organization' },
   },
-  offers: {
-    '@type': 'Offer',
-    '@id': `${PAGE_URL}#offer`,
-    price: String(price),
-    priceCurrency: 'EUR',
-    // Paiement unique : aucune périodicité de facturation, ce qui distingue
-    // l'offre des abonnements.
-    priceSpecification: {
-      '@type': 'PriceSpecification',
+  offers: [
+    {
+      '@type': 'Offer',
+      '@id': `${PAGE_URL}#offer`,
+      name: 'Visibilité locale',
       price: String(price),
       priceCurrency: 'EUR',
+      // Paiement unique : aucune périodicité de facturation, ce qui distingue
+      // la prestation des abonnements.
+      priceSpecification: {
+        '@type': 'PriceSpecification',
+        price: String(price),
+        priceCurrency: 'EUR',
+      },
+      description: 'Paiement unique, à la livraison.',
+      availability: 'https://schema.org/InStock',
+      url: PAGE_URL,
     },
-    description: 'Paiement unique, à la livraison.',
-    availability: 'https://schema.org/InStock',
-    url: PAGE_URL,
-  },
+    {
+      '@type': 'Offer',
+      '@id': `${PAGE_URL}#suivi`,
+      name: 'Suivi mensuel',
+      price: String(followUpMonthly),
+      priceCurrency: 'EUR',
+      // Facturation mensuelle, sans engagement.
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: String(followUpMonthly),
+        priceCurrency: 'EUR',
+        unitCode: 'MON',
+        billingDuration: 'P1M',
+        referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' },
+      },
+      description: 'Optionnel, sans engagement.',
+      availability: 'https://schema.org/InStock',
+      url: PAGE_URL,
+    },
+  ],
 }
 
 const FAQ_JSON_LD = {
