@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { checkNoindexOnKeyPages } from '@/lib/analysis/technical/rules/noindex-on-key-pages'
+import { checkH1MissingOrDuplicate } from '@/lib/analysis/technical/rules/h1-missing-or-duplicate'
 import { checkNoConclusionOrSummary } from '@/lib/analysis/content/rules/no-conclusion-or-summary'
 import { checkHeadingsTooShort } from '@/lib/analysis/content/rules/headings-too-short'
 import { checkNoTableOfContents } from '@/lib/analysis/content/rules/no-table-of-contents'
@@ -106,5 +107,25 @@ describe('checkNoTableOfContents', () => {
   it('ne compte pas un lien vers une ancre d une AUTRE page', async () => {
     const toc = '[Voir ailleurs](https://x.fr/blog/autre#section)'
     expect((await checkNoTableOfContents(long(toc), input))?.ruleKey).toBe('no_table_of_contents')
+  })
+})
+
+describe('checkH1MissingOrDuplicate — formulation', () => {
+  const page = (h1: string[]) => ({ url: 'https://x.fr/p', statusCode: 200, metadata: { h1 } })
+
+  it('écrit « ne contient aucun » quand le H1 manque', async () => {
+    const issue = await checkH1MissingOrDuplicate(page([]), input)
+    expect(issue?.description).toMatch(/^Cette page ne contient aucun titre principal \(H1\)\./)
+    // La forme fautive, elle, ne doit plus apparaître.
+    expect(issue?.description).not.toMatch(/page contient aucun/)
+  })
+
+  it('garde l’affirmative quand il y en a plusieurs', async () => {
+    const issue = await checkH1MissingOrDuplicate(page(['A', 'B']), input)
+    expect(issue?.description).toMatch(/^Cette page contient 2 titres principaux \(H1\)\./)
+  })
+
+  it('ne dit rien quand il y en a exactement un', async () => {
+    expect(await checkH1MissingOrDuplicate(page(['Unique']), input)).toBeNull()
   })
 })

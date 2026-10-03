@@ -4,6 +4,7 @@
 import { extractJsonLd } from '@/lib/crawl/json-ld'
 import { extractHeadings } from '@/lib/crawl/headings'
 import { extractMetaRobots } from '@/lib/crawl/robots-directives'
+import { extractDocumentMeta, stripEmbeddedDocuments } from '@/lib/crawl/document-scope'
 import type { FirecrawlDocument } from '@/lib/crawl/schemas'
 
 export type FirecrawlPageInsert = {
@@ -53,5 +54,41 @@ export function buildPageMetadata(doc: FirecrawlDocument): Record<string, unknow
     metadata.h2 = headings.h2
     metadata.headingLevels = headings.levels
   }
+
+  // Les balises uniques au document, relues sur le document nettoyé. Le parseur
+  // de Firecrawl travaille sur le HTML aplati : il peut rapporter le <title>,
+  // le canonical ou le lang d'une iframe tierce.
+  //
+  // On ne remplace jamais une valeur de Firecrawl par du vide sur la seule foi
+  // de notre extraction : si elle échouait, on effacerait une valeur correcte
+  // et on fabriquerait un « title manquant » — le défaut même qu'on corrige.
+  // Une valeur n'est écartée que si elle est ABSENTE du document nettoyé tout
+  // en étant PRÉSENTE dans le brut : la preuve qu'elle vient d'un sous-document.
+  const own = extractDocumentMeta(doc.rawHtml)
+  if (own && doc.rawHtml) {
+    const clean = stripEmbeddedDocuments(doc.rawHtml)
+    const applique = (cles: string[], mien: string | null) => {
+      for (const cle of cles) {
+        const firecrawl = metadata[cle]
+        if (mien !== null) {
+          metadata[cle] = mien
+        } else if (typeof firecrawl === 'string' && firecrawl.trim() !== '') {
+          const venaitDuSousDocument =
+            !clean.includes(firecrawl) && doc.rawHtml!.includes(firecrawl)
+          if (venaitDuSousDocument) delete metadata[cle]
+        }
+      }
+    }
+    applique(['title'], own.title)
+    applique(['description'], own.description)
+    applique(['canonical'], own.canonical)
+    applique(['language'], own.language)
+    applique(['ogTitle', 'og:title'], own.ogTitle)
+    applique(['ogDescription', 'og:description'], own.ogDescription)
+    applique(['ogImage', 'og:image'], own.ogImage)
+    applique(['twitterCard', 'twitter:card'], own.twitterCard)
+    applique(['viewport'], own.viewport)
+  }
+
   return metadata
 }

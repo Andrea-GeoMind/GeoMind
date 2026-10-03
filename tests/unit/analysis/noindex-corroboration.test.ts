@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { checkNoindexOnKeyPages } from '@/lib/analysis/technical/rules/noindex-on-key-pages'
 import {
   extractMetaRobots,
-  mainHead,
   parseXRobotsTag,
   hasNoindex,
 } from '@/lib/crawl/robots-directives'
+import { mainHead } from '@/lib/crawl/document-scope'
 
 const INPUT = { pages: [], siteUrl: 'https://x.fr' }
 

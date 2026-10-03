@@ -11,7 +11,12 @@
  * désormais le format `html` à Firecrawl et alimente `schemaOrgs` via ce module.
  *
  * Le HTML brut n'est jamais persisté : seuls les objets Schema.org extraits le sont.
+ *
+ * Les documents embarqués sont retirés d'abord : un widget tiers aplati par le
+ * rendu de Firecrawl apporte son propre JSON-LD, qui ne décrit pas le client.
  */
+
+import { stripEmbeddedDocuments } from '@/lib/crawl/document-scope'
 
 /** Taille max de HTML analysée — borne de sécurité contre une page anormale. */
 const MAX_HTML_LENGTH = 5_000_000
@@ -62,8 +67,9 @@ function cleanScriptContent(raw: string): string {
  * Ne lève jamais : un bloc illisible est ignoré, les autres sont conservés —
  * un site avec un JSON-LD cassé ne doit pas faire échouer son analyse.
  */
-export function extractJsonLd(html: string | null | undefined): Array<Record<string, unknown>> {
-  if (!html || html.length > MAX_HTML_LENGTH) return []
+export function extractJsonLd(rawHtml: string | null | undefined): Array<Record<string, unknown>> {
+  if (!rawHtml || rawHtml.length > MAX_HTML_LENGTH) return []
+  const html = stripEmbeddedDocuments(rawHtml)
 
   const entities: Array<Record<string, unknown>> = []
   for (const match of html.matchAll(SCRIPT_RE)) {

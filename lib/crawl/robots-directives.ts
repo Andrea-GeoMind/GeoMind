@@ -27,6 +27,8 @@
  * celle de Firecrawl — `lib/crawl/page-probe.ts`.
  */
 
+import { mainHead } from '@/lib/crawl/document-scope'
+
 /** `<meta name="robots">` et `<meta name="googlebot">`, ordre d'attributs libre. */
 const META_TAG_RE = /<meta\b[^>]*>/gi
 const NAME_ATTR_RE = /\bname\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i
@@ -67,28 +69,6 @@ export const AI_CRAWLER_USER_AGENTS: { bot: string; ua: string }[] = [
 export const BROWSER_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
 
-/**
- * Isole le `<head>` du document principal.
- *
- * Un `<meta name="robots">` n'a de valeur que dans le head de la page. Le
- * trouver ailleurs — dans le corps, ou dans le head d'un document tiers aplati
- * par le rendu — ne dit rien de l'intention du propriétaire du site.
- *
- * Le premier `<head>` rencontré est celui du document principal : un widget
- * aplati arrive forcément après, dans le corps. À défaut de `<head>` explicite
- * (fragment, HTML malformé), on retient tout ce qui précède le `<body>` — un
- * navigateur y placerait implicitement les balises de tête.
- */
-export function mainHead(rawHtml: string): string {
-  const openIndex = rawHtml.search(/<head\b[^>]*>/i)
-  if (openIndex === -1) {
-    const bodyIndex = rawHtml.search(/<body\b[^>]*>/i)
-    return bodyIndex === -1 ? rawHtml : rawHtml.slice(0, bodyIndex)
-  }
-  const afterOpen = rawHtml.slice(openIndex)
-  const closeIndex = afterOpen.search(/<\/head>/i)
-  return closeIndex === -1 ? afterOpen : afterOpen.slice(0, closeIndex)
-}
 
 function attr(tag: string, re: RegExp): string | null {
   const m = re.exec(tag)
