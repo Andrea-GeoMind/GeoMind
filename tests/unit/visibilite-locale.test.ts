@@ -13,7 +13,6 @@ import sitemap from '@/app/sitemap'
  */
 const lire = (p: string) => readFileSync(join(process.cwd(), p), 'utf8')
 const PAGE = lire('app/(marketing)/visibilite-locale/page.tsx')
-const PAGE_URL = 'https://geomind.fr/visibilite-locale'
 
 describe('texte de la page, à la lettre', () => {
   // Phrases sans prix : elles doivent figurer telles quelles dans la source.
