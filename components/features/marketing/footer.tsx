@@ -56,6 +56,12 @@ export default function Footer() {
               Vérifier ma visibilité ChatGPT
             </Link>
             <Link
+              href="/visibilite-locale"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Offre clé en main
+            </Link>
+            <Link
               href="/legal/cgv"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"
             >

@@ -240,6 +240,15 @@ export default function MarketingHome() {
                   Voir les tarifs
                 </Link>
               </p>
+              <p className="mt-1.5 text-center text-xs text-[#7C92AC]">
+                Vous préférez qu&apos;on s&apos;en occupe pour vous ?{' '}
+                <Link
+                  href="/visibilite-locale"
+                  className="font-medium text-white underline underline-offset-4"
+                >
+                  Découvrir l&apos;offre clé en main
+                </Link>
+              </p>
             </div>
 
             {/* Social proof — uniquement des faits vérifiables */}

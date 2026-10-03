@@ -35,6 +35,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    // Offre de service « Visibilité locale » (étape S1) : page commerciale,
+    // même rang que la page outil.
+    {
+      url: `${base}/visibilite-locale`,
+      lastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
     // Pages de comparaison « GeoMind vs X » — entre les articles (0.7) et la
     // page outil (0.8) : elles captent une intention d'achat précise.
     ...COMPARISONS.map((c) => ({

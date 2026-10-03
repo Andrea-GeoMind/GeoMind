@@ -44,6 +44,19 @@ export const PLAN_PRICES = {
 } as const
 
 export type PaidPlan = keyof typeof PLAN_PRICES
+
+// ─── Offre de service « Visibilité locale » (étape S1) ────────────────────────
+// Ce n'est PAS un abonnement : une prestation réalisée à la main, payée une
+// fois, à la livraison. Le suivi mensuel est optionnel et sans engagement.
+// Seule source de ces deux prix — la page /visibilite-locale, l'encart de
+// /pricing et le balisage Schema.org les lisent ici.
+
+export const LOCAL_VISIBILITY_SERVICE = {
+  /** Prestation, en euros, payée une fois à la livraison. */
+  price: 300,
+  /** Suivi optionnel, en euros par mois, sans engagement. */
+  followUpMonthly: 49,
+} as const
 export type BillingPeriod = 'monthly' | 'annual'
 
 // ─── Fonctionnalités par plan (§17.2) ─────────────────────────────────────────

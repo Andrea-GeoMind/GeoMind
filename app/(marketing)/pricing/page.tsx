@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Check, X } from 'lucide-react'
 import { PricingPlans } from '@/components/features/marketing/pricing-plans'
 import { WELCOME_ANALYSES } from '@/lib/credits-shared'
+import { LOCAL_VISIBILITY_SERVICE } from '@/lib/plans'
 
 export const metadata: Metadata = {
   title: 'Tarifs — Gratuit, Solo 19 €, Pro 59 €, Business 149 €',
@@ -38,6 +39,25 @@ export default function PricingPage() {
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-4">
           <PricingPlans />
+
+          {/* Encart « Clé en main » : une prestation, pas un abonnement. Placé
+              sous la grille et dessiné autrement — bordure en pointillés, fond
+              neutre, pas de prix mensuel en vedette — pour qu'on ne le confonde
+              pas avec un cinquième plan. */}
+          <div className="mx-auto mt-10 max-w-3xl rounded-2xl border-2 border-dashed border-border bg-background p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+                Clé en main
+              </p>
+              <p className="mt-2 text-base leading-relaxed text-foreground">
+                Visibilité locale : {LOCAL_VISIBILITY_SERVICE.price}&nbsp;€, payé à la livraison.
+                Suivi optionnel à {LOCAL_VISIBILITY_SERVICE.followUpMonthly}&nbsp;€/mois.
+              </p>
+            </div>
+            <Button asChild variant="outline" className="mt-4 shrink-0 rounded-lg sm:mt-0">
+              <Link href="/visibilite-locale">Découvrir l&apos;offre clé en main</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
