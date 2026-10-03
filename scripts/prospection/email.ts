@@ -62,6 +62,9 @@ const NOISE = [
   // livré utilisateur@domaine.com, qui n'existe pas.
   'domaine.com', 'utilisateur@', 'exemple.', 'nom@', 'email@', 'adresse@',
   'monemail', 'votremail', 'votre-email', 'yourname', 'youremail',
+  // « votre@email.com », texte d'exemple d'un champ newsletter, relevé chez un
+  // opticien le 03/10.
+  'votre@', 'vous@', '@email.com', 'prenom.nom@', 'nom.prenom@', 'xxx@',
   'wordpress.com', 'sentry-next', 'noreply@', 'no-reply@',
 ]
 
@@ -89,7 +92,16 @@ export function extractEmails(rawHtml: string, siteHost?: string): string[] {
   const found = new Set<string>()
 
   const add = (candidate: string) => {
-    const e = candidate.trim().toLowerCase().replace(/[.,;:)]+$/, '')
+    // Une adresse peut arriver encore encodée : `mailto:%20contact@…` est
+    // capturé par la regex générale avec son `%20` en tête, la regex acceptant
+    // `%` dans la partie locale. On décode, puis on retire les blancs.
+    let raw = candidate
+    try {
+      raw = decodeURIComponent(candidate)
+    } catch {
+      // Séquence `%` invalide : on garde la chaîne telle quelle.
+    }
+    const e = raw.trim().toLowerCase().replace(/[.,;:)]+$/, '')
     if (e.includes('@') && isWellFormed(e) && !isNoise(e)) found.add(e)
   }
 

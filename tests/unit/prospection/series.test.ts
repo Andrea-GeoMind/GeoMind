@@ -250,3 +250,20 @@ describe('marqueurs de réseau : des lieux, pas des personnes', () => {
     expect(detectNetworkMarkers('<a>Nos boulangeries</a>').isNetwork).toBe(true)
   })
 })
+
+describe('extraction d’email : cas relevés le 03/10', () => {
+  it('ignore le texte d’exemple d’un champ newsletter', async () => {
+    const { extractEmails } = await import('@/scripts/prospection/email')
+    const html = '<input placeholder="votre@email.com"> <a href="mailto:contact@opticien.fr">x</a>'
+    const found = extractEmails(html, 'opticien.fr')
+    expect(found).not.toContain('votre@email.com')
+    expect(found).toContain('contact@opticien.fr')
+  })
+
+  it('ne garde pas un espace encodé devant l’adresse', async () => {
+    const { extractEmails } = await import('@/scripts/prospection/email')
+    const found = extractEmails('<a href="mailto:%20contact@fleuriste.fr">écrire</a>', 'fleuriste.fr')
+    expect(found).toEqual(['contact@fleuriste.fr'])
+    expect(found.join()).not.toMatch(/%20/)
+  })
+})
