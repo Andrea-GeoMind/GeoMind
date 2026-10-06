@@ -12,8 +12,11 @@ export const CHANTIER_RATE_LIMITS = {
   view: { limit: 60, windowSeconds: 10 * 60 },
   /** Enregistrements de champs, par chantier */
   save: { limit: 300, windowSeconds: 10 * 60 },
-  /** Demandes d'adresse d'envoi de fichier, par chantier */
-  upload: { limit: 60, windowSeconds: 60 * 60 },
+  /**
+   * Fichiers : demande d'adresse d'envoi puis confirmation, par chantier.
+   * Deux appels par fichier : 300 par heure couvrent 150 photos d'un coup.
+   */
+  upload: { limit: 300, windowSeconds: 60 * 60 },
   /** « J'ai terminé », par chantier */
   submit: { limit: 5, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>

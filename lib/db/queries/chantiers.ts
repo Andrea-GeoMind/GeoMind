@@ -170,3 +170,21 @@ export async function issueChantierLink(
   await db.insert(chantierAccessLogs).values({ chantierId, event: 'link_issued', ipTruncated })
   return token
 }
+
+/** Un chantier et ses établissements, pour son propriétaire seulement. */
+export async function getChantierForOwner(
+  ownerId: string,
+  chantierId: string
+): Promise<{ chantier: ChantierRow; establishments: ChantierEstablishmentRow[] } | null> {
+  const [chantier] = await db
+    .select()
+    .from(chantiers)
+    .where(and(eq(chantiers.id, chantierId), eq(chantiers.ownerId, ownerId)))
+  if (!chantier) return null
+  const establishments = await db
+    .select()
+    .from(chantierEstablishments)
+    .where(eq(chantierEstablishments.chantierId, chantierId))
+    .orderBy(asc(chantierEstablishments.position))
+  return { chantier, establishments }
+}

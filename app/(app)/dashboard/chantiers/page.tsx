@@ -56,7 +56,11 @@ export default async function ChantiersPage() {
               <li key={chantier.id} className="space-y-3 rounded-xl border bg-card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h2 className="text-lg font-bold">{chantier.clientName}</h2>
+                    <h2 className="text-lg font-bold">
+                      <Link href={`/dashboard/chantiers/${chantier.id}`} className="hover:underline">
+                        {chantier.clientName}
+                      </Link>
+                    </h2>
                     <p className="text-sm text-muted-foreground">
                       {establishments.map((e) => e.name).join(' · ')}
                     </p>

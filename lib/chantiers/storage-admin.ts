@@ -1,5 +1,6 @@
 import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CHANTIER_BUCKET } from '@/lib/chantiers/files'
 
 /**
  * Seul module de l'espace client de chantier à utiliser la clé service_role
@@ -12,10 +13,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * à ce chantier avant de l'appeler (règle CLAUDE.md n°11).
  */
 
-export const CHANTIER_BUCKET = 'chantier-files'
-
-/** Durée de validité d'une adresse de téléchargement */
-const DOWNLOAD_URL_TTL_SECONDS = 5 * 60
+/** Durée de validité d'une adresse de téléchargement : elle sert aussitôt */
+const DOWNLOAD_URL_TTL_SECONDS = 60
 /** Lot maximal accepté par storage.remove */
 const REMOVE_BATCH = 100
 
@@ -24,10 +23,10 @@ function bucket() {
 }
 
 /** Adresse d'envoi signée (valable 2 h côté Supabase), pour un chemin précis. */
-export async function createSignedUpload(path: string): Promise<{ path: string; token: string }> {
+export async function createSignedUpload(path: string): Promise<{ signedUrl: string }> {
   const { data, error } = await bucket().createSignedUploadUrl(path)
   if (error || !data) throw new Error(`createSignedUploadUrl a échoué : ${error?.message ?? 'aucune donnée'}`)
-  return { path: data.path, token: data.token }
+  return { signedUrl: data.signedUrl }
 }
 
 /**
@@ -73,7 +72,11 @@ export async function readObjectHead(
   return { head, totalSize }
 }
 
-/** Adresse de téléchargement signée, en pièce jointe sous son nom d'origine. */
+/**
+ * Adresse de téléchargement signée, en pièce jointe sous son nom d'origine
+ * (Content-Disposition: attachment) : le fichier n'est jamais affiché par le
+ * navigateur, seulement enregistré.
+ */
 export async function createDownloadUrl(path: string, downloadName: string): Promise<string> {
   const { data, error } = await bucket().createSignedUrl(path, DOWNLOAD_URL_TTL_SECONDS, {
     download: downloadName,

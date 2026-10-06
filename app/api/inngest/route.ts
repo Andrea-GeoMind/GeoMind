@@ -16,6 +16,7 @@ import {
 } from '@/lib/inngest/functions/monthly-report'
 import { runReputationCheckFunction } from '@/lib/inngest/functions/run-reputation-check'
 import { healthcheckEnginesFunction } from '@/lib/inngest/functions/healthcheck-engines'
+import { chantierFilesMaintenanceFunction } from '@/lib/inngest/functions/chantier-files-maintenance'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -32,5 +33,6 @@ export const { GET, POST, PUT } = serve({
     monthlyReportSendFunction,
     runReputationCheckFunction,
     healthcheckEnginesFunction,
+    chantierFilesMaintenanceFunction,
   ],
 })

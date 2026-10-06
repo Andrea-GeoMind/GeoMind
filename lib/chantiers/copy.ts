@@ -111,6 +111,7 @@ export const CHANTIER_COPY = {
     dropzone: 'Glissez vos fichiers ici, ou cliquez pour les choisir',
     uploading: 'Envoi en cours…',
     checking: 'Vérification…',
+    uploadFailed: 'L’envoi a échoué. Vérifiez votre connexion et réessayez.',
     uploaded: 'Reçu',
     delete: 'Supprimer',
     confirmDelete: 'Supprimer ce fichier ? Il sera effacé définitivement.',

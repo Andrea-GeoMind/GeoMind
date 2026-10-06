@@ -63,3 +63,39 @@ export function validateFieldSave(ctx: SaveContext, req: SaveRequest): Validated
   if (!parsed?.success) return { ok: false, error: 'invalid_value' }
   return { ok: true, field, establishmentId: establishment.id, input: parsed.data }
 }
+
+export type FileTargetError = Exclude<SaveError, 'file_field' | 'invalid_value'> | 'not_file_field'
+
+export type ValidatedFileTarget =
+  | {
+      ok: true
+      field: Extract<FieldDef, { type: 'file' }>
+      establishmentId: string | null
+    }
+  | { ok: false; error: FileTargetError }
+
+/** Emplacement de dépôt d'un fichier : même contrôle de portée que les réponses. */
+export function validateFileTarget(
+  ctx: SaveContext,
+  req: { establishmentId: string | null; fieldKey: string }
+): ValidatedFileTarget {
+  const field = getField(req.fieldKey)
+  if (!field) return { ok: false, error: 'unknown_field' }
+  if (field.type !== 'file') return { ok: false, error: 'not_file_field' }
+
+  if (field.scope === 'chantier') {
+    if (req.establishmentId !== null) return { ok: false, error: 'wrong_scope' }
+    if (!chantierFields(ctx.chantierOptions).some((f) => f.key === field.key)) {
+      return { ok: false, error: 'not_enabled' }
+    }
+    return { ok: true, field, establishmentId: null }
+  }
+
+  if (req.establishmentId === null) return { ok: false, error: 'wrong_scope' }
+  const establishment = ctx.establishments.find((e) => e.id === req.establishmentId)
+  if (!establishment) return { ok: false, error: 'unknown_establishment' }
+  if (!establishmentFields(establishment.kind, establishment.options).some((f) => f.key === field.key)) {
+    return { ok: false, error: 'not_enabled' }
+  }
+  return { ok: true, field, establishmentId: establishment.id }
+}

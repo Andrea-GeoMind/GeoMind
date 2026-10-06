@@ -137,3 +137,12 @@ export async function markChantierSubmitted(chantierId: string, now: Date = new 
     .where(and(eq(chantiers.id, chantierId), ne(chantiers.status, 'closed')))
   return now
 }
+
+/** Réponses du chantier entier (attestations, décisions communes), par clé. */
+export async function loadChantierLevelAnswers(chantierId: string): Promise<Map<string, unknown>> {
+  const rows = await db
+    .select({ fieldKey: chantierAnswers.fieldKey, value: chantierAnswers.value })
+    .from(chantierAnswers)
+    .where(and(eq(chantierAnswers.chantierId, chantierId), isNull(chantierAnswers.establishmentId)))
+  return new Map(rows.map((r) => [r.fieldKey, r.value]))
+}

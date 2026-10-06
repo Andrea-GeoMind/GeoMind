@@ -11,6 +11,7 @@ import {
   chantierFields,
   establishmentFields,
   inputSchemaFor,
+  missingAttestation,
   type EstablishmentKind,
   type FieldDef,
   type FieldSection,
@@ -19,6 +20,8 @@ import { computeCompleteness, type CompletenessItem } from '@/lib/chantiers/comp
 import { formatChantierDate } from '@/lib/chantiers/status'
 import { submitChantierAction } from '@/app/chantier/espace/actions'
 import FieldControl from '@/components/features/chantier-space/field-control'
+import FileField from '@/components/features/chantier-space/file-field'
+import { usedBytes, type ChantierFileView } from '@/lib/chantiers/files'
 import { slotKey, useAutosave, type GlobalStatus } from '@/components/features/chantier-space/use-autosave'
 
 const C = CHANTIER_COPY
@@ -38,7 +41,7 @@ type Props = {
   chantierOptions: ChantierOptions
   establishments: SpaceEstablishment[]
   initialAnswers: { establishmentId: string | null; fieldKey: string; value: unknown }[]
-  files: { establishmentId: string | null; fieldKey: string; status: 'pending' | 'ready' | 'deleted' }[]
+  files: ChantierFileView[]
 }
 
 type SectionId = FieldSection | 'recap'
@@ -72,6 +75,7 @@ export default function ChantierSpace(props: Props) {
   const [section, setSection] = useState<SectionId>('access')
   const [establishmentId, setEstablishmentId] = useState(establishments[0]?.id ?? '')
   const [submittedAt, setSubmittedAt] = useState(props.submittedAt)
+  const [files, setFiles] = useState(props.files)
 
   // La section ouverte vit dans l'état React ; l'adresse (#infos…) n'en est
   // que le reflet, pour qu'un rechargement rouvre la même section.
@@ -108,9 +112,20 @@ export default function ChantierSpace(props: Props) {
           const [est, fieldKey] = slot.split('|') as [string, string]
           return { establishmentId: est === '-' ? null : est, fieldKey, value }
         }),
-        files: props.files,
+        files,
       }),
-    [answers, chantierOptions, establishments, props.files]
+    [answers, chantierOptions, establishments, files]
+  )
+
+  // Réponses du chantier entier, pour savoir si une attestation bloque un dépôt
+  const chantierAnswers = useMemo(
+    () =>
+      new Map(
+        [...answers]
+          .filter(([slot]) => slot.startsWith('-|'))
+          .map(([slot, value]) => [slot.slice(2), value])
+      ),
+    [answers]
   )
 
   const goTo = (id: SectionId) => {
@@ -124,6 +139,29 @@ export default function ChantierSpace(props: Props) {
 
   const renderField = (field: FieldDef, est: SpaceEstablishment | null) => {
     const slot = slotKey(est?.id ?? null, field.key)
+    if (field.type === 'file') {
+      const estId = est?.id ?? null
+      return (
+        <FileField
+          key={slot}
+          field={field}
+          establishmentId={estId}
+          files={files.filter((f) => f.fieldKey === field.key && f.establishmentId === estId)}
+          usedBytes={usedBytes(files)}
+          blockedBy={missingAttestation(field, chantierAnswers)?.key ?? null}
+          onUploaded={(file) =>
+            setFiles((list) => [
+              // Emplacement à fichier unique : le serveur a remplacé l'ancien
+              ...list.filter(
+                (f) => field.multiple || f.fieldKey !== file.fieldKey || f.establishmentId !== file.establishmentId
+              ),
+              file,
+            ])
+          }
+          onDeleted={(id) => setFiles((list) => list.filter((f) => f.id !== id))}
+        />
+      )
+    }
     return (
       <FieldControl
         key={slot}
@@ -162,6 +200,7 @@ export default function ChantierSpace(props: Props) {
             onSelect={setEstablishmentId}
             completenessItems={completeness.items}
             geomindAddress={geomindAddress}
+            filesUsedBytes={usedBytes(files)}
             renderField={renderField}
           />
         ) : (
@@ -309,6 +348,7 @@ function FieldSectionView({
   onSelect,
   completenessItems,
   geomindAddress,
+  filesUsedBytes,
   renderField,
 }: {
   section: FieldSection
@@ -318,6 +358,7 @@ function FieldSectionView({
   onSelect: (id: string) => void
   completenessItems: CompletenessItem[]
   geomindAddress: string
+  filesUsedBytes: number
   renderField: (field: FieldDef, est: SpaceEstablishment | null) => React.ReactNode
 }) {
   const sectionTitle = SECTIONS.find((s) => s.id === section)!.title
@@ -338,6 +379,13 @@ function FieldSectionView({
           {sectionTitle}
         </h2>
         <p className="text-base leading-relaxed text-muted-foreground">{SECTION_INTRO[section]}</p>
+        {section === 'files' && (
+          <p className="text-sm text-muted-foreground">
+            {fillCopy(C.files.quota, {
+              '[UTILISE]': (filesUsedBytes / (1024 * 1024)).toLocaleString('fr-FR', { maximumFractionDigits: 1 }),
+            })}
+          </p>
+        )}
       </div>
 
       {section === 'access' && (

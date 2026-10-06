@@ -33,8 +33,11 @@ describe('Server Actions de /chantier', () => {
   it.each(actionBodies(src).map((a) => [a.name, a.body]))(
     '%s : revérifie le lien et la limite de débit avant tout',
     (_, body) => {
+      // Corps : après « ): Promise<…> { » (types de retour imbriqués compris)
+      const header = /\): Promise<[\s\S]*?>\s*\{\n/.exec(body)
+      expect(header, 'signature attendue : (…): Promise<…> {').not.toBeNull()
       const statements = body
-        .slice(body.indexOf('{', body.indexOf(')')) + 1)
+        .slice(header!.index + header![0].length)
         .split('\n')
         .map((l) => l.trim())
         .filter(Boolean)

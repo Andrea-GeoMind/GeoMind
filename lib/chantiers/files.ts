@@ -38,6 +38,7 @@ export type UploadError =
   | 'quota_exceeded'
   | 'content_mismatch'
   | 'attestation_required'
+  | 'not_received'
 
 export const UPLOAD_ERROR_MESSAGES: Record<UploadError, string> = {
   svg_refused:
@@ -51,6 +52,7 @@ export const UPLOAD_ERROR_MESSAGES: Record<UploadError, string> = {
     'Le contenu de ce fichier ne correspond pas à son type. Il n’a pas été conservé.',
   attestation_required:
     'Cochez d’abord la case sur les droits des photos, juste au-dessus.',
+  not_received: 'Le fichier n’est pas arrivé jusqu’à nous. Réessayez.',
 }
 
 export const ACCEPTED_TYPE_LABELS: Record<AcceptedFileType, string> = {
@@ -190,4 +192,55 @@ export function storagePathFor(chantierId: string, fileId: string): string {
 export function fileExpiryFor(field: FieldDef, uploadedAt: Date): Date | null {
   if (field.type !== 'file' || !field.retentionDays) return null
   return new Date(uploadedAt.getTime() + field.retentionDays * 24 * 60 * 60 * 1000)
+}
+
+/** Bucket privé des espaces chantier (drizzle/0023_chantiers.sql). */
+export const CHANTIER_BUCKET = 'chantier-files'
+
+/**
+ * Durée de vie d'un dépôt commencé mais jamais confirmé. L'adresse d'envoi
+ * signée par Supabase vaut 2 h : passé ce délai, plus rien ne peut arriver,
+ * le dépôt est abandonné et nettoyé (il ne compte plus dans les 300 Mo).
+ */
+export const PENDING_UPLOAD_TTL_MS = 2 * 60 * 60 * 1000
+
+export function isAbandonedUpload(
+  file: { status: string; createdAt: Date },
+  now: Date
+): boolean {
+  return file.status === 'pending' && now.getTime() - file.createdAt.getTime() >= PENDING_UPLOAD_TTL_MS
+}
+
+const TYPE_EXTENSIONS: Record<AcceptedFileType, string[]> = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+  'image/heic': ['.heic', '.heif'],
+  'application/pdf': ['.pdf'],
+  'text/csv': ['.csv'],
+}
+
+/** Valeur de l'attribut accept du sélecteur de fichiers. */
+export function acceptAttribute(accept: readonly AcceptedFileType[]): string {
+  return accept.flatMap((t) => [...TYPE_EXTENSIONS[t], t]).join(',')
+}
+
+/** Taille lisible : « 3,4 Mo », « 820 Ko ». */
+export function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Mo`
+  }
+  return `${Math.max(1, Math.round(bytes / 1024))} Ko`
+}
+
+/** Fichier tel que le voit l'espace client : jamais de chemin de stockage. */
+export interface ChantierFileView {
+  id: string
+  establishmentId: string | null
+  fieldKey: string
+  originalName: string
+  sizeBytes: number
+  status: 'pending' | 'ready' | 'deleted'
+  createdAt: string
+  expiresAt: string | null
 }

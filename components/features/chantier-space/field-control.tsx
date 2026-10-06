@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Lock, Plus, X } from 'lucide-react'
+import { Check, Plus, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { CHANTIER_COPY, fillCopy } from '@/lib/chantiers/copy'
@@ -673,19 +673,8 @@ function Control({
     }
 
     case 'file':
-      return (
-        <div className="space-y-2">
-          {field.notice && (
-            <p className="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm leading-relaxed text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
-              <Lock className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{field.notice}</span>
-            </p>
-          )}
-          {/* Dépôt : S2.5 */}
-          <div className="rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted-foreground">
-            {C.files.dropzone}
-          </div>
-        </div>
-      )
+      // Rendu par FileField (dépôt direct au stockage), jamais ici
+      return null
   }
 }
+

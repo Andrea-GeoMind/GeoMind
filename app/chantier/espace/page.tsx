@@ -2,6 +2,7 @@ import { requireChantierAccess, logChantierAccess } from '@/lib/chantiers/access
 import { geomindAddressFor } from '@/lib/chantiers/copy'
 import { formatChantierDate } from '@/lib/chantiers/status'
 import { loadChantierState } from '@/lib/db/queries/chantier-answers'
+import { listFilesForClient } from '@/lib/chantiers/file-service'
 import LinkState from '@/components/features/chantier-space/link-state'
 import ChantierSpace from '@/components/features/chantier-space/chantier-space'
 
@@ -30,7 +31,10 @@ export default async function ChantierSpacePage() {
 
   const { chantier, establishments } = access
   await logChantierAccess(chantier.id, 'view', access.ipTruncated)
-  const { answers, files } = await loadChantierState(chantier.id)
+  const [{ answers }, files] = await Promise.all([
+    loadChantierState(chantier.id),
+    listFilesForClient(chantier.id),
+  ])
 
   return (
     <ChantierSpace
