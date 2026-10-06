@@ -7,6 +7,9 @@ import LinkState from '@/components/features/chantier-space/link-state'
 import ChantierSpace from '@/components/features/chantier-space/chantier-space'
 
 export const dynamic = 'force-dynamic'
+// Plafond des Server Actions de la page (dépôt de fichiers compris) : une
+// opération bloquée échoue au lieu de laisser le client attendre sans fin.
+export const maxDuration = 60
 
 const STATE = {
   unknown: 'unknown',

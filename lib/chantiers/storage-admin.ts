@@ -31,8 +31,11 @@ export async function createSignedUpload(path: string): Promise<{ signedUrl: str
 
 /**
  * Premiers octets et taille réelle d'un objet stocké, par une requête Range
- * sur une adresse signée. Renvoie null si l'objet n'existe pas. Si le serveur
- * ignore le Range, la lecture s'arrête quand même aux `bytes` premiers octets.
+ * sur une adresse signée. Renvoie null si l'objet n'existe pas.
+ *
+ * Le corps est lu en entier (4 Ko avec le Range) plutôt que coupé en cours de
+ * lecture : sur Vercel, le fetch de Next.js duplique le flux, et l'annuler à
+ * mi-chemin laissait la Server Action suspendue sans jamais répondre.
  */
 export async function readObjectHead(
   path: string,
@@ -41,35 +44,19 @@ export async function readObjectHead(
   const { data, error } = await bucket().createSignedUrl(path, 60)
   if (error || !data) return null
 
-  const res = await fetch(data.signedUrl, { headers: { Range: `bytes=0-${bytes - 1}` } })
+  const res = await fetch(data.signedUrl, {
+    headers: { Range: `bytes=0-${bytes - 1}` },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15_000),
+  })
   if (res.status === 404 || res.status === 400) return null
-  if (!res.ok || !res.body) throw new Error(`Lecture de l'objet impossible (HTTP ${res.status})`)
+  if (!res.ok) throw new Error(`Lecture de l'objet impossible (HTTP ${res.status})`)
 
+  const body = new Uint8Array(await res.arrayBuffer())
   const total = /\/(\d+)$/.exec(res.headers.get('content-range') ?? '')?.[1]
-  const totalSize = Number(total ?? res.headers.get('content-length') ?? NaN)
-
-  const reader = res.body.getReader()
-  const chunks: Uint8Array[] = []
-  let received = 0
-  while (received < bytes) {
-    const { done, value } = await reader.read()
-    if (done) break
-    chunks.push(value)
-    received += value.length
-  }
-  await reader.cancel()
-
-  const head = new Uint8Array(Math.min(received, bytes))
-  let offset = 0
-  for (const chunk of chunks) {
-    const part = chunk.subarray(0, head.length - offset)
-    head.set(part, offset)
-    offset += part.length
-    if (offset >= head.length) break
-  }
-
-  if (!Number.isFinite(totalSize)) throw new Error('Taille de l’objet inconnue')
-  return { head, totalSize }
+  // Sans Content-Range, le serveur a ignoré le Range et renvoyé tout l'objet
+  const totalSize = total ? Number(total) : body.length
+  return { head: body.subarray(0, bytes), totalSize }
 }
 
 /**
