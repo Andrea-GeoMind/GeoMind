@@ -42,6 +42,11 @@ describe('chantiers de départ', () => {
     }
   })
 
+  it('Bastide des Barattes : « 5388 chemin des Châteaux, 84300 Cavaillon »', () => {
+    const barattes = byName('Home Sweet Event').establishments.find((e) => e.name === 'Bastide des Barattes')
+    expect(barattes?.options.addressOptions).toEqual(['5388 chemin des Châteaux, 84300 Cavaillon'])
+  })
+
   it('tous les extras existent au bon niveau', () => {
     for (const seed of CHANTIER_SEEDS) {
       expect(invalidExtraFields(seed.options.extraFields ?? [], 'chantier')).toEqual([])

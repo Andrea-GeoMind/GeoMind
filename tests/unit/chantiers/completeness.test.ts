@@ -56,6 +56,20 @@ describe('computeCompleteness', () => {
     expect(c.missing.every((i) => !i.blocking)).toBe(true)
   })
 
+  it('fiche Google « je ne sais pas comment faire » : reste bloquante et lève une alerte', () => {
+    const c = computeCompleteness(base({ answers: [answer('e1', 'access.gbp', 'unsure')] }))
+    expect(c.blocking.map((i) => i.fieldKey)).toContain('access.gbp')
+    expect(c.canStart).toBe(false)
+    expect(c.alerts).toHaveLength(1)
+    expect(c.alerts[0]).toMatchObject({ fieldKey: 'access.gbp', establishmentName: 'Mas de Florette' })
+  })
+
+  it('« mon site n’est pas sur WordPress » lève le blocage, sans alerte', () => {
+    const c = computeCompleteness(base({ answers: [answer('e1', 'access.wordpress', 'absent')] }))
+    expect(c.blocking.map((i) => i.fieldKey)).not.toContain('access.wordpress')
+    expect(c.alerts).toEqual([])
+  })
+
   it('une réponse d’un autre établissement ne compte pas', () => {
     const c = computeCompleteness(
       base({ establishments: [venue, rental], answers: [answer('e2', 'access.gbp', 'given')] })

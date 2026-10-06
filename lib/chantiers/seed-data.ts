@@ -5,8 +5,10 @@ import type { EstablishmentKind } from '@/lib/chantiers/fields'
  * Deux premiers chantiers, créés par scripts/chantiers/seed-oravis-hse.ts.
  *
  * Adresses proposées : Oravis et Hameau fournies par Andrea le 06/10/2026 ;
- * Barattes, Florette et Clos du Tuilier relevées le même jour sur leur site
- * (une seule adresse, l'actuelle). « Autre » est toujours ajouté par l'interface.
+ * Florette et Clos du Tuilier relevées le même jour sur leur site (une seule
+ * adresse, l'actuelle) ; Barattes : adresse du pied de page commun aux quatre
+ * sites, simplifiée par Andrea — Fabrice choisira. « Autre » est toujours
+ * ajouté par l'interface.
  */
 
 export interface ChantierSeed {
@@ -54,7 +56,7 @@ export const CHANTIER_SEEDS: readonly ChantierSeed[] = [
         kind: 'venue',
         name: 'Bastide des Barattes',
         website: 'https://bastidedesbarattes.com',
-        options: { addressOptions: ['5388 chemin des Châteaux, 84300 Les Vignères (Cavaillon)'] },
+        options: { addressOptions: ['5388 chemin des Châteaux, 84300 Cavaillon'] },
       },
       {
         kind: 'venue',

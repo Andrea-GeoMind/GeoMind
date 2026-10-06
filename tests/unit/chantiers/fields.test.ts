@@ -8,6 +8,7 @@ import {
   inputSchemaFor,
   invalidExtraFields,
   isFilled,
+  needsHelp,
   toStoredValue,
   type FieldDef,
 } from '@/lib/chantiers/fields'
@@ -127,6 +128,31 @@ describe('champs par établissement', () => {
   })
 })
 
+describe('accès : libellés, aides et alertes', () => {
+  const access = FIELD_CATALOG.filter((f) => f.type === 'access')
+
+  it('les libellés demandés', () => {
+    const gbp = field('access.gbp')
+    const wp = field('access.wordpress')
+    if (gbp.type !== 'access' || wp.type !== 'access') throw new Error('type attendu')
+    expect(gbp.alternative).toEqual({ value: 'unsure', label: 'Je ne sais pas comment faire', resolves: false, alert: true })
+    expect(wp.alternative).toEqual({ value: 'absent', label: 'Mon site n’est pas sur WordPress', resolves: true, alert: false })
+  })
+
+  it('chaque aide de la section Accès affiche [ADRESSE]', () => {
+    expect(access.length).toBe(5)
+    for (const f of access) expect(f.help, f.key).toContain('[ADRESSE]')
+  })
+
+  it('« je ne sais pas comment faire » déclenche une alerte ; les autres réponses non', () => {
+    expect(needsHelp(field('access.gbp'), 'unsure')).toBe(true)
+    expect(needsHelp(field('access.gbp'), 'given')).toBe(false)
+    expect(needsHelp(field('access.gbp'), null)).toBe(false)
+    expect(needsHelp(field('access.wordpress'), 'absent')).toBe(false)
+    expect(needsHelp(field('venue.chambres'), 'unsure')).toBe(false)
+  })
+})
+
 describe('liste des mariés (données personnelles)', () => {
   const f = field('hse.liste_maries')
 
@@ -137,18 +163,30 @@ describe('liste des mariés (données personnelles)', () => {
     expect([...f.accept].sort()).toEqual(['application/pdf', 'text/csv'])
     expect(f.ownerOnlyDownload).toBe(true)
     expect(f.retentionDays).toBe(30)
-    expect(f.notice).toMatch(/30 jours/)
     expect(f.notice).toMatch(/[Dd]onnées personnelles/)
+    expect(f.notice).toMatch(/Home Sweet Event est responsable du traitement/)
+    expect(f.notice).toMatch(/GeoMind agit en sous-traitant/)
+    expect(f.notice).toMatch(/seule démarche d’avis/)
+    expect(f.notice).toMatch(/supprimée automatiquement 30 jours après le dépôt/)
+    expect(f.notice).toMatch(/se désinscrire/)
   })
 })
 
 describe('validation des saisies', () => {
-  it('accès : donné, absent ou vide — rien d’autre', () => {
+  it('fiche Google : « c’est fait » ou « je ne sais pas comment faire », pas « je n’ai pas cet outil »', () => {
     const s = inputSchemaFor(field('access.gbp'))!
     expect(s.safeParse('given').success).toBe(true)
-    expect(s.safeParse('absent').success).toBe(true)
+    expect(s.safeParse('unsure').success).toBe(true)
     expect(s.safeParse(null).success).toBe(true)
+    expect(s.safeParse('absent').success).toBe(false)
     expect(s.safeParse('motdepasse123').success).toBe(false)
+  })
+
+  it('WordPress : « c’est fait » ou « mon site n’est pas sur WordPress »', () => {
+    const s = inputSchemaFor(field('access.wordpress'))!
+    expect(s.safeParse('given').success).toBe(true)
+    expect(s.safeParse('absent').success).toBe(true)
+    expect(s.safeParse('unsure').success).toBe(false)
   })
 
   it('entiers positifs bornés', () => {
@@ -212,8 +250,11 @@ describe('validation des saisies', () => {
 describe('isFilled', () => {
   it.each([
     ['access.gbp', 'given', true],
-    ['access.gbp', 'absent', true],
+    ['access.gbp', 'unsure', false],
+    ['access.gbp', 'absent', false],
     ['access.gbp', null, false],
+    ['access.wordpress', 'absent', true],
+    ['access.search_console', 'absent', true],
     ['venue.chambres', 0, true],
     ['venue.chambres', null, false],
     ['venue.plan_b_pluie', '', false],

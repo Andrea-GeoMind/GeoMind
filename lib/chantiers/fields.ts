@@ -12,7 +12,8 @@ import type { ChantierEstablishmentOptions, ChantierOptions } from '@/lib/db/sch
  * Les champs `extra` n'apparaissent que sur les chantiers qui les activent
  * (options.extraFields du chantier ou de l'établissement).
  *
- * Tous les textes affichés au client sont ici, pour être relus d'un bloc.
+ * Tous les textes des champs sont ici (ceux des pages dans copy.ts), pour être
+ * relus d'un bloc. [ADRESSE] est remplacé à l'affichage par fillCopy().
  */
 
 export type EstablishmentKind = 'venue' | 'rental'
@@ -68,6 +69,25 @@ interface BaseField {
   extra?: boolean
 }
 
+/**
+ * Deuxième réponse possible à un accès, à côté de « C'est fait ».
+ * - resolves : la réponse vaut champ rempli (et lève le blocage) ;
+ * - alert : GeoMind est prévenu dans le mail groupé (le client a besoin d'aide).
+ */
+export interface AccessAlternative {
+  value: 'absent' | 'unsure'
+  label: string
+  resolves: boolean
+  alert: boolean
+}
+
+const NOT_AVAILABLE: AccessAlternative = {
+  value: 'absent',
+  label: 'Je n’ai pas cet outil ou je ne sais pas',
+  resolves: true,
+  alert: false,
+}
+
 export interface DecisionOption {
   id: string
   label: string
@@ -75,7 +95,7 @@ export interface DecisionOption {
 
 export type FieldDef = BaseField &
   (
-    | { type: 'access'; absentLabel: string }
+    | { type: 'access'; alternative: AccessAlternative }
     | { type: 'text'; multiline: boolean; maxLength: number; placeholder?: string }
     | { type: 'integer'; unit?: string }
     | { type: 'euros' }
@@ -121,54 +141,71 @@ const ACCESS_FIELDS: FieldDef[] = [
   {
     key: 'access.gbp',
     label: 'Fiche Google : GeoMind ajouté comme gestionnaire',
-    help: 'Sur votre fiche Google, ouvrez « Paramètres » puis « Personnes et accès », et ajoutez l’adresse indiquée en haut de cette section avec le rôle « Gestionnaire ».',
+    help: 'Sur votre fiche Google, ouvrez « Paramètres » puis « Personnes et accès », et ajoutez [ADRESSE] avec le rôle « Gestionnaire ».',
     section: 'access',
     scope: 'establishment',
     required: true,
     blocking: true,
     type: 'access',
-    absentLabel: 'Je n’ai pas de fiche Google pour cet établissement',
+    // Pas d'échappatoire : sans cet accès, rien ne démarre. Le client qui
+    // bloque le dit, et GeoMind l'aide.
+    alternative: {
+      value: 'unsure',
+      label: 'Je ne sais pas comment faire',
+      resolves: false,
+      alert: true,
+    },
   },
   {
     key: 'access.wordpress',
     label: 'WordPress : compte administrateur créé pour GeoMind',
-    help: 'Dans WordPress, « Comptes » puis « Ajouter », avec l’adresse indiquée en haut de cette section et le rôle « Administrateur ». WordPress envoie lui-même l’invitation : vous n’avez aucun mot de passe à nous transmettre.',
+    help: 'Dans WordPress, « Comptes » puis « Ajouter », avec [ADRESSE] et le rôle « Administrateur ». WordPress envoie lui-même l’invitation : vous n’avez aucun mot de passe à nous transmettre.',
     section: 'access',
     scope: 'establishment',
     required: true,
     blocking: true,
     type: 'access',
-    absentLabel: 'Mon site n’est pas sous WordPress',
+    alternative: {
+      value: 'absent',
+      label: 'Mon site n’est pas sur WordPress',
+      resolves: true,
+      alert: false,
+    },
   },
   {
     key: 'access.search_console',
     label: 'Google Search Console : accès ajouté',
-    help: '« Paramètres » puis « Utilisateurs et autorisations », droit « Complet ».',
+    help: 'Dans Search Console, « Paramètres » puis « Utilisateurs et autorisations » : ajoutez [ADRESSE] avec le droit « Complet ».',
     section: 'access',
     scope: 'establishment',
     required: true,
     type: 'access',
-    absentLabel: 'Je n’ai pas cet outil ou je ne sais pas',
+    alternative: NOT_AVAILABLE,
   },
   {
     key: 'access.analytics',
     label: 'Google Analytics : accès ajouté',
-    help: '« Administration » puis « Gestion des accès à la propriété », rôle « Lecteur ».',
+    help: 'Dans Analytics, « Administration » puis « Gestion des accès à la propriété » : ajoutez [ADRESSE] avec le rôle « Lecteur ».',
     section: 'access',
     scope: 'establishment',
     required: true,
     type: 'access',
-    absentLabel: 'Je n’ai pas cet outil ou je ne sais pas',
+    alternative: NOT_AVAILABLE,
   },
   {
     key: 'access.hosting',
     label: 'Hébergeur du site : accès délégué ou contact technique transmis',
-    help: 'La plupart des hébergeurs (OVH, o2switch, Ionos…) permettent d’ajouter un contact technique sans partager votre compte.',
+    help: 'La plupart des hébergeurs (OVH, o2switch, Ionos…) permettent d’ajouter [ADRESSE] comme contact technique, sans partager votre compte.',
     section: 'access',
     scope: 'establishment',
     required: true,
     type: 'access',
-    absentLabel: 'Je ne sais pas qui héberge le site',
+    alternative: {
+      value: 'absent',
+      label: 'Je ne sais pas qui héberge le site',
+      resolves: true,
+      alert: false,
+    },
   },
   {
     key: 'access.webmaster',
@@ -522,7 +559,7 @@ const EXTRA_FIELDS: FieldDef[] = [
     retentionDays: 30,
     ownerOnlyDownload: true,
     notice:
-      'Données personnelles. Ce fichier sert uniquement à la démarche d’avis, et GeoMind le traite pour votre compte. Une fois déposé, il n’est plus consultable depuis cet espace : seule GeoMind peut le télécharger. Il est supprimé automatiquement 30 jours après le dépôt, et vous pouvez le supprimer vous-même avant. N’y mettez que le nom, l’adresse e-mail et la date de l’événement.',
+      'Données personnelles. Home Sweet Event est responsable du traitement de cette liste. GeoMind agit en sous-traitant, pour votre compte et pour la seule démarche d’avis. Une fois déposée, la liste n’est plus consultable depuis cet espace : seule GeoMind peut la télécharger. Elle est supprimée automatiquement 30 jours après le dépôt, et vous pouvez la supprimer vous-même avant. Chaque marié pourra se désinscrire depuis le message qu’il recevra. N’y mettez que le nom, l’adresse e-mail et la date de l’événement.',
   },
 ]
 
@@ -540,6 +577,14 @@ const BY_KEY = new Map(FIELD_CATALOG.map((f) => [f.key, f]))
 
 export function getField(key: string): FieldDef | undefined {
   return BY_KEY.get(key)
+}
+
+/**
+ * Le client a-t-il choisi une réponse qui demande l'intervention de GeoMind
+ * (ex. « Je ne sais pas comment faire » pour la fiche Google) ?
+ */
+export function needsHelp(field: FieldDef, value: unknown): boolean {
+  return field.type === 'access' && field.alternative.alert && value === field.alternative.value
 }
 
 /** Champs du chantier entier (scope chantier), extras activés compris. */
@@ -624,7 +669,7 @@ export function inputSchemaFor(
 ): z.ZodType | null {
   switch (field.type) {
     case 'access':
-      return z.enum(['given', 'absent']).nullable()
+      return z.enum(['given', field.alternative.value]).nullable()
     case 'text':
       return z.string().trim().max(field.maxLength)
     case 'integer':
@@ -737,6 +782,7 @@ export function isFilled(
 
   switch (field.type) {
     case 'access':
+      return v === 'given' || (v === field.alternative.value && field.alternative.resolves)
     case 'integer':
     case 'euros':
       return v !== null

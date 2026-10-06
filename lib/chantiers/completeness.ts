@@ -3,6 +3,7 @@ import {
   chantierFields,
   establishmentFields,
   isFilled,
+  needsHelp,
   type EstablishmentKind,
   type FieldDef,
   type FieldSection,
@@ -35,6 +36,8 @@ export interface CompletenessItem {
   required: boolean
   blocking: boolean
   filled: boolean
+  /** Le client a répondu « je ne sais pas comment faire » : alerte à GeoMind */
+  needsHelp: boolean
 }
 
 export interface Completeness {
@@ -43,6 +46,8 @@ export interface Completeness {
   missing: CompletenessItem[]
   /** Champs sans lesquels GeoMind ne peut pas démarrer */
   blocking: CompletenessItem[]
+  /** Demandes d'aide du client, reprises dans le mail groupé */
+  alerts: CompletenessItem[]
   requiredCount: number
   filledRequiredCount: number
   /** Avancement sur les champs obligatoires, arrondi, 0 à 100 */
@@ -68,10 +73,11 @@ export function computeCompleteness(input: CompletenessInput): Completeness {
     establishment: CompletenessInput['establishments'][number] | null
   ): CompletenessItem => {
     const key = slot(establishment?.id ?? null, field.key)
+    const value = answers.get(key)
     const filled =
       field.type === 'file'
         ? readyFiles.has(key)
-        : isFilled(field, answers.get(key), establishment?.options ?? {})
+        : isFilled(field, value, establishment?.options ?? {})
     return {
       fieldKey: field.key,
       label: field.label,
@@ -81,6 +87,7 @@ export function computeCompleteness(input: CompletenessInput): Completeness {
       required: field.required,
       blocking: field.blocking === true,
       filled,
+      needsHelp: needsHelp(field, value),
     }
   }
 
@@ -107,6 +114,7 @@ export function computeCompleteness(input: CompletenessInput): Completeness {
     items,
     missing,
     blocking,
+    alerts: items.filter((i) => i.needsHelp),
     requiredCount: required.length,
     filledRequiredCount,
     percent: required.length === 0 ? 100 : Math.round((filledRequiredCount / required.length) * 100),
