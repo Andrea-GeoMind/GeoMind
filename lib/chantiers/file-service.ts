@@ -117,14 +117,15 @@ export async function cleanupAbandonedUploads(
  * deleteRows, et les objets d'un chantier supprimé sans purge préalable.
  */
 export async function cleanupOrphanObjects(now: Date = new Date()): Promise<number> {
-  const cutoff = new Date(now.getTime() - PENDING_UPLOAD_TTL_MS)
+  // En texte ISO : le SQL brut ne convertit pas les Date (le pilote les refuse)
+  const cutoff = new Date(now.getTime() - PENDING_UPLOAD_TTL_MS).toISOString()
   const rows = (await db.execute(sql`
     select o.name
     from storage.objects o
     left join public.chantier_files f on f.storage_path = o.name
     where o.bucket_id = ${CHANTIER_BUCKET}
-      and o.created_at <= ${cutoff}
-      and (f.id is null or (f.status = 'deleted' and f.created_at <= ${cutoff}))
+      and o.created_at <= ${cutoff}::timestamptz
+      and (f.id is null or (f.status = 'deleted' and f.created_at <= ${cutoff}::timestamptz))
   `)) as unknown as { name: string }[]
   await removeObjects(rows.map((r) => r.name))
   return rows.length

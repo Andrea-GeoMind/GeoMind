@@ -41,7 +41,9 @@ describe('adresse d’envoi signée réutilisée après suppression', () => {
 
   it('le balayage horaire retire tout objet sans fichier vivant', () => {
     expect(service).toMatch(/export async function cleanupOrphanObjects/)
-    expect(service).toMatch(/f\.id is null or \(f\.status = 'deleted' and f\.created_at <= \$\{cutoff\}\)/)
+    expect(service).toMatch(/f\.id is null or \(f\.status = 'deleted' and f\.created_at <= \$\{cutoff\}::timestamptz\)/)
+    // Le SQL brut ne convertit pas les Date : la borne doit partir en texte ISO
+    expect(service).toMatch(/const cutoff = new Date\(now\.getTime\(\) - PENDING_UPLOAD_TTL_MS\)\.toISOString\(\)/)
     expect(read('lib/inngest/functions/chantier-files-maintenance.ts')).toMatch(
       /step\.run\('cleanup-orphan-objects', \(\) => cleanupOrphanObjects\(\)\)/
     )
