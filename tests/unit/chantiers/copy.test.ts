@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { CHANTIER_COPY, COPY_PLACEHOLDERS, fillCopy } from '@/lib/chantiers/copy'
+import {
+  CHANTIER_COPY,
+  COPY_PLACEHOLDERS,
+  DEFAULT_GEOMIND_ADDRESS,
+  fillCopy,
+  geomindAddressFor,
+} from '@/lib/chantiers/copy'
 import { FIELD_CATALOG } from '@/lib/chantiers/fields'
 import { UPLOAD_ERROR_MESSAGES } from '@/lib/chantiers/files'
 
@@ -21,6 +27,13 @@ describe('textes du client', () => {
 
   it('la phrase sur les mots de passe est présente dans la section Accès', () => {
     expect(CHANTIER_COPY.access.noPassword).toMatch(/jamais de mot de passe/)
+  })
+
+  it('[ADRESSE] et [CONTACT] : l’adresse Gmail par défaut, réglable par chantier', () => {
+    expect(DEFAULT_GEOMIND_ADDRESS).toBe('andrea.schwertz2008@gmail.com')
+    expect(geomindAddressFor({})).toBe('andrea.schwertz2008@gmail.com')
+    expect(geomindAddressFor({ geomindAddress: '  ' })).toBe('andrea.schwertz2008@gmail.com')
+    expect(geomindAddressFor({ geomindAddress: 'autre@exemple.fr' })).toBe('autre@exemple.fr')
   })
 
   it('fillCopy remplace toutes les occurrences', () => {

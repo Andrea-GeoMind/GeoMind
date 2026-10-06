@@ -98,6 +98,32 @@ describe('code applicatif', () => {
   })
 })
 
+describe('colonnes héritées de profiles', () => {
+  /**
+   * profiles porte encore subscription_plan et is_premium, modifiables par
+   * l'utilisateur lui-même (policy profiles FOR ALL). Sans danger tant que
+   * personne ne les lit : ce test l'impose.
+   */
+  const withoutComments = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+  const code = [...appCode, ...['scripts', 'middleware.ts'].flatMap((r) => (r.endsWith('.ts') ? [r] : walk(r)))]
+
+  it('aucun code ne lit profiles.subscription_plan ni profiles.is_premium', () => {
+    const readers = code.filter((f) =>
+      /subscription_plan|subscriptionPlan|is_premium|isPremium/.test(withoutComments(read(f)))
+    )
+    expect(readers).toEqual([])
+  })
+
+  it('le schéma Drizzle ne déclare pas ces colonnes', async () => {
+    const { getTableColumns } = await import('drizzle-orm')
+    const { profiles } = await import('@/lib/db/schema')
+    const columns = Object.values(getTableColumns(profiles)).map((c) => c.name)
+    expect(columns).not.toContain('subscription_plan')
+    expect(columns).not.toContain('is_premium')
+  })
+})
+
 describe('planFromPriceId', () => {
   it('ne renvoie jamais admin, quel que soit l’identifiant de prix', async () => {
     const { planFromPriceId } = await import('@/lib/stripe')

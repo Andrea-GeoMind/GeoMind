@@ -37,6 +37,7 @@ export type UploadError =
   | 'too_large'
   | 'quota_exceeded'
   | 'content_mismatch'
+  | 'attestation_required'
 
 export const UPLOAD_ERROR_MESSAGES: Record<UploadError, string> = {
   svg_refused:
@@ -48,6 +49,8 @@ export const UPLOAD_ERROR_MESSAGES: Record<UploadError, string> = {
     'L’espace de ce chantier est plein (300 Mo). Écrivez-nous : nous libérerons de la place.',
   content_mismatch:
     'Le contenu de ce fichier ne correspond pas à son type. Il n’a pas été conservé.',
+  attestation_required:
+    'Cochez d’abord la case sur les droits des photos, juste au-dessus.',
 }
 
 export const ACCEPTED_TYPE_LABELS: Record<AcceptedFileType, string> = {

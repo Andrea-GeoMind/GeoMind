@@ -751,6 +751,8 @@ export const chantierFileStatusEnum = pgEnum('chantier_file_status', ['pending',
 /** Champs propres à un chantier, activés en plus du catalogue commun */
 export interface ChantierOptions {
   extraFields?: string[]
+  /** Adresse à inviter dans les outils du client et à contacter ([ADRESSE], [CONTACT]) */
+  geomindAddress?: string
 }
 
 export interface ChantierEstablishmentOptions {

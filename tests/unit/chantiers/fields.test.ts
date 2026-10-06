@@ -8,6 +8,7 @@ import {
   inputSchemaFor,
   invalidExtraFields,
   isFilled,
+  missingAttestation,
   needsHelp,
   toStoredValue,
   type FieldDef,
@@ -77,6 +78,8 @@ describe('champs par établissement', () => {
         'venue.prix_haute_saison',
         'venue.seminaire',
         'venue.prestataires',
+        'venue.acces',
+        'venue.unique',
         'common.partenaires',
         'access.gbp',
         'decision.adresse',
@@ -150,6 +153,89 @@ describe('accès : libellés, aides et alertes', () => {
     expect(needsHelp(field('access.gbp'), null)).toBe(false)
     expect(needsHelp(field('access.wordpress'), 'absent')).toBe(false)
     expect(needsHelp(field('venue.chambres'), 'unsure')).toBe(false)
+  })
+})
+
+describe('textes validés le 06/10', () => {
+  it('Search Console : droit « Total »', () => {
+    expect(field('access.search_console').help).toContain('avec le droit « Total »')
+  })
+
+  it('démarche d’avis : la nouvelle première phrase, la suite conservée', () => {
+    const f = field('decision.avis')
+    if (f.type !== 'agreement') throw new Error('type attendu')
+    expect(f.explanation).toMatch(
+      /^Quand ChatGPT recommande un lieu, il affiche sa note et son nombre d’avis Google : nous l’avons constaté dans nos tests\. Nous vous proposons/
+    )
+    expect(f.explanation).toMatch(/Aucun avis n’est rédigé, acheté ou filtré/)
+  })
+
+  it('fiche « Oravis, Entrepôt » : choix et texte', () => {
+    const f = field('oravis.fiche_entrepot')
+    if (f.type !== 'decision') throw new Error('type attendu')
+    expect(f.options.map((o) => o.label)).toEqual([
+      'Je la revendique, puis vous la faites supprimer',
+      'Vous la signalez à Google comme doublon',
+    ])
+    expect(f.explanation).toMatch(/Dans les deux cas, les avis éventuels de cette fiche seront perdus\.$/)
+  })
+
+  it('lieux de réception : « Accès » et « Ce qui rend ce lieu unique »', () => {
+    expect(field('venue.acces')).toMatchObject({ label: 'Accès', required: true, kinds: ['venue'] })
+    expect(field('venue.acces').help).toMatch(/gare TGV d’Avignon.*aéroport.*parking/)
+    expect(field('venue.unique')).toMatchObject({ label: 'Ce qui rend ce lieu unique', required: true })
+    expect(field('venue.unique').help).toMatch(/deux ou trois phrases/)
+  })
+})
+
+describe('droits sur les photos', () => {
+  const rights = field('files.photos_rights')
+  const ctx = { now: new Date('2026-10-06T10:00:00Z'), ipTruncated: '203.0.113.0' }
+
+  it('case obligatoire, au niveau du chantier, avec le texte demandé', () => {
+    expect(rights).toMatchObject({ type: 'attestation', scope: 'chantier', required: true, section: 'files' })
+    if (rights.type !== 'attestation') return
+    expect(rights.attestationText).toBe(
+      'Je confirme avoir le droit d’utiliser ces photos sur mes sites et mes fiches (photos prises par moi, ou avec l’accord du photographe).'
+    )
+  })
+
+  it('cochée : horodatée par le serveur', () => {
+    const stored = toStoredValue(rights, { accepted: true }, ctx)
+    expect(stored).toEqual({
+      accepted: true,
+      signature: { textVersion: 'photos-2026-10', signedAt: '2026-10-06T10:00:00.000Z', ipTruncated: '203.0.113.0' },
+    })
+    expect(isFilled(rights, stored)).toBe(true)
+  })
+
+  it('décochée : plus de signature', () => {
+    const stored = toStoredValue(rights, { accepted: false }, ctx)
+    expect(stored).toEqual({ accepted: false, signature: null })
+    expect(isFilled(rights, stored)).toBe(false)
+  })
+
+  it('re-cochée sans changement : la signature d’origine est gardée', () => {
+    const first = toStoredValue(rights, { accepted: true }, ctx)
+    const again = toStoredValue(rights, { accepted: true }, { now: new Date('2026-10-09'), ipTruncated: '1.1.1.0', previous: first })
+    expect(again).toEqual(first)
+  })
+
+  it('le client ne peut pas fabriquer la signature', () => {
+    const forged = { accepted: true, signature: { textVersion: 'photos-2026-10', signedAt: '2020-01-01', ipTruncated: '0.0.0.0' } }
+    expect(isFilled(rights, { accepted: true })).toBe(false)
+    const stored = toStoredValue(rights, forged, ctx) as { signature: { signedAt: string } }
+    expect(stored.signature.signedAt).toBe('2026-10-06T10:00:00.000Z')
+  })
+
+  it('le dépôt de photos est bloqué tant que la case n’est pas cochée ; logo et documents non', () => {
+    const none = new Map<string, unknown>()
+    expect(missingAttestation(field('files.photos'), none)?.key).toBe('files.photos_rights')
+    expect(missingAttestation(field('files.logo'), none)).toBeNull()
+    expect(missingAttestation(field('files.documents'), none)).toBeNull()
+
+    const signed = new Map<string, unknown>([['files.photos_rights', toStoredValue(rights, { accepted: true }, ctx)]])
+    expect(missingAttestation(field('files.photos'), signed)).toBeNull()
   })
 })
 

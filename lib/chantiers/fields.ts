@@ -115,6 +115,12 @@ export type FieldDef = BaseField &
         agreementVersion: string
       }
     | {
+        /** Case à cocher horodatée par le serveur, comme l'accord d'avis */
+        type: 'attestation'
+        attestationText: string
+        attestationVersion: string
+      }
+    | {
         type: 'file'
         category: FileCategory
         multiple: boolean
@@ -125,6 +131,8 @@ export type FieldDef = BaseField &
         notice?: string
         /** Le client ne peut plus rouvrir le fichier après dépôt */
         ownerOnlyDownload?: boolean
+        /** Attestation (champ du chantier) à signer avant le premier dépôt */
+        requiresAttestation?: string
       }
   )
 
@@ -175,7 +183,7 @@ const ACCESS_FIELDS: FieldDef[] = [
   {
     key: 'access.search_console',
     label: 'Google Search Console : accès ajouté',
-    help: 'Dans Search Console, « Paramètres » puis « Utilisateurs et autorisations » : ajoutez [ADRESSE] avec le droit « Complet ».',
+    help: 'Dans Search Console, « Paramètres » puis « Utilisateurs et autorisations » : ajoutez [ADRESSE] avec le droit « Total ».',
     section: 'access',
     scope: 'establishment',
     required: true,
@@ -219,6 +227,18 @@ const ACCESS_FIELDS: FieldDef[] = [
 ]
 
 const VENUE_FIELDS: FieldDef[] = [
+  {
+    key: 'venue.unique',
+    label: 'Ce qui rend ce lieu unique',
+    help: 'En deux ou trois phrases, ce que vous diriez à des mariés qui hésitent avec un autre domaine.',
+    section: 'info',
+    scope: 'establishment',
+    kinds: ['venue'],
+    required: true,
+    type: 'text',
+    multiline: true,
+    maxLength: 1000,
+  },
   {
     key: 'venue.capacite_assise',
     label: 'Capacité en repas assis',
@@ -301,6 +321,18 @@ const VENUE_FIELDS: FieldDef[] = [
     type: 'text',
     multiline: true,
     maxLength: 2000,
+  },
+  {
+    key: 'venue.acces',
+    label: 'Accès',
+    help: 'Distance de la gare TGV d’Avignon et de l’aéroport le plus proche, parking.',
+    section: 'info',
+    scope: 'establishment',
+    kinds: ['venue'],
+    required: true,
+    type: 'text',
+    multiline: true,
+    maxLength: 1000,
   },
   {
     key: 'venue.formule',
@@ -414,6 +446,17 @@ const COMMON_FIELDS: FieldDef[] = [
 
 const FILE_FIELDS: FieldDef[] = [
   {
+    key: 'files.photos_rights',
+    label: 'Droits sur les photos',
+    section: 'files',
+    scope: 'chantier',
+    required: true,
+    type: 'attestation',
+    attestationText:
+      'Je confirme avoir le droit d’utiliser ces photos sur mes sites et mes fiches (photos prises par moi, ou avec l’accord du photographe).',
+    attestationVersion: 'photos-2026-10',
+  },
+  {
     key: 'files.logo',
     label: 'Logo',
     help: 'En PNG ou en PDF de préférence. Les fichiers SVG, AI et EPS ne sont pas acceptés : exportez-les en PDF.',
@@ -436,6 +479,7 @@ const FILE_FIELDS: FieldDef[] = [
     category: 'photo',
     multiple: true,
     accept: IMAGES_ONLY,
+    requiresAttestation: 'files.photos_rights',
   },
   {
     key: 'files.documents',
@@ -497,7 +541,7 @@ const DECISION_FIELDS: FieldDef[] = [
     required: true,
     type: 'agreement',
     explanation:
-      'Les avis récents et détaillés comptent parmi les signaux que les IA lisent le plus. Nous vous proposons de solliciter vos clients des deux dernières saisons, avec des messages que vous validez. Aucun avis n’est rédigé, acheté ou filtré : chacun reste libre d’écrire ce qu’il pense.',
+      'Quand ChatGPT recommande un lieu, il affiche sa note et son nombre d’avis Google : nous l’avons constaté dans nos tests. Nous vous proposons de solliciter vos clients des deux dernières saisons, avec des messages que vous validez. Aucun avis n’est rédigé, acheté ou filtré : chacun reste libre d’écrire ce qu’il pense.',
     agreementText:
       'J’accepte que GeoMind mette en place avec moi une démarche de demande d’avis auprès de mes clients, selon les conditions décrites ci-dessus. Chaque message sera validé par moi avant envoi.',
     agreementVersion: 'avis-2026-10',
@@ -515,10 +559,10 @@ const EXTRA_FIELDS: FieldDef[] = [
     extra: true,
     type: 'decision',
     explanation:
-      'Une seconde fiche Google existe au nom d’« Oravis, Entrepôt ». Deux fiches pour une même entreprise dispersent les avis et brouillent l’adresse. Soit vous la revendiquez (vous en devenez propriétaire, nous la fusionnons ou la fermons), soit nous la signalons à Google comme doublon.',
+      'Une seconde fiche Google existe au nom d’« Oravis, Entrepôt ». Deux fiches pour une même entreprise dispersent les avis et brouillent l’adresse. Soit vous la revendiquez et nous la faisons supprimer, soit nous la signalons à Google comme doublon. Dans les deux cas, les avis éventuels de cette fiche seront perdus.',
     options: [
-      { id: 'claim', label: 'Je la revendique' },
-      { id: 'duplicate', label: 'Vous la signalez comme doublon' },
+      { id: 'claim', label: 'Je la revendique, puis vous la faites supprimer' },
+      { id: 'duplicate', label: 'Vous la signalez à Google comme doublon' },
     ],
   },
   {
@@ -651,12 +695,31 @@ const agreementInputSchema = z.object({
   signerName: shortText,
 })
 
+const attestationInputSchema = z.object({ accepted: z.boolean() })
+
+/** Horodatage posé par le serveur, jamais fourni par le client */
+export interface ServerSignature {
+  textVersion: string
+  signedAt: string
+  ipTruncated: string
+}
+
+const signatureSchema = z
+  .object({ textVersion: z.string(), signedAt: z.string(), ipTruncated: z.string() })
+  .nullable()
+
 /** Accord tel qu'il est conservé : la saisie, plus l'horodatage posé par le serveur. */
 export interface StoredAgreement {
   choice: 'yes' | 'no' | null
   comment: string
   signerName: string
-  signature: { textVersion: string; signedAt: string; ipTruncated: string } | null
+  signature: ServerSignature | null
+}
+
+/** Attestation telle qu'elle est conservée. */
+export interface StoredAttestation {
+  accepted: boolean
+  signature: ServerSignature | null
 }
 
 /**
@@ -706,21 +769,40 @@ export function inputSchemaFor(
     }
     case 'agreement':
       return agreementInputSchema
+    case 'attestation':
+      return attestationInputSchema
     case 'file':
       return null
   }
 }
 
+function serverSignature(textVersion: string, ctx: { now: Date; ipTruncated: string }): ServerSignature {
+  return { textVersion, signedAt: ctx.now.toISOString(), ipTruncated: ctx.ipTruncated }
+}
+
 /**
- * Valeur à enregistrer à partir d'une saisie déjà validée. Seul l'accord écrit
- * est transformé : le serveur y appose la version du texte accepté, la date et
- * l'IP tronquée, ou retire la signature si l'accord n'est plus donné.
+ * Valeur à enregistrer à partir d'une saisie déjà validée. L'accord écrit et
+ * les attestations sont transformés : le serveur y appose la version du texte
+ * accepté, la date et l'IP tronquée, ou retire la signature si l'accord n'est
+ * plus donné. Une signature envoyée par le client est toujours ignorée.
  */
 export function toStoredValue(
   field: FieldDef,
   input: unknown,
   ctx: { now: Date; ipTruncated: string; previous?: unknown }
 ): unknown {
+  if (field.type === 'attestation') {
+    const { accepted } = attestationInputSchema.parse(input)
+    if (!accepted) return { accepted, signature: null } satisfies StoredAttestation
+    const prev = storedAttestation(ctx.previous)
+    const keep =
+      prev?.accepted && prev.signature?.textVersion === field.attestationVersion ? prev.signature : null
+    return {
+      accepted,
+      signature: keep ?? serverSignature(field.attestationVersion, ctx),
+    } satisfies StoredAttestation
+  }
+
   if (field.type !== 'agreement') return input
   const value = agreementInputSchema.parse(input)
   const signed = value.choice === 'yes' && value.signerName.length > 0
@@ -739,23 +821,32 @@ export function toStoredValue(
 
   return {
     ...value,
-    signature: {
-      textVersion: field.agreementVersion,
-      signedAt: ctx.now.toISOString(),
-      ipTruncated: ctx.ipTruncated,
-    },
+    signature: serverSignature(field.agreementVersion, ctx),
   } satisfies StoredAgreement
 }
 
 function previous(value: unknown): StoredAgreement | null {
-  const parsed = agreementInputSchema
-    .extend({
-      signature: z
-        .object({ textVersion: z.string(), signedAt: z.string(), ipTruncated: z.string() })
-        .nullable(),
-    })
-    .safeParse(value)
+  const parsed = agreementInputSchema.extend({ signature: signatureSchema }).safeParse(value)
   return parsed.success ? parsed.data : null
+}
+
+function storedAttestation(value: unknown): StoredAttestation | null {
+  const parsed = attestationInputSchema.extend({ signature: signatureSchema }).safeParse(value)
+  return parsed.success ? parsed.data : null
+}
+
+/**
+ * Attestation à signer avant un dépôt dans ce champ, ou null si rien ne
+ * manque. `chantierAnswers` : réponses du chantier entier, par clé.
+ */
+export function missingAttestation(
+  field: FieldDef,
+  chantierAnswers: ReadonlyMap<string, unknown>
+): FieldDef | null {
+  if (field.type !== 'file' || !field.requiresAttestation) return null
+  const attestation = getField(field.requiresAttestation)
+  if (!attestation) return null
+  return isFilled(attestation, chantierAnswers.get(attestation.key)) ? null : attestation
 }
 
 /**
@@ -773,6 +864,10 @@ export function isFilled(
     const v = previous(value)
     if (!v) return false
     return v.choice === 'no' || (v.choice === 'yes' && v.signature !== null)
+  }
+  if (field.type === 'attestation') {
+    const v = storedAttestation(value)
+    return v !== null && v.accepted && v.signature?.textVersion === field.attestationVersion
   }
 
   const schema = inputSchemaFor(field, establishmentOptions)

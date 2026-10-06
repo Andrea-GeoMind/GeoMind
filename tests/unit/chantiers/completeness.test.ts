@@ -124,6 +124,10 @@ describe('computeCompleteness', () => {
       'decision.robots_ia': { choice: 'yes', comment: '' },
       'decision.etude_de_cas': { choice: 'no', comment: '' },
       'decision.avis': { choice: 'no', comment: '', signerName: '', signature: null },
+      'files.photos_rights': {
+        accepted: true,
+        signature: { textVersion: 'photos-2026-10', signedAt: '2026-10-06T10:00:00.000Z', ipTruncated: '1.1.1.0' },
+      },
     }
     const answers = c0.items
       .filter((i) => i.required && values[i.fieldKey] !== undefined)
