@@ -11,6 +11,7 @@ import {
   numeric,
   unique,
   index,
+  primaryKey,
 } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 
@@ -722,6 +723,194 @@ export const coachMemory = pgTable(
   (t) => [unique('coach_memory_user_site_unique').on(t.userId, t.siteId)]
 )
 
+// ─── Espace client de chantier (S2) ───────────────────────────────────────────
+// Remplace le mail de collecte : un espace en ligne par chantier, ouvert par un
+// lien secret, sans compte côté client. Les champs ne sont pas en base : leur
+// catalogue vit dans lib/chantiers/fields.ts (une ligne de chantier_answers par
+// champ rempli). Toutes ces tables sont écrites côté serveur uniquement ; RLS
+// activée, policies limitées au propriétaire (migration 0023).
+
+export const chantierStatusEnum = pgEnum('chantier_status', ['draft', 'open', 'submitted', 'closed'])
+
+/** venue = lieu de réception, rental = loueur */
+export const establishmentKindEnum = pgEnum('establishment_kind', ['venue', 'rental'])
+
+export const chantierActorEnum = pgEnum('chantier_actor', ['client', 'geomind'])
+
+export const chantierFileCategoryEnum = pgEnum('chantier_file_category', [
+  'photo',
+  'logo',
+  'document',
+  // Téléchargeable par GeoMind seulement, supprimé automatiquement (expiresAt)
+  'personal_data',
+])
+
+/** pending : adresse d'envoi délivrée, fichier pas encore vérifié */
+export const chantierFileStatusEnum = pgEnum('chantier_file_status', ['pending', 'ready', 'deleted'])
+
+/** Champs propres à un chantier, activés en plus du catalogue commun */
+export interface ChantierOptions {
+  extraFields?: string[]
+}
+
+export interface ChantierEstablishmentOptions {
+  /** Adresses officielles proposées au client (« autre » est toujours ajouté) */
+  addressOptions?: string[]
+  extraFields?: string[]
+}
+
+export const chantiers = pgTable(
+  'chantiers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    ownerId: uuid('owner_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    clientName: text('client_name').notNull(),
+    contactEmail: text('contact_email'),
+    status: chantierStatusEnum('status').notNull().default('draft'),
+    options: jsonb('options').notNull().default({}).$type<ChantierOptions>(),
+    // Seule l'empreinte SHA-256 du lien est conservée : le lien lui-même n'est
+    // affiché qu'une fois, à l'émission. Régénérer remplace l'empreinte.
+    tokenHash: text('token_hash').unique(),
+    tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
+    tokenRevokedAt: timestamp('token_revoked_at', { withTimezone: true }),
+    /** « J'ai terminé » — le client peut encore modifier ensuite */
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('chantiers_owner_idx').on(t.ownerId)]
+)
+
+export const chantierEstablishments = pgTable(
+  'chantier_establishments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id')
+      .notNull()
+      .references(() => chantiers.id, { onDelete: 'cascade' }),
+    kind: establishmentKindEnum('kind').notNull(),
+    name: text('name').notNull(),
+    website: text('website'),
+    position: integer('position').notNull().default(0),
+    options: jsonb('options').notNull().default({}).$type<ChantierEstablishmentOptions>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('chantier_establishments_chantier_idx').on(t.chantierId)]
+)
+
+// Une ligne par champ rempli. establishmentId null = champ du chantier entier.
+// NULLS NOT DISTINCT : sans lui, deux lignes (chantier, null, clé) pourraient
+// coexister et l'upsert de l'enregistrement automatique en créerait une à chaque fois.
+export const chantierAnswers = pgTable(
+  'chantier_answers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id')
+      .notNull()
+      .references(() => chantiers.id, { onDelete: 'cascade' }),
+    establishmentId: uuid('establishment_id').references(() => chantierEstablishments.id, {
+      onDelete: 'cascade',
+    }),
+    fieldKey: text('field_key').notNull(),
+    value: jsonb('value').notNull().$type<unknown>(),
+    updatedBy: chantierActorEnum('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('chantier_answers_field_unique')
+      .on(t.chantierId, t.establishmentId, t.fieldKey)
+      .nullsNotDistinct(),
+  ]
+)
+
+// Historique des modifications. Les saisies successives d'un même champ par la
+// même personne à moins de 10 min d'écart sont fusionnées (lib/chantiers/revisions.ts).
+export const chantierAnswerRevisions = pgTable(
+  'chantier_answer_revisions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id')
+      .notNull()
+      .references(() => chantiers.id, { onDelete: 'cascade' }),
+    establishmentId: uuid('establishment_id').references(() => chantierEstablishments.id, {
+      onDelete: 'cascade',
+    }),
+    fieldKey: text('field_key').notNull(),
+    oldValue: jsonb('old_value').$type<unknown>(),
+    newValue: jsonb('new_value').$type<unknown>(),
+    actor: chantierActorEnum('actor').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('chantier_revisions_chantier_created_idx').on(t.chantierId, t.createdAt)]
+)
+
+export const chantierFiles = pgTable(
+  'chantier_files',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id')
+      .notNull()
+      .references(() => chantiers.id, { onDelete: 'cascade' }),
+    establishmentId: uuid('establishment_id').references(() => chantierEstablishments.id, {
+      onDelete: 'set null',
+    }),
+    /** Emplacement du catalogue qui a reçu le fichier (ex. 'files.photos') */
+    fieldKey: text('field_key').notNull(),
+    category: chantierFileCategoryEnum('category').notNull(),
+    /** {chantierId}/{fileId} — jamais le nom d'origine dans le chemin */
+    storagePath: text('storage_path').notNull().unique(),
+    originalName: text('original_name').notNull(),
+    /** Type détecté sur les octets une fois le fichier vérifié (déclaré tant que pending) */
+    mimeType: text('mime_type').notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    status: chantierFileStatusEnum('status').notNull().default('pending'),
+    /** Suppression automatique (données personnelles : dépôt + 30 jours) */
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    /** client | geomind | purge | expired | rejected */
+    deletedReason: text('deleted_reason'),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('chantier_files_chantier_idx').on(t.chantierId),
+    index('chantier_files_expires_idx').on(t.expiresAt),
+  ]
+)
+
+// Journal des accès : date, événement, IP tronquée (IPv4 /24, IPv6 /48). Rien d'autre.
+// chantierId null = lien inconnu.
+export const chantierAccessLogs = pgTable(
+  'chantier_access_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id').references(() => chantiers.id, { onDelete: 'cascade' }),
+    event: text('event').notNull(),
+    ipTruncated: text('ip_truncated').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('chantier_access_chantier_created_idx').on(t.chantierId, t.createdAt)]
+)
+
+// ─── rate_limits ──────────────────────────────────────────────────────────────
+// Compteurs de limitation de débit par fenêtre fixe (lib/rate-limit.ts). Un
+// upsert atomique par requête. Table purement serveur : RLS sans policy.
+
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    key: text('key').notNull(),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+    count: integer('count').notNull().default(0),
+  },
+  (t) => [
+    primaryKey({ columns: [t.key, t.windowStart] }),
+    index('rate_limits_window_idx').on(t.windowStart),
+  ]
+)
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
@@ -908,4 +1097,26 @@ export const reputationRunsRelations = relations(reputationRuns, ({ one, many })
 
 export const reputationResultsRelations = relations(reputationResults, ({ one }) => ({
   run: one(reputationRuns, { fields: [reputationResults.runId], references: [reputationRuns.id] }),
+}))
+
+export const chantiersRelations = relations(chantiers, ({ one, many }) => ({
+  owner: one(profiles, { fields: [chantiers.ownerId], references: [profiles.id] }),
+  establishments: many(chantierEstablishments),
+  answers: many(chantierAnswers),
+  files: many(chantierFiles),
+}))
+
+export const chantierEstablishmentsRelations = relations(chantierEstablishments, ({ one }) => ({
+  chantier: one(chantiers, {
+    fields: [chantierEstablishments.chantierId],
+    references: [chantiers.id],
+  }),
+}))
+
+export const chantierAnswersRelations = relations(chantierAnswers, ({ one }) => ({
+  chantier: one(chantiers, { fields: [chantierAnswers.chantierId], references: [chantiers.id] }),
+}))
+
+export const chantierFilesRelations = relations(chantierFiles, ({ one }) => ({
+  chantier: one(chantiers, { fields: [chantierFiles.chantierId], references: [chantiers.id] }),
 }))
