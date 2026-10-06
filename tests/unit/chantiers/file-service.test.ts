@@ -68,6 +68,14 @@ describe('stockage', () => {
     expect(body).toMatch(/eq\(chantierFiles\.status, 'ready'\)/)
   })
 
+  it('la relecture lit le corps en entier, sans l’interrompre (blocage sur Vercel)', () => {
+    const body = storage.slice(storage.indexOf('export async function readObjectHead'), storage.indexOf('/**\n * Adresse de téléchargement'))
+    expect(body).toMatch(/await res\.arrayBuffer\(\)/)
+    expect(body).not.toMatch(/getReader|\.cancel\(/)
+    expect(body).toMatch(/cache: 'no-store'/)
+    expect(body).toMatch(/signal: AbortSignal\.timeout\(/)
+  })
+
   it('le contenu est vérifié après l’envoi, l’objet non conforme est retiré', () => {
     expect(service).toMatch(/readObjectHead\(row\.storagePath, SIGNATURE_BYTES\)/)
     expect(service).toMatch(/verifyUploadedFile\(/)
