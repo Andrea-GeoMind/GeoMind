@@ -51,10 +51,18 @@ export const CHANTIER_COPY = {
     progress: '[POURCENT] % rempli',
   },
 
+  nav: {
+    sections: 'Sections',
+    establishment: 'Établissement',
+    short: { access: 'Accès', info: 'Infos', files: 'Fichiers', decisions: 'Décisions', recap: 'Récap' },
+    allEstablishments: 'Pour l’ensemble de vos établissements',
+  },
+
   autosave: {
     saving: 'Enregistrement…',
     saved: 'Enregistré',
     error: 'Non enregistré. Vérifiez votre connexion : nous réessayons automatiquement.',
+    errorShort: 'Non enregistré',
     invalid: 'Cette valeur n’est pas valide.',
   },
 

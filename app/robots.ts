@@ -7,7 +7,7 @@ import type { MetadataRoute } from 'next'
  * l'API sont exclues.
  */
 export default function robots(): MetadataRoute.Robots {
-  const disallow = ['/dashboard', '/sites/', '/settings/', '/onboarding', '/api/', '/auth/']
+  const disallow = ['/dashboard', '/sites/', '/settings/', '/onboarding', '/api/', '/auth/', '/chantier/']
 
   return {
     rules: [

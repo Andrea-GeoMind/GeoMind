@@ -9,6 +9,8 @@ const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog
 
 function init() {
   if (!POSTHOG_KEY || posthog.__loaded) return
+  // Espace client de chantier : aucune mesure d'audience, consentement ou non
+  if (window.location.pathname.startsWith('/chantier')) return
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     capture_pageview: true,

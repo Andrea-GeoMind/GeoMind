@@ -127,6 +127,19 @@
   vérifier le parcours avec un vrai client Stripe. La FAQ Tarifs promet « annuler à tout moment »,
   et la résiliation en ligne doit être aussi simple que la souscription. — **S**
 
+- [ ] **42. Schéma `profiles` : colonne `avatar_url` fantôme** *(noté le 2026-10-06, pendant S2.3)* —
+  `lib/db/schema.ts` déclare `avatarUrl: text('avatar_url')`, absente de la base de production.
+  Tout `select()` complet ou `.returning()` sans argument sur `profiles` échoue (« Failed
+  query »). Le code actuel sélectionne toujours ses colonnes et n'est pas touché ;
+  `scripts/chantiers/seed-oravis-hse.ts` a dû le contourner. Retirer la colonne du schéma, ou
+  l'ajouter en base par une migration idempotente, et figer la liste des colonnes par un test.
+  — **S**
+
+- [ ] **43. Test `db-client-pool` sensible à la charge** *(noté le 2026-10-06, pendant S2.3)* —
+  `tests/unit/db-client-pool.test.ts` met ~1,4 s seul ; il a échoué une fois dans la suite
+  complète lancée pendant un `next build`, et passe sinon. À rendre indépendant du temps machine
+  (délai explicite plus large, ou suppression de ce qui est lent). — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.

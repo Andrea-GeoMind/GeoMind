@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 type Consent = 'all' | 'essential'
@@ -25,10 +26,12 @@ function dispatch(value: Consent) {
 export function CookieBanner() {
   const [visible, setVisible] = useState(false)
   const bannerRef = useRef<HTMLDivElement>(null)
+  // L'espace client de chantier ne charge aucun outil de mesure : rien à consentir
+  const isChantier = usePathname()?.startsWith('/chantier') ?? false
 
   useEffect(() => {
-    if (!localStorage.getItem('cookie-consent')) setVisible(true)
-  }, [])
+    if (!isChantier && !localStorage.getItem('cookie-consent')) setVisible(true)
+  }, [isChantier])
 
   // Publie la hauteur du bandeau tant qu'il est affiché, et la remet à zéro
   // dès qu'il disparaît. ResizeObserver couvre le passage en deux lignes sur

@@ -6,6 +6,20 @@ const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   serverExternalPackages: ['@mendable/firecrawl-js', 'undici', 'postgres'],
+  // Espace client de chantier : jamais indexé, jamais en cache, jamais de
+  // Referer. Mêmes valeurs que lib/chantiers/headers.ts (route d'entrée).
+  async headers() {
+    return [
+      {
+        source: '/chantier/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Cache-Control', value: 'private, no-store' },
+        ],
+      },
+    ]
+  },
 }
 
 const withSerwistConfig = withSerwist({
