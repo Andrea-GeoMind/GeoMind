@@ -49,3 +49,17 @@ export function chantierDisplayState(
       return { kind: 'revoked', label: 'Lien inutilisable' }
   }
 }
+
+const DATE_TIME = new Intl.DateTimeFormat('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Paris',
+})
+
+/** « 6 octobre 2026 à 20:20 », heure de Paris. */
+export function formatChantierDateTime(date: Date): string {
+  return DATE_TIME.format(date)
+}

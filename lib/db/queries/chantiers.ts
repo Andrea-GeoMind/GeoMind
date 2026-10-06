@@ -6,10 +6,11 @@
  * lu ni modifié par un autre compte, même admin (règle CLAUDE.md n°11).
  */
 
-import { and, asc, desc, eq, inArray, max, ne } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, isNull, max, ne } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import {
   chantierAccessLogs,
+  chantierAnswerRevisions,
   chantierAnswers,
   chantierEstablishments,
   chantierFiles,
@@ -187,4 +188,74 @@ export async function getChantierForOwner(
     .where(eq(chantierEstablishments.chantierId, chantierId))
     .orderBy(asc(chantierEstablishments.position))
   return { chantier, establishments }
+}
+
+/** Plafond du journal affiché et exporté : les lectures récentes suffisent. */
+const ACCESS_LOG_LIMIT = 300
+
+export async function loadChantierDetail(ownerId: string, chantierId: string) {
+  const base = await getChantierForOwner(ownerId, chantierId)
+  if (!base) return null
+  const [answers, revisions, files, accessLogs] = await Promise.all([
+    db.select().from(chantierAnswers).where(eq(chantierAnswers.chantierId, chantierId)),
+    db
+      .select()
+      .from(chantierAnswerRevisions)
+      .where(eq(chantierAnswerRevisions.chantierId, chantierId))
+      .orderBy(desc(chantierAnswerRevisions.createdAt)),
+    db.select().from(chantierFiles).where(eq(chantierFiles.chantierId, chantierId)).orderBy(asc(chantierFiles.createdAt)),
+    db
+      .select()
+      .from(chantierAccessLogs)
+      .where(eq(chantierAccessLogs.chantierId, chantierId))
+      .orderBy(desc(chantierAccessLogs.createdAt))
+      .limit(ACCESS_LOG_LIMIT),
+  ])
+  return { ...base, answers, revisions, files, accessLogs }
+}
+
+export type ChantierDetail = NonNullable<Awaited<ReturnType<typeof loadChantierDetail>>>
+
+/** Révoque le lien en cours : il cesse aussitôt de fonctionner. */
+export async function revokeChantierLink(
+  ownerId: string,
+  chantierId: string,
+  ipTruncated: string,
+  now: Date = new Date()
+): Promise<boolean> {
+  const [updated] = await db
+    .update(chantiers)
+    .set({ tokenRevokedAt: now, updatedAt: now })
+    .where(
+      and(
+        eq(chantiers.id, chantierId),
+        eq(chantiers.ownerId, ownerId),
+        isNotNull(chantiers.tokenHash),
+        isNull(chantiers.tokenRevokedAt)
+      )
+    )
+    .returning({ id: chantiers.id })
+  if (!updated) return false
+  await db.insert(chantierAccessLogs).values({ chantierId, event: 'link_revoked', ipTruncated })
+  return true
+}
+
+/**
+ * Clôt le chantier : l'espace client se ferme (« Espace fermé »), plus aucun
+ * lien ne peut être émis. Réponses et fichiers restent consultables ici.
+ */
+export async function closeChantier(
+  ownerId: string,
+  chantierId: string,
+  ipTruncated: string,
+  now: Date = new Date()
+): Promise<boolean> {
+  const [updated] = await db
+    .update(chantiers)
+    .set({ status: 'closed', updatedAt: now })
+    .where(and(eq(chantiers.id, chantierId), eq(chantiers.ownerId, ownerId), ne(chantiers.status, 'closed')))
+    .returning({ id: chantiers.id })
+  if (!updated) return false
+  await db.insert(chantierAccessLogs).values({ chantierId, event: 'chantier_closed', ipTruncated })
+  return true
 }

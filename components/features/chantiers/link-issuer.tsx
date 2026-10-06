@@ -1,8 +1,17 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Check, Copy, Link2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Check, Copy, Link2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { issueChantierLinkAction } from '@/app/(app)/dashboard/chantiers/actions'
 
 type Props = {
@@ -20,20 +29,21 @@ export default function LinkIssuer({ chantierId, regenerate = false }: Props) {
   const [url, setUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function issue() {
-    if (
-      regenerate &&
-      !window.confirm('Émettre un nouveau lien ? L’ancien cessera immédiatement de fonctionner.')
-    ) {
-      return
-    }
     setError(null)
     startTransition(async () => {
       const result = await issueChantierLinkAction(chantierId)
-      if ('error' in result) setError(result.error)
-      else setUrl(result.url)
+      setConfirming(false)
+      if ('error' in result) {
+        setError(result.error)
+      } else {
+        setUrl(result.url)
+        router.refresh()
+      }
     })
   }
 
@@ -73,11 +83,40 @@ export default function LinkIssuer({ chantierId, regenerate = false }: Props) {
 
   return (
     <div className="space-y-1">
-      <Button type="button" size="sm" variant={regenerate ? 'outline' : 'default'} onClick={issue} disabled={isPending}>
+      <Button
+        type="button"
+        size="sm"
+        variant={regenerate ? 'outline' : 'default'}
+        onClick={() => (regenerate ? setConfirming(true) : issue())}
+        disabled={isPending}
+      >
         <Link2 />
-        {isPending ? 'Émission…' : regenerate ? 'Régénérer le lien' : 'Émettre le lien'}
+        {isPending && !regenerate ? 'Émission…' : regenerate ? 'Régénérer le lien' : 'Émettre le lien'}
       </Button>
       {error && <p className="text-xs text-destructive">{error}</p>}
+
+      <Dialog open={confirming} onOpenChange={(v) => !isPending && setConfirming(v)}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Régénérer le lien ?</DialogTitle>
+            <DialogDescription>
+              L’ancien lien cessera immédiatement de fonctionner. Le nouveau ne sera affiché qu’une
+              fois : il faudra l’envoyer au client.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <DialogClose asChild>
+              <Button type="button" variant="ghost" disabled={isPending}>
+                Annuler
+              </Button>
+            </DialogClose>
+            <Button type="button" variant="destructive" onClick={issue} disabled={isPending}>
+              {isPending && <Loader2 className="animate-spin" />}
+              Régénérer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
