@@ -56,3 +56,15 @@ describe('garde admin du tableau de bord des chantiers', () => {
     expect(src).toMatch(/if \(!isActiveAdmin\(subscription\)\) notFound\(\)/)
   })
 })
+
+describe('liste des chantiers', () => {
+  const list = readFileSync(`${DIR}/page.tsx`, 'utf8')
+
+  it('chaque carte mène à la vue du chantier', () => {
+    expect(list).toMatch(/<Link\s+href=\{`\/dashboard\/chantiers\/\$\{chantier\.id\}`\}/)
+  })
+
+  it('aucune action sur le lien depuis la liste : tout passe par la vue, avec confirmation', () => {
+    expect(list).not.toMatch(/LinkIssuer|issueChantierLinkAction|revokeChantierLinkAction|closeChantierAction/)
+  })
+})

@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { AlertTriangle, LifeBuoy, Plus } from 'lucide-react'
+import { AlertTriangle, ArrowRight, LifeBuoy, Plus } from 'lucide-react'
 import { requireAdmin } from '@/lib/admin'
 import { listChantierSummaries } from '@/lib/db/queries/chantiers'
 import { chantierDisplayState, formatChantierDate } from '@/lib/chantiers/status'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import LinkIssuer from '@/components/features/chantiers/link-issuer'
 
 export const metadata: Metadata = {
   title: 'Chantiers',
@@ -53,60 +52,72 @@ export default async function ChantiersPage() {
           {summaries.map(({ chantier, establishments, completeness, lastActivityAt }) => {
             const state = chantierDisplayState(chantier, now)
             return (
-              <li key={chantier.id} className="space-y-3 rounded-xl border bg-card p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-bold">
-                      <Link href={`/dashboard/chantiers/${chantier.id}`} className="hover:underline">
+              <li key={chantier.id}>
+                {/* Toute la carte mène à la vue du chantier. Le lien du client
+                    se gère là-bas seulement, avec confirmation : rien à
+                    déclencher par mégarde depuis cette liste. */}
+                <Link
+                  href={`/dashboard/chantiers/${chantier.id}`}
+                  className="group block space-y-3 rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-bold group-hover:underline">
                         {chantier.clientName}
-                      </Link>
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {establishments.map((e) => e.name).join(' · ')}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {establishments.map((e) => e.name).join(' · ')}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        'rounded-full px-2.5 py-1 text-xs font-medium',
+                        STATE_STYLES[state.kind]
+                      )}
+                    >
+                      {state.label}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${completeness.percent}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {completeness.percent} % rempli · {completeness.filledRequiredCount}/
+                      {completeness.requiredCount} champs obligatoires · dernière activité le{' '}
+                      {formatChantierDate(lastActivityAt)}
                     </p>
                   </div>
-                  <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', STATE_STYLES[state.kind])}>
-                    {state.label}
-                  </span>
-                </div>
 
-                <div className="space-y-1">
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${completeness.percent}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {completeness.percent} % rempli · {completeness.filledRequiredCount}/
-                    {completeness.requiredCount} champs obligatoires · dernière activité le{' '}
-                    {formatChantierDate(lastActivityAt)}
+                  {(completeness.blocking.length > 0 || completeness.alerts.length > 0) && (
+                    <div className="flex flex-wrap gap-4 text-xs">
+                      {completeness.blocking.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          {completeness.blocking.length} élément
+                          {completeness.blocking.length > 1 ? 's' : ''} bloquant
+                          {completeness.blocking.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                      {completeness.alerts.length > 0 && (
+                        <span className="inline-flex items-center gap-1.5 text-rose-700 dark:text-rose-300">
+                          <LifeBuoy className="h-3.5 w-3.5" />
+                          {completeness.alerts.length} demande
+                          {completeness.alerts.length > 1 ? 's' : ''} d’aide
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <p className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    Ouvrir
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </p>
-                </div>
-
-                {(completeness.blocking.length > 0 || completeness.alerts.length > 0) && (
-                  <div className="flex flex-wrap gap-4 text-xs">
-                    {completeness.blocking.length > 0 && (
-                      <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        {completeness.blocking.length} élément
-                        {completeness.blocking.length > 1 ? 's' : ''} bloquant
-                        {completeness.blocking.length > 1 ? 's' : ''}
-                      </span>
-                    )}
-                    {completeness.alerts.length > 0 && (
-                      <span className="inline-flex items-center gap-1.5 text-rose-700 dark:text-rose-300">
-                        <LifeBuoy className="h-3.5 w-3.5" />
-                        {completeness.alerts.length} demande
-                        {completeness.alerts.length > 1 ? 's' : ''} d’aide
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {state.kind !== 'closed' && (
-                  <LinkIssuer chantierId={chantier.id} regenerate={state.kind !== 'draft'} />
-                )}
+                </Link>
               </li>
             )
           })}
