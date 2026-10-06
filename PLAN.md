@@ -150,6 +150,14 @@
   client ne lit ni n'écrit ces tables par le SDK Supabase ; preuve par simulation SQL en transaction
   annulée. — **S**
 
+- [ ] **45. Test Playwright de bout en bout de l'espace chantier** *(noté le 2026-10-07, à faire
+  avant le prochain client)* — Le parcours a été vérifié à la main en production (S2.4 à S2.7 et
+  audit de sécurité : navigateur mobile 390 px et ordinateur, plus un vrai iPhone avec dépôt de
+  photo), mais aucun test automatisé ne le rejoue. À couvrir : ouverture du lien (cookie, adresse
+  sans le lien), saisie et enregistrement automatique, coupure réseau, dépôt de fichier, « J'ai
+  terminé », liens expiré / révoqué / fermé, vue admin (lien, export). Sur un chantier de test
+  créé puis supprimé par `scripts/chantiers/test-chantier.ts`, jamais sur un vrai chantier. — **M**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.

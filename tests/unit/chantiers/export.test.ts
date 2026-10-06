@@ -74,6 +74,14 @@ describe('export Markdown', () => {
     expect(exportFileName('Home Sweet Event', T)).toBe('chantier-home-sweet-event-2026-10-06.md')
     expect(exportFileName('Hameau de l’Esperelle', T)).toBe('chantier-hameau-de-l-esperelle-2026-10-06.md')
   })
+
+  it('la date du nom de fichier est celle de Paris, pas celle d’UTC', () => {
+    // 23 h 13 UTC le 6 = 1 h 13 à Paris le 7 (heure d'été)
+    expect(exportFileName('Oravis', new Date('2026-10-06T23:13:00Z'))).toBe('chantier-oravis-2026-10-07.md')
+    // 23 h 30 UTC le 6 décembre = 0 h 30 à Paris le 7 (heure d'hiver)
+    expect(exportFileName('Oravis', new Date('2026-12-06T23:30:00Z'))).toBe('chantier-oravis-2026-12-07.md')
+    expect(exportFileName('Oravis', new Date('2026-12-06T22:30:00Z'))).toBe('chantier-oravis-2026-12-06.md')
+  })
 })
 
 describe('injection dans l’export (audit du 07/10/2026)', () => {

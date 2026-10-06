@@ -64,7 +64,17 @@ export function exportFileName(clientName: string, now: Date): string {
     .replace(/[^A-Za-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .toLowerCase()
-  return `chantier-${slug || 'export'}-${now.toISOString().slice(0, 10)}.md`
+  return `chantier-${slug || 'export'}-${parisDate(now)}.md`
+}
+
+/** Date du jour à Paris, AAAA-MM-JJ : un export fait à 1 h du matin porte la bonne date. */
+function parisDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
 }
 
 export function buildChantierMarkdown(input: ExportInput): string {
