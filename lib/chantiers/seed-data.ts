@@ -92,6 +92,7 @@ export function seedToInput(seed: ChantierSeed, geomindAddress: string): unknown
     clientName: seed.clientName,
     contactEmail: '',
     geomindAddress,
+    alertEmail: geomindAddress,
     extraFields: seed.options.extraFields ?? [],
     establishments: seed.establishments.map((e) => ({
       name: e.name,

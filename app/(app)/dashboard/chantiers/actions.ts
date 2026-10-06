@@ -10,6 +10,7 @@ import {
   createChantier,
   issueChantierLink,
   loadChantierDetail,
+  reopenChantier,
   revokeChantierLink,
 } from '@/lib/db/queries/chantiers'
 import { buildChantierMarkdown, exportFileName } from '@/lib/chantiers/export'
@@ -133,6 +134,24 @@ export async function closeChantierAction(chantierId: string): Promise<{ ok: tru
   } catch (err) {
     captureChantierFailure('close', err, { chantierId: id.data })
     return { error: 'Clôture impossible. Réessayez.' }
+  }
+}
+
+/** Rouvre un chantier clos ; un nouveau lien est à émettre si l'ancien a expiré. */
+export async function reopenChantierAction(chantierId: string): Promise<{ ok: true } | { error: string }> {
+  const admin = await requireAdmin()
+  const id = z.uuid().safeParse(chantierId)
+  if (!id.success) return { error: 'Chantier introuvable.' }
+
+  try {
+    const ip = truncateIp(clientIpFromHeaders(await headers()))
+    if (!(await reopenChantier(admin.id, id.data, ip))) return { error: 'Chantier introuvable ou déjà ouvert.' }
+    revalidatePath(`/dashboard/chantiers/${id.data}`)
+    revalidatePath('/dashboard/chantiers')
+    return { ok: true }
+  } catch (err) {
+    captureChantierFailure('reopen', err, { chantierId: id.data })
+    return { error: 'Réouverture impossible. Réessayez.' }
   }
 }
 

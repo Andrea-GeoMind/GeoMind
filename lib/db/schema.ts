@@ -753,6 +753,8 @@ export interface ChantierOptions {
   extraFields?: string[]
   /** Adresse à inviter dans les outils du client et à contacter ([ADRESSE], [CONTACT]) */
   geomindAddress?: string
+  /** Destinataire des alertes e-mail de GeoMind (par défaut : l'adresse par défaut) */
+  alertEmail?: string
 }
 
 export interface ChantierEstablishmentOptions {
@@ -779,6 +781,10 @@ export const chantiers = pgTable(
     tokenRevokedAt: timestamp('token_revoked_at', { withTimezone: true }),
     /** « J'ai terminé » — le client peut encore modifier ensuite */
     submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    /** Activité déjà signalée par l'e-mail groupé jusqu'à cette date (0025) */
+    activityNotifiedThrough: timestamp('activity_notified_through', { withTimezone: true }),
+    /** Alerte « lien expire dans 7 jours » envoyée pour le lien en cours */
+    expiryReminderSentAt: timestamp('expiry_reminder_sent_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

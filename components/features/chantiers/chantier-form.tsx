@@ -98,6 +98,14 @@ export default function ChantierForm({ chantierExtras, establishmentExtras }: Pr
           </p>
           {fieldError(errors.geomindAddress?.message)}
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="alertEmail">Adresse des alertes e-mail</Label>
+          <Input id="alertEmail" type="email" {...register('alertEmail')} />
+          <p className="text-xs text-muted-foreground">
+            Reçoit l’e-mail groupé d’activité et l’alerte d’expiration du lien.
+          </p>
+          {fieldError(errors.alertEmail?.message)}
+        </div>
         {chantierExtras.length > 0 && (
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">Champs propres à ce chantier</legend>

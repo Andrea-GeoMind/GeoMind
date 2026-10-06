@@ -15,6 +15,7 @@ import {
 } from '@/lib/chantiers/file-service'
 import type { ChantierFileView, UploadError } from '@/lib/chantiers/files'
 import { captureChantierFailure } from '@/lib/monitoring'
+import { recordChantierActivity } from '@/lib/chantiers/activity'
 
 /**
  * Actions de l'espace client. Règle (tests/unit/chantiers/client-actions-gate.test.ts) :
@@ -58,6 +59,7 @@ export async function saveChantierFieldAction(request: unknown): Promise<SaveFie
       actor: 'client',
       ipTruncated: access.ipTruncated,
     })
+    await recordChantierActivity(access.chantier.id)
     return { ok: true, value }
   } catch (err) {
     captureChantierFailure('save_field', err, {
@@ -73,7 +75,7 @@ export type SubmitResult =
   | { ok: false; error: 'access'; state: DeniedState }
   | { ok: false; error: 'server' }
 
-/** « J'ai terminé ». Le mail à GeoMind arrive en S2.7 (fonction Inngest). */
+/** « J'ai terminé » : signalé en tête de l'e-mail groupé suivant. */
 export async function submitChantierAction(): Promise<SubmitResult> {
   const access = await requireChantierAccess('submit')
   if (!access.ok) return { ok: false, error: 'access', state: access.state }
@@ -81,6 +83,7 @@ export async function submitChantierAction(): Promise<SubmitResult> {
   try {
     const submittedAt = await markChantierSubmitted(access.chantier.id)
     await logChantierAccess(access.chantier.id, 'submit', access.ipTruncated)
+    await recordChantierActivity(access.chantier.id)
     return { ok: true, submittedAt: submittedAt.toISOString() }
   } catch (err) {
     captureChantierFailure('submit', err, { chantierId: access.chantier.id })
@@ -149,7 +152,10 @@ export async function confirmFileUploadAction(
 
   try {
     const result = await confirmChantierUpload({ chantierId: access.chantier.id, fileId: id.data })
-    if (result.ok) await logChantierAccess(access.chantier.id, 'upload', access.ipTruncated)
+    if (result.ok) {
+      await logChantierAccess(access.chantier.id, 'upload', access.ipTruncated)
+      await recordChantierActivity(access.chantier.id)
+    }
     return result
   } catch (err) {
     captureChantierFailure('upload_confirm', err, { chantierId: access.chantier.id })

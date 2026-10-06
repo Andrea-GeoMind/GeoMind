@@ -23,6 +23,7 @@ export const chantierInputSchema = z
     clientName: z.string().trim().min(1, 'Nom du client requis').max(120),
     contactEmail: z.union([z.literal(''), z.email('E-mail invalide').max(254)]),
     geomindAddress: z.email('E-mail invalide').max(254),
+    alertEmail: z.email('E-mail invalide').max(254),
     extraFields: z.array(z.string()).max(20),
     establishments: z.array(establishmentInputSchema).min(1, 'Au moins un établissement').max(20),
   })
@@ -64,6 +65,7 @@ export const chantierFormSchema = z.object({
   clientName: z.string(),
   contactEmail: z.string(),
   geomindAddress: z.string(),
+  alertEmail: z.string(),
   extraFields: z.array(z.string()),
   establishments: z
     .array(
@@ -92,6 +94,7 @@ export const EMPTY_CHANTIER_FORM: ChantierFormValues = {
   clientName: '',
   contactEmail: '',
   geomindAddress: DEFAULT_GEOMIND_ADDRESS,
+  alertEmail: DEFAULT_GEOMIND_ADDRESS,
   extraFields: [],
   establishments: [EMPTY_ESTABLISHMENT],
 }
@@ -109,6 +112,7 @@ export function formToChantierInput(form: ChantierFormValues): unknown {
     clientName: form.clientName,
     contactEmail: form.contactEmail.trim(),
     geomindAddress: form.geomindAddress.trim(),
+    alertEmail: form.alertEmail.trim(),
     extraFields: form.extraFields,
     establishments: form.establishments.map((e) => ({
       name: e.name,

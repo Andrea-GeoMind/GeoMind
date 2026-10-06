@@ -11,6 +11,7 @@ const valid = {
   clientName: 'Home Sweet Event',
   contactEmail: '',
   geomindAddress: 'andrea.schwertz2008@gmail.com',
+  alertEmail: 'andrea.schwertz2008@gmail.com',
   extraFields: ['hse.liste_maries'],
   establishments: [
     {
@@ -81,6 +82,7 @@ describe('formulaire', () => {
       clientName: 'Oravis',
       contactEmail: ' ',
       geomindAddress: 'andrea.schwertz2008@gmail.com',
+      alertEmail: 'andrea.schwertz2008@gmail.com',
       extraFields: ['oravis.fiche_entrepot'],
       establishments: [
         { name: 'Oravis', kind: 'rental', website: 'https://oravis.com ', addressText: '1679 route du Thor\n703 route du Thor', extraFields: [] },

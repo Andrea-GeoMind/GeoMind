@@ -17,6 +17,8 @@ import {
 import { runReputationCheckFunction } from '@/lib/inngest/functions/run-reputation-check'
 import { healthcheckEnginesFunction } from '@/lib/inngest/functions/healthcheck-engines'
 import { chantierFilesMaintenanceFunction } from '@/lib/inngest/functions/chantier-files-maintenance'
+import { chantierActivityDigestFunction } from '@/lib/inngest/functions/chantier-activity-digest'
+import { chantierExpiryReminderFunction } from '@/lib/inngest/functions/chantier-expiry-reminder'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -34,5 +36,7 @@ export const { GET, POST, PUT } = serve({
     runReputationCheckFunction,
     healthcheckEnginesFunction,
     chantierFilesMaintenanceFunction,
+    chantierActivityDigestFunction,
+    chantierExpiryReminderFunction,
   ],
 })

@@ -41,6 +41,7 @@ async function main() {
         clientName: TEST_NAME,
         contactEmail: '',
         geomindAddress: DEFAULT_GEOMIND_ADDRESS,
+        alertEmail: DEFAULT_GEOMIND_ADDRESS,
         extraFields: ['hse.liste_maries', 'oravis.fiche_entrepot'],
         establishments: [
           {

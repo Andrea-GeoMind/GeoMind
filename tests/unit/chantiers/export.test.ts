@@ -11,7 +11,7 @@ const input: ExportInput = {
   chantier: {
     id: C, ownerId: 'o', clientName: 'Home Sweet Event', contactEmail: null, status: 'open',
     options: { extraFields: ['hse.liste_maries'] }, tokenHash: 'h', tokenExpiresAt: new Date('2026-12-05T12:00:00Z'),
-    tokenRevokedAt: null, submittedAt: null, createdAt: T, updatedAt: T,
+    tokenRevokedAt: null, submittedAt: null, activityNotifiedThrough: null, expiryReminderSentAt: null, createdAt: T, updatedAt: T,
   },
   establishments: [
     { id: E, chantierId: C, kind: 'venue', name: 'Mas de Florette', website: 'https://masdeflorette.com', position: 0, options: { addressOptions: ['La Verrerie, 84220 Lioux'] }, createdAt: T },

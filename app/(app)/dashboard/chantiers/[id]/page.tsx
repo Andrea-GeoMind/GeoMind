@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AlertTriangle, ArrowLeft, Ban, LifeBuoy, Lock, LockKeyhole, PenLine } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Ban, LifeBuoy, Lock, LockKeyhole, LockOpen, PenLine } from 'lucide-react'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/admin'
 import { loadChantierDetail, type ChantierDetail } from '@/lib/db/queries/chantiers'
@@ -22,7 +22,11 @@ import ExportButton from '@/components/features/chantiers/export-button'
 import FileDownloadButton from '@/components/features/chantiers/file-download-button'
 import LinkIssuer from '@/components/features/chantiers/link-issuer'
 import PurgeFilesButton from '@/components/features/chantiers/purge-files-button'
-import { closeChantierAction, revokeChantierLinkAction } from '@/app/(app)/dashboard/chantiers/actions'
+import {
+  closeChantierAction,
+  reopenChantierAction,
+  revokeChantierLinkAction,
+} from '@/app/(app)/dashboard/chantiers/actions'
 
 export const metadata: Metadata = {
   title: 'Chantier',
@@ -183,6 +187,16 @@ export default async function ChantierDetailPage({ params }: { params: Promise<{
               description="L’espace du client se ferme (« Espace fermé ») et aucun lien ne pourra plus être émis. Les réponses et les fichiers restent consultables ici. Cette action ne s’annule pas depuis cette page."
               confirmLabel="Fermer le chantier"
               action={closeChantierAction.bind(null, chantier.id)}
+            />
+          )}
+          {chantier.status === 'closed' && (
+            <ConfirmActionButton
+              label="Rouvrir le chantier"
+              icon={<LockOpen />}
+              title="Rouvrir le chantier ?"
+              description="Le chantier repasse en cours. Le lien d’avant refonctionne s’il n’a ni expiré ni été révoqué ; sinon, régénérez-en un et envoyez-le au client."
+              confirmLabel="Rouvrir"
+              action={reopenChantierAction.bind(null, chantier.id)}
             />
           )}
         </div>

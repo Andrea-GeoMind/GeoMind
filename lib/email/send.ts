@@ -16,7 +16,7 @@ import { captureEmailFailure } from '@/lib/monitoring'
  */
 export async function sendEmail(
   template: string,
-  params: { to: string; subject: string; html: string; siteId?: string }
+  params: { to: string; subject: string; html: string; text?: string; siteId?: string }
 ): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
@@ -24,6 +24,8 @@ export async function sendEmail(
       to: params.to,
       subject: params.subject,
       html: params.html,
+      // Version texte : les alertes simples passent mieux les filtres anti-spam
+      ...(params.text ? { text: params.text } : {}),
     })
 
     if (error) {

@@ -31,7 +31,11 @@ export async function createChantier(ownerId: string, input: ChantierInput): Pro
         ownerId,
         clientName: input.clientName,
         contactEmail: input.contactEmail || null,
-        options: { extraFields: input.extraFields, geomindAddress: input.geomindAddress },
+        options: {
+          extraFields: input.extraFields,
+          geomindAddress: input.geomindAddress,
+          alertEmail: input.alertEmail,
+        },
       })
       .returning({ id: chantiers.id })
     if (!chantier) throw new Error('Création du chantier impossible')
@@ -159,6 +163,8 @@ export async function issueChantierLink(
       tokenHash: hash,
       tokenExpiresAt: tokenExpiryFrom(now),
       tokenRevokedAt: null,
+      // Nouveau lien, nouvelle échéance : l'alerte des 7 jours pourra repartir
+      expiryReminderSentAt: null,
       updatedAt: now,
     })
     .where(and(eq(chantiers.id, chantierId), eq(chantiers.ownerId, ownerId), ne(chantiers.status, 'closed')))
@@ -257,5 +263,27 @@ export async function closeChantier(
     .returning({ id: chantiers.id })
   if (!updated) return false
   await db.insert(chantierAccessLogs).values({ chantierId, event: 'chantier_closed', ipTruncated })
+  return true
+}
+
+/**
+ * Rouvre un chantier clos : il repasse en cours (ou « terminé par le client »
+ * s'il l'avait été). Le lien d'avant refonctionne s'il n'a ni expiré ni été
+ * révoqué ; sinon, il faut en régénérer un.
+ */
+export async function reopenChantier(
+  ownerId: string,
+  chantierId: string,
+  ipTruncated: string,
+  now: Date = new Date()
+): Promise<boolean> {
+  const [current] = await db
+    .select({ status: chantiers.status, tokenHash: chantiers.tokenHash, submittedAt: chantiers.submittedAt })
+    .from(chantiers)
+    .where(and(eq(chantiers.id, chantierId), eq(chantiers.ownerId, ownerId), eq(chantiers.status, 'closed')))
+  if (!current) return false
+  const status = !current.tokenHash ? 'draft' : current.submittedAt ? 'submitted' : 'open'
+  await db.update(chantiers).set({ status, updatedAt: now }).where(eq(chantiers.id, chantierId))
+  await db.insert(chantierAccessLogs).values({ chantierId, event: 'chantier_reopened', ipTruncated })
   return true
 }

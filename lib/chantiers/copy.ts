@@ -13,6 +13,11 @@ import type { ChantierOptions } from '@/lib/db/schema'
 /** Adresse GeoMind par défaut, réglable par chantier (options.geomindAddress). */
 export const DEFAULT_GEOMIND_ADDRESS = 'andrea.schwertz2008@gmail.com'
 
+/** Destinataire des alertes e-mail de GeoMind pour un chantier. */
+export function alertEmailFor(options: ChantierOptions): string {
+  return options.alertEmail?.trim() || DEFAULT_GEOMIND_ADDRESS
+}
+
 /** Valeur de [ADRESSE] et de [CONTACT] pour un chantier. */
 export function geomindAddressFor(options: ChantierOptions): string {
   return options.geomindAddress?.trim() || DEFAULT_GEOMIND_ADDRESS

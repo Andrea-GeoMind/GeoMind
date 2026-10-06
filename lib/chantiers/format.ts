@@ -150,6 +150,7 @@ export const ACCESS_EVENTS: Record<string, { label: string; ok: boolean }> = {
   link_issued: { label: 'Lien émis par GeoMind', ok: true },
   link_revoked: { label: 'Lien révoqué par GeoMind', ok: true },
   chantier_closed: { label: 'Chantier clos par GeoMind', ok: true },
+  chantier_reopened: { label: 'Chantier rouvert par GeoMind', ok: true },
   link_opened: { label: 'Lien ouvert', ok: true },
   view: { label: 'Espace consulté', ok: true },
   upload: { label: 'Fichier déposé', ok: true },
