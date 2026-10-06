@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Globe, Settings, LogOut, Coins } from 'lucide-react'
+import { LayoutDashboard, Globe, Settings, LogOut, Coins, ClipboardList } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Route } from 'next'
 import { cn } from '@/lib/utils'
@@ -16,21 +16,29 @@ type NavItem = {
   label: string
   icon: LucideIcon
   match?: string
+  /** Actif sur ce chemin exact seulement (pas sur ses sous-pages) */
+  exact?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard, exact: true },
   { href: '/sites', label: 'Mes sites', icon: Globe },
   { href: '/settings/account', label: 'Paramètres', icon: Settings, match: '/settings' },
+]
+
+/** Outils internes GeoMind : affichés aux admins, protégés côté serveur par requireAdmin() */
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { href: '/dashboard/chantiers', label: 'Chantiers', icon: ClipboardList },
 ]
 
 type Props = {
   userEmail: string
   /** Solde de crédits formaté côté serveur — null si non disponible */
   credits?: { amount: string; usage: string } | null
+  isAdmin?: boolean
 }
 
-export default function Sidebar({ userEmail, credits }: Props) {
+export default function Sidebar({ userEmail, credits, isAdmin = false }: Props) {
   const pathname = usePathname()
   const initial = userEmail.charAt(0).toUpperCase()
   const { locked } = useAnalysisLock()
@@ -57,8 +65,9 @@ export default function Sidebar({ userEmail, credits }: Props) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-0.5 p-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon, match }) => {
-          const isActive = pathname === href || pathname.startsWith((match ?? href) + '/')
+        {[...NAV_ITEMS, ...(isAdmin ? ADMIN_NAV_ITEMS : [])].map(({ href, label, icon: Icon, match, exact }) => {
+          const isActive =
+            pathname === href || (!exact && pathname.startsWith((match ?? href) + '/'))
           return (
             <div
               key={href}

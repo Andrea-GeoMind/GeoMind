@@ -152,3 +152,12 @@ export const CREDIT_PACKS = {
 } as const
 
 export type CreditPackId = keyof typeof CREDIT_PACKS
+
+/**
+ * Accès aux outils internes de GeoMind (espace chantier côté GeoMind).
+ * Plan admin ET abonnement actif : un admin suspendu ne garde pas la main.
+ * Le plan admin n'est attribuable que par le rôle postgres (migration 0024).
+ */
+export function isActiveAdmin(sub: { plan: Plan; status: string } | null): boolean {
+  return sub?.plan === 'admin' && sub.status === 'active'
+}

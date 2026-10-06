@@ -129,3 +129,23 @@ export function captureEmailFailure(
     Sentry.captureException(err)
   })
 }
+
+/**
+ * Échec d'une opération de l'espace client de chantier. Regroupé par
+ * opération. Ne jamais mettre le lien secret dans le contexte.
+ */
+export function captureChantierFailure(
+  operation: string,
+  error: unknown,
+  context: Record<string, unknown> = {}
+): void {
+  const err = toError(error)
+  Sentry.withScope((scope) => {
+    scope.setLevel('error')
+    scope.setTag('failure_kind', 'chantier')
+    scope.setTag('operation', operation)
+    scope.setContext('chantier', { operation, ...context })
+    scope.setFingerprint(['chantier-failure', operation])
+    Sentry.captureException(err)
+  })
+}

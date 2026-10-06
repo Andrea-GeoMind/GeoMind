@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { CHANTIER_SEEDS } from '@/lib/chantiers/seed-data'
+import { CHANTIER_SEEDS, seedToInput } from '@/lib/chantiers/seed-data'
+import { chantierInputSchema } from '@/lib/chantiers/validation'
 import { invalidExtraFields } from '@/lib/chantiers/fields'
 
 const byName = (name: string) => {
@@ -53,6 +54,13 @@ describe('chantiers de départ', () => {
       for (const e of seed.establishments) {
         expect(invalidExtraFields(e.options.extraFields ?? [], 'establishment')).toEqual([])
       }
+    }
+  })
+
+  it('chaque chantier de départ passe la validation de création', () => {
+    for (const seed of CHANTIER_SEEDS) {
+      const parsed = chantierInputSchema.safeParse(seedToInput(seed, 'andrea.schwertz2008@gmail.com'))
+      expect(parsed.error?.issues ?? [], seed.clientName).toEqual([])
     }
   })
 

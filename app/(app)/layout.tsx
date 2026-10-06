@@ -46,11 +46,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="app-shell flex flex-col overflow-hidden lg:flex-row">
           {/* Mobile : barre supérieure + drawer (PLAN item 19) */}
           <MobileSidebar>
-            <Sidebar userEmail={user.email ?? ''} credits={credits} />
+            <Sidebar userEmail={user.email ?? ''} credits={credits} isAdmin={stats.plan === 'admin'} />
           </MobileSidebar>
           {/* Desktop : sidebar fixe */}
           <div className="hidden lg:block">
-            <Sidebar userEmail={user.email ?? ''} credits={credits} />
+            <Sidebar userEmail={user.email ?? ''} credits={credits} isAdmin={stats.plan === 'admin'} />
           </div>
           <main className="flex-1 overflow-y-auto">
             {showLowCreditsBanner && (

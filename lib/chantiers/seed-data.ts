@@ -85,3 +85,20 @@ export const CHANTIER_SEEDS: readonly ChantierSeed[] = [
     ],
   },
 ]
+
+/** Entrée de création (à valider par chantierInputSchema). */
+export function seedToInput(seed: ChantierSeed, geomindAddress: string): unknown {
+  return {
+    clientName: seed.clientName,
+    contactEmail: '',
+    geomindAddress,
+    extraFields: seed.options.extraFields ?? [],
+    establishments: seed.establishments.map((e) => ({
+      name: e.name,
+      kind: e.kind,
+      website: e.website,
+      addressOptions: e.options.addressOptions ?? [],
+      extraFields: e.options.extraFields ?? [],
+    })),
+  }
+}
