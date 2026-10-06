@@ -4,7 +4,11 @@
 // Usage :
 //   npx tsx scripts/chantiers/test-chantier.ts create <email du compte admin>
 //   npx tsx scripts/chantiers/test-chantier.ts link <base, ex. https://geomind.fr>
-//   npx tsx scripts/chantiers/test-chantier.ts expire | revoke | delete
+//   npx tsx scripts/chantiers/test-chantier.ts expire | revoke
+//   npx tsx --conditions=react-server scripts/chantiers/test-chantier.ts delete
+//
+// delete vide d'abord le stockage (la suppression en base ne l'atteint pas),
+// d'où la condition react-server, qu'exige l'import 'server-only'.
 //
 // Toutes les commandes ne visent que le chantier portant exactement ce nom.
 
@@ -75,7 +79,10 @@ async function main() {
     case 'delete': {
       const { like } = await import('drizzle-orm')
       const { rateLimits } = await import('@/lib/db/schema')
+      const { purgeChantierFiles } = await import('@/lib/chantiers/file-service')
       for (const t of testChantiers) {
+        const purged = await purgeChantierFiles(t.ownerId, t.id)
+        console.log(`Stockage vidé : ${purged?.count ?? 0} fichier(s)`)
         // Cascade : établissements, réponses, historique, fichiers, journal
         await db.delete(chantiers).where(eq(chantiers.id, t.id))
         await db.delete(rateLimits).where(like(rateLimits.key, `%:${t.id}`))
