@@ -53,7 +53,7 @@ describe('e-mail groupé', () => {
   const mail = buildActivityDigest(input())!
 
   it('objet clair : chantier, demandes d’aide, champs, fichiers, accords', () => {
-    expect(mail.subject).toBe('[Oravis] 1 demande d’aide, 2 champs remplis, 1 champ modifié, 2 fichiers reçus, 1 accord signé')
+    expect(mail.subject).toBe('[Oravis] 1 demande d’aide, 1 champ rempli, 1 champ modifié, 2 fichiers reçus, 1 accord signé')
   })
 
   it('demandes d’aide en tête, avant les champs', () => {
@@ -85,6 +85,30 @@ describe('e-mail groupé', () => {
     expect(mail.text).toContain(`Voir le chantier : ${URL}`)
     expect(mail.text).not.toMatch(/\/chantier\/(?!s\/)/)
     expect(mail.html).toContain(`<a href="${URL}">`)
+  })
+
+  it('une demande d’aide n’est pas répétée dans « Champs remplis »', () => {
+    const remplis = mail.text.slice(mail.text.indexOf('Champs remplis'), mail.text.indexOf('Champs modifiés'))
+    expect(remplis).not.toContain('Fiche Google')
+    expect(remplis).toContain('Plan B en cas de pluie')
+  })
+
+  it('une vague faite d’une seule demande d’aide envoie quand même un e-mail', () => {
+    const base = input()
+    const only = buildActivityDigest(
+      input({ revisions: [rev('access.gbp', null, 'unsure', 3)], files: [], answers: base.answers.slice(0, 1) })
+    )!
+    expect(only.subject).toBe('[Oravis] 1 demande d’aide')
+    expect(only.text).not.toContain('Champs remplis')
+  })
+
+  it('seule l’adresse de la vue GeoMind est cliquable (audit du 07/10/2026)', () => {
+    const tricked = buildActivityDigest(
+      input({ chantier: { ...chantier, clientName: 'Oravis https://evil.example/phish' } })
+    )!
+    expect(tricked.html.match(/<a href=/g)).toHaveLength(1)
+    expect(tricked.html).toContain(`<a href="${URL}">`)
+    expect(tricked.html).not.toContain('href="https://evil.example')
   })
 
   it('« J’ai terminé » en tout premier', () => {

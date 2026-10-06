@@ -56,10 +56,16 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-/** HTML minimal : le texte tel quel, liens cliquables, aucune mise en page. */
-function toHtml(text: string): string {
+/**
+ * HTML minimal : le texte tel quel, aucune mise en page. Seule l'adresse de la
+ * vue GeoMind devient un lien : une adresse glissée dans un nom de fichier par
+ * le client reste du texte (audit du 07/10/2026).
+ */
+function toHtml(text: string, link: string): string {
+  const safeLink = escapeHtml(link)
   const body = escapeHtml(text)
-    .replace(/(https:\/\/[^\s<]+)/g, '<a href="$1">$1</a>')
+    .split(safeLink)
+    .join(`<a href="${safeLink}">${safeLink}</a>`)
     .split('\n')
     .join('<br>\n')
   return `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.5;">${body}</div>`
@@ -91,6 +97,8 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     files,
   })
   const help = completeness.alerts.map((a) => `${a.label}${where(a.establishmentId)}`)
+  // Un champ en demande d'aide figure déjà en tête : pas une deuxième fois plus bas
+  const helpSlots = new Set(completeness.alerts.map((a) => `${a.establishmentId ?? '-'}|${a.fieldKey}`))
 
   // Champs : une ligne par champ, « rempli » s'il était vide avant la vague
   const bySlot = new Map<string, Revision[]>()
@@ -99,6 +107,7 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     const field = getField(r.fieldKey)
     if (!field || field.type === 'agreement' || field.type === 'attestation') continue
     const key = `${r.establishmentId ?? '-'}|${r.fieldKey}`
+    if (helpSlots.has(key)) continue
     bySlot.set(key, [...(bySlot.get(key) ?? []), r])
   }
   const filled: string[] = []
@@ -140,7 +149,10 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     signed.length > 0 && plural(signed.length, 'accord signé', 'accords signés'),
   ].filter((p): p is string => typeof p === 'string')
 
-  const hasNews = submitted || filled.length + changed.length + received.length + signed.length > 0
+  const newHelp = revisions.some(
+    (r) => r.actor === 'client' && inWindow(r.updatedAt, since, until) && helpSlots.has(`${r.establishmentId ?? '-'}|${r.fieldKey}`)
+  )
+  const hasNews = submitted || newHelp || filled.length + changed.length + received.length + signed.length > 0
   if (!hasNews) return null
 
   const lines = [
@@ -164,7 +176,7 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     FOOTER,
   ]
   const text = lines.join('\n')
-  return { subject: `[${chantier.clientName}] ${subjectParts.join(', ')}`, text, html: toHtml(text) }
+  return { subject: `[${chantier.clientName}] ${subjectParts.join(', ')}`, text, html: toHtml(text, input.dashboardUrl) }
 }
 
 export const EXPIRY_REMINDER_DAYS = 7
@@ -208,6 +220,6 @@ export function buildExpiryReminder(input: {
   return {
     subject: `[${chantier.clientName}] Le lien expire dans ${plural(days, 'jour', 'jours')}, chantier non terminé`,
     text,
-    html: toHtml(text),
+    html: toHtml(text, input.dashboardUrl),
   }
 }

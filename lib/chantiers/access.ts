@@ -3,7 +3,7 @@ import { cookies, headers } from 'next/headers'
 import { asc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { chantierAccessLogs, chantierEstablishments, chantiers } from '@/lib/db/schema'
-import { consumeRateLimit } from '@/lib/db/queries/rate-limits'
+import { consumeRateLimit, peekRateLimit } from '@/lib/db/queries/rate-limits'
 import { rateLimitKey } from '@/lib/rate-limit'
 import { CHANTIER_RATE_LIMITS, type ChantierRateLimitName } from '@/lib/chantiers/rate-limits'
 import { hashChantierToken, isWellFormedToken, tokenState, type TokenState } from '@/lib/chantiers/token'
@@ -68,15 +68,21 @@ export async function checkChantierToken(
   limit: ChantierRateLimitName,
   ipTruncated: string
 ): Promise<ChantierAccess> {
+  // Une IP qui a épuisé ses essais de faux liens n'obtient plus aucune
+  // vérification, valide ou non : sinon la limite ne ferait que changer le
+  // message, sans empêcher d'essayer (audit du 07/10/2026).
+  const badTokenKey = rateLimitKey('chantier', 'badtoken', ipTruncated)
+  if (!(await peekRateLimit(badTokenKey, CHANTIER_RATE_LIMITS.badToken)).allowed) {
+    await logChantierAccess(null, 'rate_limited', ipTruncated)
+    return { ok: false, state: 'rate_limited', chantier: null }
+  }
+
   const chantier = token ? await findChantierByToken(token) : null
   const state = tokenState(chantier, new Date())
 
   if (state !== 'valid' || !chantier) {
     // Un faux lien coûte : 10 par heure et par IP, puis plus rien n'est vérifié
-    const verdict = await consumeRateLimit(
-      rateLimitKey('chantier', 'badtoken', ipTruncated),
-      CHANTIER_RATE_LIMITS.badToken
-    )
+    const verdict = await consumeRateLimit(badTokenKey, CHANTIER_RATE_LIMITS.badToken)
     const denied: DeniedState = state === 'valid' ? 'unknown' : state
     await logChantierAccess(chantier?.id ?? null, `${denied}_token`, ipTruncated)
     return { ok: false, state: verdict.allowed ? denied : 'rate_limited', chantier }

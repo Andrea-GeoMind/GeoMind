@@ -1,5 +1,9 @@
 import { inngest } from '@/lib/inngest/client'
-import { cleanupAbandonedUploads, deleteExpiredFiles } from '@/lib/chantiers/file-service'
+import {
+  cleanupAbandonedUploads,
+  cleanupOrphanObjects,
+  deleteExpiredFiles,
+} from '@/lib/chantiers/file-service'
 import { captureJobFailure } from '@/lib/monitoring'
 
 /**
@@ -7,7 +11,9 @@ import { captureJobFailure } from '@/lib/monitoring'
  *   1. dépôts commencés jamais confirmés depuis plus de 2 h → retirés du
  *      stockage, ils ne comptent plus dans les 300 Mo ;
  *   2. fichiers arrivés à leur date de suppression (liste des mariés : dépôt
- *      + 30 jours) → retirés du stockage, pas seulement de la base.
+ *      + 30 jours) → retirés du stockage, pas seulement de la base ;
+ *   3. objets sans fichier vivant en base (emplacements neutralisés après une
+ *      suppression, chantier supprimé) → retirés du bucket.
  *
  * L'événement chantier.files.maintenance.requested permet de lancer un
  * passage à la demande (vérification après déploiement).
@@ -24,7 +30,8 @@ export const chantierFilesMaintenanceFunction = inngest.createFunction(
     try {
       const abandoned = await step.run('cleanup-abandoned-uploads', () => cleanupAbandonedUploads({}))
       const expired = await step.run('delete-expired-files', () => deleteExpiredFiles())
-      return { abandoned, expired }
+      const orphans = await step.run('cleanup-orphan-objects', () => cleanupOrphanObjects())
+      return { abandoned, expired, orphans }
     } catch (err) {
       captureJobFailure('chantier-files-maintenance', err)
       throw err

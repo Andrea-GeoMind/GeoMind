@@ -45,7 +45,8 @@ export default async function ChantierSpacePage() {
       geomindAddress={geomindAddressFor(chantier.options)}
       expiresAt={chantier.tokenExpiresAt?.toISOString() ?? null}
       submittedAt={chantier.submittedAt?.toISOString() ?? null}
-      chantierOptions={chantier.options}
+      // Seuls les champs activés : ni l'adresse des alertes, ni rien d'interne
+      chantierOptions={{ extraFields: chantier.options.extraFields ?? [] }}
       establishments={establishments.map((e) => ({
         id: e.id,
         name: e.name,

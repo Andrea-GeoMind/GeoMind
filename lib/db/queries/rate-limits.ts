@@ -6,7 +6,7 @@
  * purgées de temps en temps, au passage, pour que la table reste petite.
  */
 
-import { lt, sql } from 'drizzle-orm'
+import { and, eq, lt, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { rateLimits } from '@/lib/db/schema'
 import { rateLimitVerdict, windowStartFor, type RateLimitRule, type RateLimitVerdict } from '@/lib/rate-limit'
@@ -36,4 +36,18 @@ export async function consumeRateLimit(
   }
 
   return rateLimitVerdict(row?.count ?? 1, rule, now)
+}
+
+/** Lit le compteur de la fenêtre courante sans l'incrémenter. */
+export async function peekRateLimit(
+  key: string,
+  rule: RateLimitRule,
+  now: Date = new Date()
+): Promise<RateLimitVerdict> {
+  const windowStart = windowStartFor(now, rule.windowSeconds)
+  const [row] = await db
+    .select({ count: rateLimits.count })
+    .from(rateLimits)
+    .where(and(eq(rateLimits.key, key), eq(rateLimits.windowStart, windowStart)))
+  return rateLimitVerdict(row?.count ?? 0, rule, now)
 }

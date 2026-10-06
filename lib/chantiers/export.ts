@@ -33,14 +33,28 @@ const SECTION_TITLES: Record<FieldSection, string> = {
 const SECTIONS: readonly FieldSection[] = ['access', 'info', 'files', 'decisions']
 const KIND_LABELS = { venue: 'lieu de réception', rental: 'loueur' } as const
 
+/**
+ * Texte venu d'une saisie (réponse, nom de fichier, nom d'établissement) :
+ * rendu inerte en Markdown. Ni HTML (`<img onerror>`, `<script>`), ni image
+ * distante (pixel de suivi chargé à l'ouverture), ni lien (`javascript:`),
+ * ni titre ou tableau parasite. Audit du 07/10/2026.
+ */
+export function mdText(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/([\\`*_{}\[\]()#+!|~])/g, '\\$1')
+}
+
 /** Une valeur sur plusieurs lignes reste lisible sous sa puce. */
 function indent(text: string): string {
   return text.split('\n').join('\n  ')
 }
 
-/** Échappe ce qui casserait un tableau Markdown. */
+/** Cellule de tableau : texte inerte, sur une seule ligne. */
 function cell(text: string): string {
-  return text.replace(/\|/g, '\\|').replace(/\n/g, ' ')
+  return mdText(text).replace(/\n/g, ' ')
 }
 
 export function exportFileName(clientName: string, now: Date): string {
@@ -71,36 +85,36 @@ export function buildChantierMarkdown(input: ExportInput): string {
   const push = (...l: string[]) => lines.push(...l)
 
   push(
-    `# Chantier ${chantier.clientName}`,
+    `# Chantier ${mdText(chantier.clientName)}`,
     '',
     `- Exporté le ${formatChantierDateTime(now)}`,
     `- État : ${chantierDisplayState(chantier, now).label}`,
     `- Avancement : ${completeness.percent} % (${completeness.filledRequiredCount}/${completeness.requiredCount} champs obligatoires)`,
     chantier.submittedAt ? `- « J’ai terminé » le ${formatChantierDateTime(chantier.submittedAt)}` : '- « J’ai terminé » : pas encore',
-    `- Établissements : ${establishments.map((e) => e.name).join(', ')}`,
+    `- Établissements : ${establishments.map((e) => mdText(e.name)).join(', ')}`,
     ''
   )
 
   if (completeness.alerts.length > 0) {
     push('## Demandes d’aide', '')
-    for (const a of completeness.alerts) push(`- ${a.label}${a.establishmentName ? ` (${a.establishmentName})` : ''}`)
+    for (const a of completeness.alerts) push(`- ${a.label}${a.establishmentName ? ` (${mdText(a.establishmentName)})` : ''}`)
     push('')
   }
 
   if (completeness.blocking.length > 0) {
     push('## Bloquants restants', '')
-    for (const b of completeness.blocking) push(`- ${b.label}${b.establishmentName ? ` (${b.establishmentName})` : ''}`)
+    for (const b of completeness.blocking) push(`- ${b.label}${b.establishmentName ? ` (${mdText(b.establishmentName)})` : ''}`)
     push('')
   }
 
   const fieldLine = (field: FieldDef, estId: string | null, options = {}) => {
     if (field.type === 'file') {
       const own = files.filter((f) => f.fieldKey === field.key && f.establishmentId === estId && f.status === 'ready')
-      return `- **${field.label}** : ${own.length ? own.map((f) => f.originalName).join(', ') : 'aucun fichier'}`
+      return `- **${field.label}** : ${own.length ? own.map((f) => mdText(f.originalName)).join(', ') : 'aucun fichier'}`
     }
     const shown = formatAnswer(field, value(estId, field.key), options)
     const flag = isBlocking(estId, field.key) ? ' ⚠ bloquant' : ''
-    return `- **${field.label}**${flag} : ${shown ? indent(shown) : '_vide_'}`
+    return `- **${field.label}**${flag} : ${shown ? indent(mdText(shown)) : '_vide_'}`
   }
 
   const chantierLevel = chantierFields(chantier.options)
@@ -114,7 +128,7 @@ export function buildChantierMarkdown(input: ExportInput): string {
   }
 
   for (const e of establishments) {
-    push(`## ${e.name}`, '', `${KIND_LABELS[e.kind]}${e.website ? ` · ${e.website}` : ''}`, '')
+    push(`## ${mdText(e.name)}`, '', `${KIND_LABELS[e.kind]}${e.website ? ` · ${mdText(e.website)}` : ''}`, '')
     const fields = establishmentFields(e.kind, e.options)
     for (const section of SECTIONS) {
       const own = fields.filter((f) => f.section === section)
@@ -126,7 +140,8 @@ export function buildChantierMarkdown(input: ExportInput): string {
   push('## Accords', '')
   const agreements = chantierLevel.filter((f) => f.type === 'agreement' || f.type === 'attestation')
   for (const f of agreements) {
-    push(`- **${f.label}** : ${formatAnswer(f, value(null, f.key)) ?? '_pas encore donné_'}`)
+    const shown = formatAnswer(f, value(null, f.key))
+    push(`- **${f.label}** : ${shown ? mdText(shown) : '_pas encore donné_'}`)
   }
   push('')
 

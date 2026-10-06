@@ -1,10 +1,11 @@
 import 'server-only'
 import { randomUUID } from 'crypto'
-import { and, eq, inArray, isNotNull, lte, ne } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, lte, ne, sql } from 'drizzle-orm'
 import { db } from '@/lib/db/client'
 import { chantierFiles, chantiers } from '@/lib/db/schema'
 import { getField, missingAttestation, type FieldDef } from '@/lib/chantiers/fields'
 import {
+  CHANTIER_BUCKET,
   CHANTIER_QUOTA_BYTES,
   PENDING_UPLOAD_TTL_MS,
   SIGNATURE_BYTES,
@@ -20,6 +21,7 @@ import {
 import {
   createDownloadUrl,
   createSignedUpload,
+  occupyWithTombstones,
   readObjectHead,
   removeObjects,
 } from '@/lib/chantiers/storage-admin'
@@ -54,10 +56,17 @@ function toView(row: FileRow): ChantierFileView {
   }
 }
 
-/** Retire les objets du bucket puis marque les lignes supprimées. */
+/**
+ * Vide le stockage puis marque les lignes supprimées. Un fichier déposé il y
+ * a moins de 2 h a encore une adresse d'envoi valable : son emplacement est
+ * occupé par un fichier vide plutôt que libéré, sinon l'adresse permettrait de
+ * le redéposer sans contrôle (audit du 07/10/2026).
+ */
 async function deleteRows(rows: FileRow[], reason: DeletedReason, now: Date): Promise<void> {
   if (rows.length === 0) return
-  await removeObjects(rows.map((r) => r.storagePath))
+  const uploadStillPossible = (r: FileRow) => now.getTime() - r.createdAt.getTime() < PENDING_UPLOAD_TTL_MS
+  await occupyWithTombstones(rows.filter(uploadStillPossible).map((r) => r.storagePath))
+  await removeObjects(rows.filter((r) => !uploadStillPossible(r)).map((r) => r.storagePath))
   await db
     .update(chantierFiles)
     .set({ status: 'deleted', deletedReason: reason, deletedAt: now })
@@ -98,6 +107,26 @@ export async function cleanupAbandonedUploads(
       )
     )
   await deleteRows(rows, 'abandoned', now)
+  return rows.length
+}
+
+/**
+ * Balayage du bucket : tout objet qui ne correspond plus à un fichier vivant
+ * (en attente ou vérifié) est retiré, une fois passé le délai où une adresse
+ * d'envoi pouvait encore servir. Couvre les fichiers vides laissés par
+ * deleteRows, et les objets d'un chantier supprimé sans purge préalable.
+ */
+export async function cleanupOrphanObjects(now: Date = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - PENDING_UPLOAD_TTL_MS)
+  const rows = (await db.execute(sql`
+    select o.name
+    from storage.objects o
+    left join public.chantier_files f on f.storage_path = o.name
+    where o.bucket_id = ${CHANTIER_BUCKET}
+      and o.created_at <= ${cutoff}
+      and (f.id is null or (f.status = 'deleted' and f.created_at <= ${cutoff}))
+  `)) as unknown as { name: string }[]
+  await removeObjects(rows.map((r) => r.name))
   return rows.length
 }
 

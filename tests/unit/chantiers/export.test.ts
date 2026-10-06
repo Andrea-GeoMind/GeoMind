@@ -49,7 +49,7 @@ describe('export Markdown', () => {
   })
 
   it('les valeurs sur plusieurs lignes restent sous leur puce', () => {
-    expect(md).toMatch(/- \*\*Plan B en cas de pluie\*\* : Salle voûtée \| 120 places\n  chauffée/)
+    expect(md).toMatch(/- \*\*Plan B en cas de pluie\*\* : Salle voûtée \\\| 120 places\n  chauffée/)
   })
 
   it('accords avec nom, date et heure', () => {
@@ -73,6 +73,36 @@ describe('export Markdown', () => {
   it('nom de fichier sans accents ni espaces', () => {
     expect(exportFileName('Home Sweet Event', T)).toBe('chantier-home-sweet-event-2026-10-06.md')
     expect(exportFileName('Hameau de l’Esperelle', T)).toBe('chantier-hameau-de-l-esperelle-2026-10-06.md')
+  })
+})
+
+describe('injection dans l’export (audit du 07/10/2026)', () => {
+  const hostile = buildChantierMarkdown({
+    ...input,
+    establishments: [{ ...input.establishments[0]!, name: 'Mas <b>gras</b>' }],
+    answers: [
+      ...input.answers,
+      {
+        id: '9', chantierId: C, establishmentId: E, fieldKey: 'venue.unique', updatedBy: 'client', updatedAt: T,
+        value: "<script>alert('xss')</script> ![suivi](https://evil.example/pixel.png) [clic](javascript:alert(1)) # titre",
+      },
+    ],
+    files: [{ ...input.files[0]!, originalName: '<svg onload=alert(3)>[x](javascript:alert(4)).pdf' }],
+  })
+
+  it('aucune balise HTML ne survit', () => {
+    expect(hostile).not.toMatch(/<script|<img|<svg|<b>/)
+    expect(hostile).toContain('&lt;script&gt;')
+  })
+
+  it('ni image distante, ni lien : la syntaxe Markdown est neutralisée', () => {
+    expect(hostile).not.toMatch(/!\[suivi\]\(/)
+    expect(hostile).not.toMatch(/\]\(javascript:/)
+    expect(hostile).toContain('!\\[suivi\\]\\(https://evil.example/pixel.png\\)')
+  })
+
+  it('un # saisi ne crée pas de titre', () => {
+    expect(hostile).toContain('\\# titre')
   })
 })
 

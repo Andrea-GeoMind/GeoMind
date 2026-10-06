@@ -78,3 +78,18 @@ export async function removeObjects(paths: readonly string[]): Promise<void> {
     if (error) throw new Error(`Suppression Storage impossible : ${error.message}`)
   }
 }
+
+/**
+ * Remplace des objets par un fichier vide, au même emplacement. Une adresse
+ * d'envoi signée reste valable 2 h et ne peut pas être révoquée : si l'objet
+ * était simplement retiré, elle permettrait de le redéposer hors de tout
+ * contrôle. Occupé, l'emplacement refuse tout nouvel envoi (pas d'upsert).
+ * Le balayage horaire retire ces fichiers vides une fois les 2 h passées.
+ */
+export async function occupyWithTombstones(paths: readonly string[]): Promise<void> {
+  const empty = new Uint8Array(0)
+  for (const path of paths) {
+    const { error } = await bucket().upload(path, empty, { upsert: true, contentType: 'text/csv' })
+    if (error) throw new Error(`Neutralisation de ${path} impossible : ${error.message}`)
+  }
+}
