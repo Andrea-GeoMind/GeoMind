@@ -127,6 +127,8 @@ describe('utilitaires d’affichage', () => {
   })
 
   it.each([
+    [0, '0 Ko'],
+    [1, '1 Ko'],
     [500, '1 Ko'],
     [820 * 1024, '820 Ko'],
     [3.4 * 1024 * 1024, '3,4 Mo'],

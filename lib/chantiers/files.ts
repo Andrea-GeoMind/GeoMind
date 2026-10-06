@@ -225,8 +225,13 @@ export function acceptAttribute(accept: readonly AcceptedFileType[]): string {
   return accept.flatMap((t) => [...TYPE_EXTENSIONS[t], t]).join(',')
 }
 
-/** Taille lisible : « 3,4 Mo », « 820 Ko ». */
+/**
+ * Taille lisible : « 3,4 Mo », « 820 Ko ». Un petit fichier s'arrondit à
+ * « 1 Ko », jamais à « 0 Ko » ; seul un total vide affiche « 0 Ko » (un
+ * chantier neuf affichait « 1 Ko utilisés » sans aucun fichier).
+ */
 export function formatFileSize(bytes: number): string {
+  if (bytes <= 0) return '0 Ko'
   if (bytes >= 1024 * 1024) {
     return `${(bytes / (1024 * 1024)).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Mo`
   }
