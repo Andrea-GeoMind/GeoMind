@@ -73,8 +73,12 @@ async function main() {
       return console.log('Lien révoqué')
     }
     case 'delete': {
+      const { like } = await import('drizzle-orm')
+      const { rateLimits } = await import('@/lib/db/schema')
       for (const t of testChantiers) {
+        // Cascade : établissements, réponses, historique, fichiers, journal
         await db.delete(chantiers).where(eq(chantiers.id, t.id))
+        await db.delete(rateLimits).where(like(rateLimits.key, `%:${t.id}`))
         console.log(`Supprimé : ${t.id}`)
       }
       if (testChantiers.length === 0) console.log('Rien à supprimer')
