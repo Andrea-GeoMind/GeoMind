@@ -81,9 +81,18 @@ async function main() {
       const { like } = await import('drizzle-orm')
       const { rateLimits } = await import('@/lib/db/schema')
       const { purgeChantierFiles } = await import('@/lib/chantiers/file-service')
+      const { removeObjects } = await import('@/lib/chantiers/storage-admin')
+      const { sql } = await import('drizzle-orm')
       for (const t of testChantiers) {
         const purged = await purgeChantierFiles(t.ownerId, t.id)
-        console.log(`Stockage vidé : ${purged?.count ?? 0} fichier(s)`)
+        // La purge laisse un fichier vide à la place des dépôts récents (ils
+        // bloquent les adresses d'envoi encore valables) : un chantier de test
+        // supprimé n'en a plus besoin.
+        const leftovers = (await db.execute(
+          sql`select name from storage.objects where bucket_id = 'chantier-files' and name like ${`${t.id}/%`}`
+        )) as unknown as { name: string }[]
+        await removeObjects(leftovers.map((o) => o.name))
+        console.log(`Stockage vidé : ${purged?.count ?? 0} fichier(s), ${leftovers.length} objet(s) retiré(s)`)
         // Cascade : établissements, réponses, historique, fichiers, journal
         await db.delete(chantiers).where(eq(chantiers.id, t.id))
         await db.delete(rateLimits).where(like(rateLimits.key, `%:${t.id}`))
