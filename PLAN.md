@@ -140,6 +140,16 @@
   complète lancée pendant un `next build`, et passe sinon. À rendre indépendant du temps machine
   (délai explicite plus large, ou suppression de ce qui est lent). — **S**
 
+- [ ] **44. Retirer TRUNCATE aux rôles publics sur les autres tables** *(noté le 2026-10-07, audit de
+  sécurité de l'espace chantier)* — Supabase accorde par défaut tous les privilèges aux rôles `anon`
+  et `authenticated`, `TRUNCATE` compris, sur les tables publiques (`sites`, `analyses`,
+  `profiles`, `credit_*`, etc.). RLS filtre les lignes mais **`TRUNCATE` l'ignore**. Aucune route ne
+  l'expose aujourd'hui (ni PostgREST, ni GraphQL, ni fonction SQL dynamique), c'est une défense en
+  profondeur. Faire comme la migration 0024 pour `subscriptions` et 0026 pour les tables chantier :
+  retirer `TRUNCATE` (et les écritures inutiles) à `anon` / `authenticated`, en vérifiant que le
+  client ne lit ni n'écrit ces tables par le SDK Supabase ; preuve par simulation SQL en transaction
+  annulée. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
