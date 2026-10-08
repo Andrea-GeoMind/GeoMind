@@ -179,6 +179,26 @@
   chantier_assistant_exchanges`) et que les exécutions de la fonction sont vertes dans Inngest,
   sans alerte Sentry `chantier-files-maintenance`. — **S**
 
+- [ ] **48. Une recommandation refusée fait échouer toute l'analyse, et aucun appel OpenRouter
+  n'est borné** *(noté le 2026-10-08, diagnostic des échecs du compte qa-dentiste, ticket T-05)* —
+  Les 9 analyses en échec depuis le 15/09 portent toutes « Un service tiers utilisé par l'analyse
+  est indisponible », c'est-à-dire un **402 d'OpenRouter**. Deux défauts se combinent :
+
+  1. **`generateRecommendations` n'accepte aucun échec** (`lib/analysis/recommendations.ts:97`) :
+     `runWithPool` attend toutes les tâches, et `callStructured` lève sur tout 4xx. Un seul appel
+     refusé fait tomber l'étape, puis toute l'analyse, alors que les réponses IA, la technique et
+     le contenu sont déjà en base (cas de maselectricite.fr le 19/09 : 34 réponses sur 40, 80
+     constats, 0 recommandation). L'étape des réponses IA, elle, tolère ses échecs depuis le 23/09.
+  2. **Aucun appel OpenRouter ne fixe de longueur maximale de réponse** (`lib/ai/structured.ts`, les
+     4 connecteurs de `lib/ai/connectors/`). OpenRouter réserve alors sur le solde le prix de la
+     réponse la plus longue que le modèle peut produire (≈ 0,30 $ par appel Haiku 4.5 en vol). Plus
+     le solde baisse, ou plus il y a d'analyses simultanées, plus le 402 arrive tôt : le 15/09,
+     10 analyses lancées en deux salves de 5 ont toutes échoué.
+
+  À corriger avant d'ouvrir les plans payants : borner chaque appel (`max_tokens` adapté à chaque
+  usage), et laisser l'étape recommandations finir avec les recommandations obtenues en
+  journalisant les manquantes, comme `authority_failures`. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
