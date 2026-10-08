@@ -168,6 +168,17 @@
   « Administrateur ». Corriger les deux endroits, puis incrémenter
   `CHANTIER_ASSISTANT_PROMPT_VERSION` pour vider le cache des réponses. — **S**
 
+- [ ] **47. Contrôler la purge à 30 jours des échanges avec l'assistant chantier** *(noté le
+  2026-10-08, à faire début novembre : premiers échanges réels vers le 8 novembre)* — L'étape
+  `delete-old-assistant-exchanges` de la fonction Inngest `chantier-files-maintenance` (toutes les
+  heures à :20) supprime les lignes de `chantier_assistant_exchanges` de plus de 30 jours. Testée
+  en unitaire, jamais vue tourner en production : à la clôture, l'API Inngest a refusé la clé de
+  signature (**401** sur `GET https://api.inngest.com/v1/events/{id}/runs`, à regarder à ce
+  moment-là : type de clé attendu, clé d'API dédiée ?), et le réseau bloquait Postgres. Vérifier
+  qu'aucun échange de plus de 30 jours ne reste en base (`select min(created_at) from
+  chantier_assistant_exchanges`) et que les exécutions de la fonction sont vertes dans Inngest,
+  sans alerte Sentry `chantier-files-maintenance`. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
