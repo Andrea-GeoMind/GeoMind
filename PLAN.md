@@ -225,6 +225,20 @@
   journaliser le motif et le remonter à Sentry (`lib/monitoring.ts`), sans changer le repli sur
   l'accueil. — **S**
 
+- [ ] **52. Une adresse écrite dans la réponse n'est pas comptée comme citation** *(noté le
+  2026-10-09, ticket T-05, mesure J0 de Mas de Florette)* — Perplexity a répondu « Mas de Florette
+  — indique explicitement un mariage sur 3 jours et 3 nuits. Site officiel : https://masdeflorette.com/ »,
+  mais `masdeflorette.com` ne figurait pas dans ses sources structurées : GeoMind n'a compté ni la
+  citation ni la part de voix. Cause : dans `parseSources` (`lib/ai/parse.ts`), les liens du texte
+  (`parseMarkdownLinks`) ne servent que de **repli quand aucune source structurée n'existe** ; dès
+  qu'il y a des annotations, les adresses écrites dans la réponse sont ignorées. La logique est
+  commune aux quatre moteurs : le cas a été vu sur Perplexity, mais rien n'empêche qu'il touche
+  les autres. À corriger dans la détection : fusionner sources structurées et liens du texte
+  (dédoublonnés par URL), avec un test sur cette réponse réelle. **Attention à la comparabilité** :
+  la correction change la mesure — les analyses J0 du 08/10 (Oravis / Home Sweet Event) devront être
+  recalculées avec la même règle, ou la comparaison J30 signalée comme faite sur une autre
+  méthode (`rules_version`). — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
