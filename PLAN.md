@@ -158,6 +158,16 @@
   terminé », liens expiré / révoqué / fermé, vue admin (lien, export). Sur un chantier de test
   créé puis supprimé par `scripts/chantiers/test-chantier.ts`, jamais sur un vrai chantier. — **M**
 
+- [ ] **46. Vérifier les libellés WordPress de l'assistant de l'espace chantier** *(noté le
+  2026-10-08, Andrea, au premier accès à un des sites Oravis / Home Sweet Event)* — L'étape
+  « WordPress : compte administrateur créé pour GeoMind » (aide affichée dans
+  `lib/chantiers/fields.ts`, chemin du bot dans `OFFICIAL_GUIDES['access.wordpress']` de
+  `lib/chantiers/assistant.ts`) repose sur la seule documentation officielle, en anglais et datée de
+  2019 (« Users » › « Add New User »). À relever sur un vrai WordPress en français : nom du menu
+  (« Comptes » ?), bouton d'ajout, case d'envoi de l'e-mail au nouveau compte, rôle
+  « Administrateur ». Corriger les deux endroits, puis incrémenter
+  `CHANTIER_ASSISTANT_PROMPT_VERSION` pour vider le cache des réponses. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.

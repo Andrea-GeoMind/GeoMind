@@ -149,7 +149,7 @@ const ACCESS_FIELDS: FieldDef[] = [
   {
     key: 'access.gbp',
     label: 'Fiche Google : GeoMind ajouté comme gestionnaire',
-    help: 'Sur votre fiche Google, ouvrez « Paramètres » puis « Personnes et accès », et ajoutez [ADRESSE] avec le rôle « Gestionnaire ».',
+    help: 'Sur un ordinateur, ouvrez votre fiche sur business.google.com : menu « Plus », puis « Paramètres de la fiche », puis « Personnes et accès ». Ajoutez [ADRESSE] avec le rôle « Gestionnaire », puis « Inviter ». Sur téléphone, les menus peuvent être différents : l’ordinateur est plus simple.',
     section: 'access',
     scope: 'establishment',
     required: true,

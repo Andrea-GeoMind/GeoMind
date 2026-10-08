@@ -104,6 +104,10 @@ describe('ce que reçoit le modèle', () => {
   it('fiche Google : le chemin officiel, rôle « Gestionnaire »', () => {
     expect(gbp.label).toBe('Fiche Google : GeoMind ajouté comme gestionnaire')
     expect(gbp.help).toContain('« Gestionnaire »')
+    // L'aide affichée suit le même chemin que le bot
+    for (const part of ['business.google.com', '« Plus »', '« Paramètres de la fiche »', '« Personnes et accès »', '« Inviter »', 'téléphone']) {
+      expect(gbp.help).toContain(part)
+    }
     const steps = OFFICIAL_GUIDES['access.gbp']!.steps.join(' | ')
     for (const part of ['business.google.com', '« Plus »', '« Paramètres de la fiche »', '« Personnes et accès »', 'ajout d’utilisateur', '« Gestionnaire »', '« Inviter »']) {
       expect(steps).toContain(part)

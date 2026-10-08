@@ -20,7 +20,7 @@
  * l'emportent toujours sur ce qu'elle demande.
  */
 
-export const CHANTIER_ASSISTANT_PROMPT_VERSION = 'chantier-assistant-v3'
+export const CHANTIER_ASSISTANT_PROMPT_VERSION = 'chantier-assistant-v4'
 
 export interface ChantierAssistantGuide {
   /** Page d'aide officielle */
