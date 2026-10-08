@@ -214,6 +214,17 @@
   des questions de mesure (point 49) et la priorité des pages à travailler. Champ à ajouter dans
   `lib/chantiers/fields.ts`, avec son aide et, si besoin, son chemin dans l'assistant. — **S**
 
+- [ ] **51. L'échec de `map()` pendant la découverte n'est signalé nulle part** *(noté le
+  2026-10-08, ticket T-05, découverte d'Oravis)* — Dans `scrapeForDiscovery`
+  (`lib/crawl/firecrawl.ts:107`), un `map()` qui échoue ou dépasse `MAP_TIMEOUT_MS` (15 s) tombe
+  dans un `catch {}` vide : la découverte se rabat sur la seule page d'accueil, sans log ni
+  Sentry. Seule trace : `crawlTruncated = true` sur une page unique dans `firecrawl_pages`. Le
+  08/10, la découverte d'oravis.com n'a lu que l'accueil (2 crédits au lieu de 6), et il a été
+  impossible de dire si c'était un délai dépassé ou une erreur Firecrawl. Même défaut au scrape de
+  chaque page (`:138`). Contraire à la règle CLAUDE.md « jamais de `catch {}` silencieux » :
+  journaliser le motif et le remonter à Sentry (`lib/monitoring.ts`), sans changer le repli sur
+  l'accueil. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
