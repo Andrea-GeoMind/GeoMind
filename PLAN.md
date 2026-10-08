@@ -199,6 +199,21 @@
   usage), et laisser l'étape recommandations finir avec les recommandations obtenues en
   journalisant les manquantes, comme `authority_failures`. — **S**
 
+- [ ] **49. Faire valider par le client les 10 questions avant la mesure J0** *(noté le 2026-10-08,
+  Andrea, ticket T-05 Oravis / Home Sweet Event)* — Les questions qui servent à la mesure d'état
+  zéro sont aujourd'hui choisies par nous (questions de référence + variantes), puis validées par
+  Andrea seule. Le client connaît mieux que nous ce que ses prospects demandent : la liste des 10
+  questions doit lui être soumise, et validée par écrit, avant le lancement de la mesure J0. Sans
+  cela, une mesure J0 peut être contestée après coup (« ce n'est pas ce que mes clients
+  cherchent »), et les mesures suivantes, qui reprennent les mêmes questions, avec elle. — **S**
+
+- [ ] **50. Formulaire chantier : types d'événements loués, et lequel compte le plus** *(noté le
+  2026-10-08, Andrea, ticket T-05)* — Ajouter au formulaire de l'espace chantier une question
+  « Quels types d'événements accueillez-vous ou équipez-vous (mariage, séminaire, réception
+  privée, événement public…) ? Lequel compte le plus pour vous ? ». La réponse oriente le choix
+  des questions de mesure (point 49) et la priorité des pages à travailler. Champ à ajouter dans
+  `lib/chantiers/fields.ts`, avec son aide et, si besoin, son chemin dans l'assistant. — **S**
+
 ---
 
 **Effort total estimé** : Vague 0 ≈ 1 semaine · Vague 1 ≈ 3-4 semaines · Vague 2 ≈ 2-3 semaines · Vague 3 ≈ 4-6 semaines · Vague 4 = continu.
