@@ -5,6 +5,7 @@ import type {
   chantierFiles,
   chantiers,
 } from '@/lib/db/schema'
+import { groupAssistantQuestions } from '@/lib/chantiers/assistant'
 import { computeCompleteness } from '@/lib/chantiers/completeness'
 import { getField } from '@/lib/chantiers/fields'
 import { formatAnswer } from '@/lib/chantiers/format'
@@ -41,6 +42,8 @@ export interface DigestInput {
   files: FileRow[]
   /** Révisions du client dont la dernière saisie tombe dans la fenêtre */
   revisions: Revision[]
+  /** Questions à l'assistant posées dans la fenêtre : l'étape seulement, jamais le contenu */
+  assistantQuestions: { establishmentId: string | null; fieldKey: string }[]
   /** Fenêtre de l'e-mail : (since, until] */
   since: Date | null
   until: Date
@@ -63,9 +66,8 @@ function escapeHtml(text: string): string {
  */
 function toHtml(text: string, link: string): string {
   const safeLink = escapeHtml(link)
-  const body = escapeHtml(text)
-    .split(safeLink)
-    .join(`<a href="${safeLink}">${safeLink}</a>`)
+  const escaped = escapeHtml(text)
+  const body = (safeLink ? escaped.split(safeLink).join(`<a href="${safeLink}">${safeLink}</a>`) : escaped)
     .split('\n')
     .join('<br>\n')
   return `<div style="font-family: sans-serif; font-size: 14px; line-height: 1.5;">${body}</div>`
@@ -140,6 +142,11 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     })
     .map((a) => getField(a.fieldKey)!.label)
 
+  // Questions à l'assistant : l'étape et le nombre, jamais la question
+  const asked = groupAssistantQuestions(input.assistantQuestions, names).map(
+    (g) => `Questions à l’assistant : ${g.label}${g.establishmentName ? ` (${g.establishmentName})` : ''} × ${g.exchanges.length}`
+  )
+
   const subjectParts = [
     submitted && '« J’ai terminé »',
     help.length > 0 && plural(help.length, 'demande d’aide', 'demandes d’aide'),
@@ -147,12 +154,15 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     changed.length > 0 && plural(changed.length, 'champ modifié', 'champs modifiés'),
     received.length > 0 && plural(received.length, 'fichier reçu', 'fichiers reçus'),
     signed.length > 0 && plural(signed.length, 'accord signé', 'accords signés'),
+    input.assistantQuestions.length > 0 &&
+      plural(input.assistantQuestions.length, 'question à l’assistant', 'questions à l’assistant'),
   ].filter((p): p is string => typeof p === 'string')
 
   const newHelp = revisions.some(
     (r) => r.actor === 'client' && inWindow(r.updatedAt, since, until) && helpSlots.has(`${r.establishmentId ?? '-'}|${r.fieldKey}`)
   )
-  const hasNews = submitted || newHelp || filled.length + changed.length + received.length + signed.length > 0
+  const hasNews =
+    submitted || newHelp || filled.length + changed.length + received.length + signed.length + asked.length > 0
   if (!hasNews) return null
 
   const lines = [
@@ -167,6 +177,7 @@ export function buildActivityDigest(input: DigestInput): EmailContent | null {
     ...section('Champs modifiés', changed),
     ...section('Fichiers reçus', received),
     ...section('Accords signés', signed),
+    ...(asked.length > 0 ? ['', ...asked] : []),
     '',
     `Avancement : ${completeness.percent} %, ${plural(completeness.blocking.length, 'élément bloquant', 'éléments bloquants')}.`,
     '',
@@ -221,5 +232,37 @@ export function buildExpiryReminder(input: {
     subject: `[${chantier.clientName}] Le lien expire dans ${plural(days, 'jour', 'jours')}, chantier non terminé`,
     text,
     html: toHtml(text, input.dashboardUrl),
+  }
+}
+
+/**
+ * Alerte budget de l'assistant, tous chantiers confondus : à 1 € le bot
+ * continue, à 3 € il s'arrête jusqu'au lendemain. Aucun contenu de question.
+ */
+export function buildAssistantBudgetAlert(input: {
+  level: 'alert' | 'stop'
+  spentUsd: number
+  alertEur: number
+  stopEur: number
+}): EmailContent {
+  const spent = input.spentUsd.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const stopped = input.level === 'stop'
+  const text = [
+    `L’assistant de l’espace client a dépensé ${spent} $ aujourd’hui, tous chantiers confondus (compté comme ${spent} €).`,
+    stopped
+      ? `Le plafond de ${input.stopEur} € est atteint : l’assistant ne répond plus jusqu’à minuit (heure de Paris). Les clients voient un message qui les invite à cocher « Je ne sais pas comment faire » ou à vous écrire.`
+      : `Le seuil d’alerte de ${input.alertEur} € est franchi. L’assistant continue de répondre ; il s’arrêtera à ${input.stopEur} € pour la journée.`,
+    '',
+    'Une dépense pareille n’arrive pas avec un usage normal (quelques centimes par jour) : regardez les questions par champ dans les vues des chantiers.',
+    '',
+    '--',
+    FOOTER,
+  ].join('\n')
+  return {
+    subject: stopped
+      ? '[GeoMind] Assistant des chantiers arrêté pour aujourd’hui (plafond atteint)'
+      : '[GeoMind] Assistant des chantiers : seuil de dépense franchi',
+    text,
+    html: toHtml(text, ''),
   }
 }

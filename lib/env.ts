@@ -88,6 +88,14 @@ const envSchema = z.object({
     .string()
     .startsWith('sk-or-', { message: 'OPENROUTER_API_KEY doit commencer par sk-or-' }),
   /**
+   * Clé réservée à l'assistant de l'espace client de chantier, pour suivre et
+   * plafonner sa dépense à part dans OpenRouter. Absente : OPENROUTER_API_KEY.
+   */
+  OPENROUTER_CHANTIER_KEY: z
+    .string()
+    .startsWith('sk-or-', { message: 'OPENROUTER_CHANTIER_KEY doit commencer par sk-or-' })
+    .optional(),
+  /**
    * Optionnelle : Sonar passe désormais par OpenRouter. Conservée pour
    * permettre un retour à l'API Perplexity directe sans changer le schéma.
    */

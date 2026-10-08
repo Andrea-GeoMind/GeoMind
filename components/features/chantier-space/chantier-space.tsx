@@ -21,6 +21,8 @@ import { formatChantierDate } from '@/lib/chantiers/status'
 import { submitChantierAction } from '@/app/chantier/espace/actions'
 import FieldControl from '@/components/features/chantier-space/field-control'
 import FileField from '@/components/features/chantier-space/file-field'
+import FieldAssistant from '@/components/features/chantier-space/field-assistant'
+import { hasAssistant, type AssistantExchangeView } from '@/lib/chantiers/assistant'
 import { usedBytes, type ChantierFileView } from '@/lib/chantiers/files'
 import { slotKey, useAutosave, type GlobalStatus } from '@/components/features/chantier-space/use-autosave'
 
@@ -42,6 +44,8 @@ type Props = {
   establishments: SpaceEstablishment[]
   initialAnswers: { establishmentId: string | null; fieldKey: string; value: unknown }[]
   files: ChantierFileView[]
+  /** Échanges avec l'assistant (30 derniers jours), par étape */
+  assistantExchanges: (AssistantExchangeView & { establishmentId: string | null; fieldKey: string })[]
 }
 
 type SectionId = FieldSection | 'recap'
@@ -139,6 +143,16 @@ export default function ChantierSpace(props: Props) {
 
   const renderField = (field: FieldDef, est: SpaceEstablishment | null) => {
     const slot = slotKey(est?.id ?? null, field.key)
+    const assistant = hasAssistant(field) ? (
+      <FieldAssistant
+        fieldKey={field.key}
+        fieldLabel={field.label}
+        establishmentId={est?.id ?? null}
+        initialExchanges={props.assistantExchanges.filter(
+          (e) => e.fieldKey === field.key && e.establishmentId === (est?.id ?? null)
+        )}
+      />
+    ) : null
     if (field.type === 'file') {
       const estId = est?.id ?? null
       return (
@@ -149,6 +163,7 @@ export default function ChantierSpace(props: Props) {
           files={files.filter((f) => f.fieldKey === field.key && f.establishmentId === estId)}
           usedBytes={usedBytes(files)}
           blockedBy={missingAttestation(field, chantierAnswers)?.key ?? null}
+          assistant={assistant}
           onUploaded={(file) =>
             setFiles((list) => [
               // Emplacement à fichier unique : le serveur a remplacé l'ancien
@@ -172,6 +187,7 @@ export default function ChantierSpace(props: Props) {
         addressOptions={est?.options.addressOptions}
         idPrefix={est?.id ?? 'chantier'}
         onChange={change(field, est?.id ?? null, est?.options ?? {})}
+        assistant={assistant}
       />
     )
   }

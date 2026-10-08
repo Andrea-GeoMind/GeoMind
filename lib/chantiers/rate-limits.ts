@@ -17,6 +17,11 @@ export const CHANTIER_RATE_LIMITS = {
    * Deux appels par fichier : 300 par heure couvrent 150 photos d'un coup.
    */
   upload: { limit: 300, windowSeconds: 60 * 60 },
+  /**
+   * Questions à l'assistant, par chantier. Anti-abus seulement : un humain
+   * qui lit les réponses n'en pose pas 30 en une heure.
+   */
+  assistant: { limit: 30, windowSeconds: 60 * 60 },
   /** « J'ai terminé », par chantier */
   submit: { limit: 5, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>

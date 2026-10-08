@@ -902,6 +902,38 @@ export const chantierAccessLogs = pgTable(
   (t) => [index('chantier_access_chantier_created_idx').on(t.chantierId, t.createdAt)]
 )
 
+// Assistant de l'espace client (« Demander à GEO ») : une ligne par échange,
+// question et réponse. Conservé 30 jours (chantier-files-maintenance), sert
+// au cache, à l'historique renvoyé au modèle et au budget quotidien.
+// Table purement serveur : RLS sans policy.
+export const chantierAssistantExchanges = pgTable(
+  'chantier_assistant_exchanges',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chantierId: uuid('chantier_id')
+      .notNull()
+      .references(() => chantiers.id, { onDelete: 'cascade' }),
+    establishmentId: uuid('establishment_id').references(() => chantierEstablishments.id, {
+      onDelete: 'cascade',
+    }),
+    fieldKey: text('field_key').notNull(),
+    question: text('question').notNull(),
+    /** Question normalisée (casse, espaces, ponctuation finale) : clé du cache */
+    questionKey: text('question_key').notNull(),
+    answer: text('answer').notNull(),
+    /** Modèle appelé, ou 'cache' quand la réponse a été réutilisée */
+    model: text('model').notNull(),
+    tokensIn: integer('tokens_in').notNull().default(0),
+    tokensOut: integer('tokens_out').notNull().default(0),
+    costUsd: numeric('cost_usd', { precision: 12, scale: 8 }).notNull().default('0'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('chantier_assistant_slot_idx').on(t.chantierId, t.fieldKey, t.createdAt),
+    index('chantier_assistant_created_idx').on(t.createdAt),
+  ]
+)
+
 // ─── rate_limits ──────────────────────────────────────────────────────────────
 // Compteurs de limitation de débit par fenêtre fixe (lib/rate-limit.ts). Un
 // upsert atomique par requête. Table purement serveur : RLS sans policy.

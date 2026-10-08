@@ -31,6 +31,8 @@ type Props = {
   /** Identifiant unique dans la page (plusieurs établissements) */
   idPrefix: string
   onChange: OnChange
+  /** « Besoin d'aide ? Demander à GEO », sous l'aide */
+  assistant?: React.ReactNode
 }
 
 // ─── Valeurs vides par type ───────────────────────────────────────────────────
@@ -188,6 +190,7 @@ export default function FieldControl({
   addressOptions = [],
   idPrefix,
   onChange,
+  assistant,
 }: Props) {
   const id = `${idPrefix}-${field.key}`
   const help = field.help ? fillCopy(field.help, { '[ADRESSE]': geomindAddress }) : null
@@ -211,6 +214,7 @@ export default function FieldControl({
           )}
         </div>
         {help && <p className="text-sm leading-relaxed text-muted-foreground">{help}</p>}
+        {assistant}
       </div>
 
       <Control field={field} value={value} id={id} addressOptions={addressOptions} onChange={onChange} />

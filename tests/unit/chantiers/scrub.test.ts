@@ -34,4 +34,22 @@ describe('masquage du lien secret', () => {
     expect(scrubChantierTokens(event)).toBe(event)
     expect(scrubChantierTokens(null)).toBeNull()
   })
+
+  it('retire le corps et les cookies des requêtes vers /chantier (questions, réponses)', () => {
+    const event = {
+      request: {
+        url: 'https://geomind.fr/chantier/assistant',
+        data: '{"question":"mon mot de passe est secret123"}',
+        cookies: { geomind_chantier: token },
+        headers: { Cookie: `geomind_chantier=${token}`, 'User-Agent': 'x' },
+      },
+    }
+    const clean = scrubChantierTokens(event)
+    expect(JSON.stringify(clean)).not.toContain('secret123')
+    expect(JSON.stringify(clean)).not.toContain(token)
+    expect(clean.request.headers).toEqual({ 'User-Agent': 'x' })
+    // Ailleurs, rien ne change
+    const other = { request: { url: 'https://geomind.fr/dashboard', data: 'x' } }
+    expect(scrubChantierTokens(other)).toBe(other)
+  })
 })

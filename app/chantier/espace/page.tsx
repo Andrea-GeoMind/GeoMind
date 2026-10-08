@@ -3,6 +3,7 @@ import { geomindAddressFor } from '@/lib/chantiers/copy'
 import { formatChantierDate } from '@/lib/chantiers/status'
 import { loadChantierState } from '@/lib/db/queries/chantier-answers'
 import { listFilesForClient } from '@/lib/chantiers/file-service'
+import { listAssistantExchangesForChantier } from '@/lib/db/queries/chantier-assistant'
 import LinkState from '@/components/features/chantier-space/link-state'
 import ChantierSpace from '@/components/features/chantier-space/chantier-space'
 
@@ -34,9 +35,10 @@ export default async function ChantierSpacePage() {
 
   const { chantier, establishments } = access
   await logChantierAccess(chantier.id, 'view', access.ipTruncated)
-  const [{ answers }, files] = await Promise.all([
+  const [{ answers }, files, exchanges] = await Promise.all([
     loadChantierState(chantier.id),
     listFilesForClient(chantier.id),
+    listAssistantExchangesForChantier(chantier.id),
   ])
 
   return (
@@ -55,6 +57,14 @@ export default async function ChantierSpacePage() {
       }))}
       initialAnswers={answers}
       files={files}
+      // Questions et réponses seulement : ni coût, ni modèle
+      assistantExchanges={exchanges.map((e) => ({
+        id: e.id,
+        establishmentId: e.establishmentId,
+        fieldKey: e.fieldKey,
+        question: e.question,
+        answer: e.answer,
+      }))}
     />
   )
 }

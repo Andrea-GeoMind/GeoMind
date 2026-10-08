@@ -19,6 +19,7 @@ import {
 import { computeCompleteness, type Completeness } from '@/lib/chantiers/completeness'
 import { generateChantierToken, tokenExpiryFrom } from '@/lib/chantiers/token'
 import type { ChantierInput } from '@/lib/chantiers/validation'
+import { listAssistantExchangesForChantier } from '@/lib/db/queries/chantier-assistant'
 
 export type ChantierRow = typeof chantiers.$inferSelect
 export type ChantierEstablishmentRow = typeof chantierEstablishments.$inferSelect
@@ -202,7 +203,7 @@ const ACCESS_LOG_LIMIT = 300
 export async function loadChantierDetail(ownerId: string, chantierId: string) {
   const base = await getChantierForOwner(ownerId, chantierId)
   if (!base) return null
-  const [answers, revisions, files, accessLogs] = await Promise.all([
+  const [answers, revisions, files, accessLogs, assistantExchanges] = await Promise.all([
     db.select().from(chantierAnswers).where(eq(chantierAnswers.chantierId, chantierId)),
     db
       .select()
@@ -216,8 +217,9 @@ export async function loadChantierDetail(ownerId: string, chantierId: string) {
       .where(eq(chantierAccessLogs.chantierId, chantierId))
       .orderBy(desc(chantierAccessLogs.createdAt))
       .limit(ACCESS_LOG_LIMIT),
+    listAssistantExchangesForChantier(chantierId),
   ])
-  return { ...base, answers, revisions, files, accessLogs }
+  return { ...base, answers, revisions, files, accessLogs, assistantExchanges }
 }
 
 export type ChantierDetail = NonNullable<Awaited<ReturnType<typeof loadChantierDetail>>>

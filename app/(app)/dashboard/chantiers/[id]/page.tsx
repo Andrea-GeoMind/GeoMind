@@ -1,11 +1,22 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AlertTriangle, ArrowLeft, Ban, LifeBuoy, Lock, LockKeyhole, LockOpen, PenLine } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Ban,
+  LifeBuoy,
+  Lock,
+  LockKeyhole,
+  LockOpen,
+  MessageCircleQuestion,
+  PenLine,
+} from 'lucide-react'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/admin'
 import { loadChantierDetail, type ChantierDetail } from '@/lib/db/queries/chantiers'
 import { computeCompleteness } from '@/lib/chantiers/completeness'
+import { groupAssistantQuestions } from '@/lib/chantiers/assistant'
 import {
   chantierFields,
   establishmentFields,
@@ -65,7 +76,7 @@ export default async function ChantierDetailPage({ params }: { params: Promise<{
   const detail = await loadChantierDetail(admin.id, id)
   if (!detail) notFound()
 
-  const { chantier, establishments, answers, revisions, files, accessLogs } = detail
+  const { chantier, establishments, answers, revisions, files, accessLogs, assistantExchanges } = detail
   const now = new Date()
   const state = chantierDisplayState(chantier, now)
   const completeness = computeCompleteness({
@@ -153,6 +164,13 @@ export default async function ChantierDetailPage({ params }: { params: Promise<{
             ))}
           </ul>
         </section>
+      )}
+
+      {assistantExchanges.length > 0 && (
+        <AssistantQuestions
+          groups={groupAssistantQuestions(assistantExchanges, new Map(establishments.map((e) => [e.id, e.name])))}
+          costUsd={assistantExchanges.reduce((sum, e) => sum + Number(e.costUsd), 0)}
+        />
       )}
 
       <section className="space-y-3 rounded-2xl border bg-card p-5">
@@ -362,6 +380,58 @@ export default async function ChantierDetailPage({ params }: { params: Promise<{
         )}
       </section>
     </div>
+  )
+}
+
+/** Questions posées à l'assistant, par étape : le client a cherché de l'aide ici. */
+function AssistantQuestions({
+  groups,
+  costUsd,
+}: {
+  groups: ReturnType<typeof groupAssistantQuestions<ChantierDetail['assistantExchanges'][number]>>
+  costUsd: number
+}) {
+  const total = groups.reduce((n, g) => n + g.exchanges.length, 0)
+  return (
+    <section className="space-y-3 rounded-2xl border bg-card p-5">
+      <div>
+        <h2 className="flex items-center gap-2 font-bold">
+          <MessageCircleQuestion className="h-4 w-4" />
+          Questions à l’assistant ({total})
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          30 derniers jours · coût {costUsd.toLocaleString('fr-FR', { maximumFractionDigits: 4 })} $
+        </p>
+      </div>
+      <ul className="divide-y">
+        {groups.map((g) => (
+          <li key={`${g.establishmentId ?? '-'}|${g.fieldKey}`} className="py-2.5">
+            <details>
+              <summary className="cursor-pointer text-sm">
+                <span className="font-medium">{g.label}</span>
+                {g.establishmentName && <span className="text-muted-foreground"> · {g.establishmentName}</span>}
+                <span className="ml-1.5 rounded-full bg-muted px-1.5 text-xs tabular-nums">× {g.exchanges.length}</span>
+              </summary>
+              <ol className="mt-2 space-y-3 border-l pl-3">
+                {g.exchanges.map((e) => (
+                  <li key={e.id} className="space-y-1 text-sm">
+                    <p className="text-xs text-muted-foreground">
+                      {formatChantierDateTime(e.createdAt)}
+                      {e.model === 'cache' && ' · réponse déjà donnée, sans appel'}
+                    </p>
+                    <p className="whitespace-pre-line break-words font-medium">{e.question}</p>
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-primary">Réponse de GEO</summary>
+                      <p className="mt-1 whitespace-pre-line break-words text-muted-foreground">{e.answer}</p>
+                    </details>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

@@ -4,6 +4,8 @@ import {
   cleanupOrphanObjects,
   deleteExpiredFiles,
 } from '@/lib/chantiers/file-service'
+import { deleteAssistantExchangesBefore } from '@/lib/db/queries/chantier-assistant'
+import { ASSISTANT_RETENTION_DAYS } from '@/lib/chantiers/assistant'
 import { captureJobFailure } from '@/lib/monitoring'
 
 /**
@@ -13,7 +15,8 @@ import { captureJobFailure } from '@/lib/monitoring'
  *   2. fichiers arrivés à leur date de suppression (liste des mariés : dépôt
  *      + 30 jours) → retirés du stockage, pas seulement de la base ;
  *   3. objets sans fichier vivant en base (emplacements neutralisés après une
- *      suppression, chantier supprimé) → retirés du bucket.
+ *      suppression, chantier supprimé) → retirés du bucket ;
+ *   4. échanges avec l'assistant de plus de 30 jours → supprimés.
  *
  * L'événement chantier.files.maintenance.requested permet de lancer un
  * passage à la demande (vérification après déploiement).
@@ -31,7 +34,10 @@ export const chantierFilesMaintenanceFunction = inngest.createFunction(
       const abandoned = await step.run('cleanup-abandoned-uploads', () => cleanupAbandonedUploads({}))
       const expired = await step.run('delete-expired-files', () => deleteExpiredFiles())
       const orphans = await step.run('cleanup-orphan-objects', () => cleanupOrphanObjects())
-      return { abandoned, expired, orphans }
+      const assistantExchanges = await step.run('delete-old-assistant-exchanges', () =>
+        deleteAssistantExchangesBefore(new Date(Date.now() - ASSISTANT_RETENTION_DAYS * 86_400_000))
+      )
+      return { abandoned, expired, orphans, assistantExchanges }
     } catch (err) {
       captureJobFailure('chantier-files-maintenance', err)
       throw err

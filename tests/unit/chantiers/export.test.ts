@@ -38,14 +38,14 @@ describe('export Markdown', () => {
   })
 
   it('demandes d’aide et bloquants en tête', () => {
-    expect(md).toMatch(/## Demandes d’aide\n\n- Fiche Google : GeoMind ajouté comme gestionnaire \(Mas de Florette\)/)
+    expect(md).toMatch(/## Demandes d’aide\n\n- Fiche Google : GeoMind ajouté comme administrateur \(Mas de Florette\)/)
     expect(md.indexOf('## Bloquants restants')).toBeLessThan(md.indexOf('## Mas de Florette'))
   })
 
   it('chaque champ, par établissement puis par section, vide signalé', () => {
     expect(md).toMatch(/## Mas de Florette\n\nlieu de réception · https:\/\/masdeflorette\.com/)
     expect(md).toMatch(/### Informations[\s\S]*- \*\*Capacité en repas assis\*\* : _vide_/)
-    expect(md).toMatch(/- \*\*Fiche Google : GeoMind ajouté comme gestionnaire\*\* ⚠ bloquant : Je ne sais pas comment faire/)
+    expect(md).toMatch(/- \*\*Fiche Google : GeoMind ajouté comme administrateur\*\* ⚠ bloquant : Je ne sais pas comment faire/)
   })
 
   it('les valeurs sur plusieurs lignes restent sous leur puce', () => {

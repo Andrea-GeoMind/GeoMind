@@ -35,6 +35,8 @@ type Props = {
   blockedBy: string | null
   onUploaded: (file: ChantierFileView) => void
   onDeleted: (fileId: string) => void
+  /** « Besoin d'aide ? Demander à GEO », sous l'aide */
+  assistant?: React.ReactNode
 }
 
 interface Upload {
@@ -78,6 +80,7 @@ export default function FileField({
   blockedBy,
   onUploaded,
   onDeleted,
+  assistant,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploads, setUploads] = useState<Upload[]>([])
@@ -159,6 +162,7 @@ export default function FileField({
           {ready.length > 0 && <Check aria-label={C.files.uploaded} className="mt-1 h-4 w-4 shrink-0 text-accent" />}
         </div>
         {field.help && <p className="text-sm leading-relaxed text-muted-foreground">{field.help}</p>}
+        {assistant}
       </div>
 
       {field.notice && (

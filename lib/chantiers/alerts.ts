@@ -10,10 +10,13 @@ import {
 } from '@/lib/db/schema'
 import { env } from '@/lib/env'
 import { sendEmail } from '@/lib/email/send'
+import { listAssistantExchangesForChantier } from '@/lib/db/queries/chantier-assistant'
 import { alertEmailFor } from '@/lib/chantiers/copy'
+import { ASSISTANT_BUDGET } from '@/lib/chantiers/assistant'
 import {
   EXPIRY_REMINDER_DAYS,
   buildActivityDigest,
+  buildAssistantBudgetAlert,
   buildExpiryReminder,
 } from '@/lib/chantiers/notifications'
 
@@ -66,7 +69,15 @@ export async function sendActivityDigest(chantierId: string, until: Date = new D
       )
     )
 
-  const email = buildActivityDigest({ ...data, revisions, since, until, dashboardUrl: dashboardUrlFor(chantierId) })
+  const assistantQuestions = await listAssistantExchangesForChantier(chantierId, { since, until })
+  const email = buildActivityDigest({
+    ...data,
+    revisions,
+    assistantQuestions,
+    since,
+    until,
+    dashboardUrl: dashboardUrlFor(chantierId),
+  })
   if (!email) {
     await db.update(chantiers).set({ activityNotifiedThrough: until }).where(eq(chantiers.id, chantierId))
     return 'nothing_new'
@@ -113,4 +124,18 @@ export async function sendExpiryReminders(now: Date = new Date()): Promise<{ sen
     }
   }
   return { sent, failed }
+}
+
+/**
+ * Seuil de dépense de l'assistant franchi (1 € : alerte, 3 € : arrêt). Envoyé
+ * une fois par seuil, par l'échange qui le franchit. Jamais bloquant.
+ */
+export async function sendAssistantBudgetAlert(level: 'alert' | 'stop', spentUsd: number, to: string): Promise<void> {
+  const email = buildAssistantBudgetAlert({
+    level,
+    spentUsd,
+    alertEur: ASSISTANT_BUDGET.alertEur,
+    stopEur: ASSISTANT_BUDGET.stopEur,
+  })
+  await sendEmail('chantier-assistant-budget', { to, ...email })
 }

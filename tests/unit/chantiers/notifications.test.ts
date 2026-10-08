@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { buildActivityDigest, buildExpiryReminder, type DigestInput } from '@/lib/chantiers/notifications'
+import {
+  buildActivityDigest,
+  buildAssistantBudgetAlert,
+  buildExpiryReminder,
+  type DigestInput,
+} from '@/lib/chantiers/notifications'
 import { alertEmailFor } from '@/lib/chantiers/copy'
 import { generateChantierToken } from '@/lib/chantiers/token'
 
@@ -28,7 +33,7 @@ const rev = (fieldKey: string, oldValue: unknown, newValue: unknown, min: number
 
 function input(over: Partial<DigestInput> = {}): DigestInput {
   return {
-    chantier, establishments, since: T0, until: at(15), dashboardUrl: URL,
+    chantier, establishments, since: T0, until: at(15), dashboardUrl: URL, assistantQuestions: [],
     answers: [
       { id: 'a1', chantierId: C, establishmentId: E, fieldKey: 'access.gbp', value: 'unsure', updatedBy: 'client', updatedAt: at(3) },
       { id: 'a2', chantierId: C, establishmentId: E, fieldKey: 'venue.plan_b_pluie', value: 'Salle voûtée secrète', updatedBy: 'client', updatedAt: at(4) },
@@ -58,7 +63,7 @@ describe('e-mail groupé', () => {
 
   it('demandes d’aide en tête, avant les champs', () => {
     expect(mail.text.indexOf('Demandes d’aide en attente (1)')).toBeLessThan(mail.text.indexOf('Champs remplis'))
-    expect(mail.text).toMatch(/- Fiche Google : GeoMind ajouté comme gestionnaire — Mas de Florette/)
+    expect(mail.text).toMatch(/- Fiche Google : GeoMind ajouté comme administrateur — Mas de Florette/)
   })
 
   it('noms des champs et des fichiers, jamais les valeurs saisies ni le signataire', () => {
@@ -133,6 +138,46 @@ describe('e-mail groupé', () => {
     const { token } = generateChantierToken()
     const withToken = buildActivityDigest(input({ chantier: { ...chantier, tokenHash: token } }))!
     expect(withToken.text).not.toContain(token)
+  })
+})
+
+describe('questions à l’assistant dans l’e-mail groupé', () => {
+  it('l’étape, l’établissement et le nombre, jamais la question', () => {
+    const email = buildActivityDigest(
+      input({
+        revisions: [],
+        files: [],
+        answers: [],
+        assistantQuestions: [
+          { establishmentId: E, fieldKey: 'access.gbp', question: 'Mon code est 123456' } as never,
+          { establishmentId: E, fieldKey: 'access.gbp' },
+          { establishmentId: E, fieldKey: 'access.search_console' },
+        ],
+      })
+    )!
+    expect(email.text).toContain(
+      'Questions à l’assistant : Fiche Google : GeoMind ajouté comme administrateur (Mas de Florette) × 2'
+    )
+    expect(email.text).toContain('Questions à l’assistant : Google Search Console : accès ajouté (Mas de Florette) × 1')
+    expect(email.subject).toContain('3 questions à l’assistant')
+    expect(email.text + email.html).not.toContain('123456')
+  })
+})
+
+describe('alerte budget de l’assistant', () => {
+  it('1 € : alerte, le bot continue ; 3 € : arrêt', () => {
+    const alert = buildAssistantBudgetAlert({ level: 'alert', spentUsd: 1.02, alertEur: 1, stopEur: 3 })
+    expect(alert.subject).toMatch(/seuil/)
+    expect(alert.text).toMatch(/continue de répondre/)
+    const stop = buildAssistantBudgetAlert({ level: 'stop', spentUsd: 3.01, alertEur: 1, stopEur: 3 })
+    expect(stop.subject).toMatch(/arrêté/)
+    expect(stop.html).not.toMatch(/<a /)
+  })
+
+  it('envoyée par l’échange qui franchit le seuil, dépense relue après enregistrement', () => {
+    const route = readFileSync('app/chantier/assistant/route.ts', 'utf8')
+    expect(route).toMatch(/const spentAfter = await assistantSpentSince\(dayStart\)/)
+    expect(route).toMatch(/if \(crossed\) await sendAssistantBudgetAlert\(crossed, spentAfter/)
   })
 })
 

@@ -68,6 +68,17 @@ describe('pages et route de /chantier', () => {
     )
   })
 
+  it('la route de l’assistant commence par requireChantierAccess(\'assistant\') : pas d’appel sans lien', () => {
+    const route = readFileSync('app/chantier/assistant/route.ts', 'utf8')
+    expect(route).toMatch(
+      /export async function POST\(req: NextRequest\) \{\s*const access = await requireChantierAccess\('assistant'\)\s*if \(!access\.ok\) return /
+    )
+    // Une seule méthode exposée, sous /chantier (le cookie d'accès y est limité)
+    expect(route.match(/export async function (GET|POST|PUT|PATCH|DELETE)/g)).toEqual(['export async function POST'])
+    expect(route).not.toMatch(/cookies\(|findChantierByToken|tokenHash/)
+    expect(LIMITS).toContain('assistant')
+  })
+
   it('la route d’entrée vérifie le lien et pose un cookie httpOnly limité à /chantier', () => {
     const route = readFileSync('app/chantier/[token]/route.ts', 'utf8')
     expect(route).toMatch(/await checkChantierToken\(token, 'view', ip\)/)

@@ -19,6 +19,8 @@ import { captureCoachEvent } from '@/components/features/coach/coach-analytics'
 
 interface CoachMarkdownProps {
   content: string
+  /** false : aucun événement PostHog (espace client de chantier) */
+  analytics?: boolean
 }
 
 type Segment =
@@ -247,7 +249,7 @@ function renderLine(line: string, trimmed: string, key: string): ReactNode {
   return <p key={key}>{renderInline(line, key)}</p>
 }
 
-function CodeBlock({ code, lang }: { code: string; lang: string }) {
+function CodeBlock({ code, lang, analytics }: { code: string; lang: string; analytics: boolean }) {
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
@@ -255,7 +257,7 @@ function CodeBlock({ code, lang }: { code: string; lang: string }) {
       .writeText(code)
       .then(() => {
         setCopied(true)
-        captureCoachEvent('coach_code_copied', { lang: lang || null })
+        if (analytics) captureCoachEvent('coach_code_copied', { lang: lang || null })
         setTimeout(() => setCopied(false), 2000)
       })
       .catch((err: unknown) => {
@@ -293,14 +295,14 @@ function CodeBlock({ code, lang }: { code: string; lang: string }) {
   )
 }
 
-export function CoachMarkdown({ content }: CoachMarkdownProps) {
+export function CoachMarkdown({ content, analytics = true }: CoachMarkdownProps) {
   const segments = splitSegments(content)
 
   return (
     <div className="space-y-1 break-words">
       {segments.map((segment, i) =>
         segment.type === 'code' ? (
-          <CodeBlock key={`s${i}`} code={segment.content} lang={segment.lang} />
+          <CodeBlock key={`s${i}`} code={segment.content} lang={segment.lang} analytics={analytics} />
         ) : (
           <TextBlock key={`s${i}`} content={segment.content} blockKey={`s${i}`} />
         )
