@@ -63,7 +63,7 @@ describe('e-mail groupé', () => {
 
   it('demandes d’aide en tête, avant les champs', () => {
     expect(mail.text.indexOf('Demandes d’aide en attente (1)')).toBeLessThan(mail.text.indexOf('Champs remplis'))
-    expect(mail.text).toMatch(/- Fiche Google : GeoMind ajouté comme administrateur — Mas de Florette/)
+    expect(mail.text).toMatch(/- Fiche Google : GeoMind ajouté comme gestionnaire — Mas de Florette/)
   })
 
   it('noms des champs et des fichiers, jamais les valeurs saisies ni le signataire', () => {
@@ -156,7 +156,7 @@ describe('questions à l’assistant dans l’e-mail groupé', () => {
       })
     )!
     expect(email.text).toContain(
-      'Questions à l’assistant : Fiche Google : GeoMind ajouté comme administrateur (Mas de Florette) × 2'
+      'Questions à l’assistant : Fiche Google : GeoMind ajouté comme gestionnaire (Mas de Florette) × 2'
     )
     expect(email.text).toContain('Questions à l’assistant : Google Search Console : accès ajouté (Mas de Florette) × 1')
     expect(email.subject).toContain('3 questions à l’assistant')

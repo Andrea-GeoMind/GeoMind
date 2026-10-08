@@ -148,8 +148,8 @@ const YES_NO: readonly DecisionOption[] = [
 const ACCESS_FIELDS: FieldDef[] = [
   {
     key: 'access.gbp',
-    label: 'Fiche Google : GeoMind ajouté comme administrateur',
-    help: 'Sur votre fiche Google, ouvrez « Paramètres » puis « Personnes et accès », et ajoutez [ADRESSE] avec le rôle « Administrateur ».',
+    label: 'Fiche Google : GeoMind ajouté comme gestionnaire',
+    help: 'Sur votre fiche Google, ouvrez « Paramètres » puis « Personnes et accès », et ajoutez [ADRESSE] avec le rôle « Gestionnaire ».',
     section: 'access',
     scope: 'establishment',
     required: true,

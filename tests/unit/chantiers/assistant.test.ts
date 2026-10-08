@@ -11,6 +11,8 @@ import {
   crossedThreshold,
   groupAssistantQuestions,
   hasAssistant,
+  noToolAdviceFor,
+  OFFICIAL_GUIDES,
   parisDayStart,
   prepareAnswerForDisplay,
   questionKey,
@@ -86,29 +88,63 @@ describe('questions rejetées sans appel', () => {
 describe('ce que reçoit le modèle', () => {
   const gbp = getField('access.gbp')!
 
-  it('l’étape, son aide avec l’adresse, le type d’établissement, le lien officiel', () => {
+  it('l’étape, son aide avec l’adresse, le type d’établissement, le chemin officiel', () => {
     const ctx = buildAssistantContext(gbp, 'venue', ADDRESS)
     expect(Object.keys(ctx).sort()).toEqual(
-      ['establishmentKind', 'fieldHelp', 'fieldLabel', 'geomindAddress', 'officialHelpUrl', 'stuckAdvice'].sort()
+      ['establishmentKind', 'fieldHelp', 'fieldLabel', 'geomindAddress', 'noToolAdvice', 'officialGuide', 'stuckAdvice'].sort()
     )
     expect(ctx.fieldHelp).toContain(ADDRESS)
     expect(ctx.fieldHelp).not.toContain('[ADRESSE]')
-    expect(ctx.officialHelpUrl).toBe('https://support.google.com/business/answer/3403100?hl=fr')
+    expect(ctx.officialGuide?.url).toBe('https://support.google.com/business/answer/3403100?hl=fr')
+    expect(ctx.officialGuide?.steps.join(' ')).toContain(ADDRESS)
     expect(ctx.establishmentKind).toMatch(/lieu de réception/)
-    expect(buildAssistantContext(getField('access.hosting')!, 'rental', ADDRESS).officialHelpUrl).toBeNull()
+    expect(buildAssistantContext(getField('access.hosting')!, 'rental', ADDRESS).officialGuide).toBeNull()
   })
 
-  it('les consignes : une seule étape, aucun mot de passe, pas de menus inventés, « Je ne sais pas comment faire »', () => {
+  it('fiche Google : le chemin officiel, rôle « Gestionnaire »', () => {
+    expect(gbp.label).toBe('Fiche Google : GeoMind ajouté comme gestionnaire')
+    expect(gbp.help).toContain('« Gestionnaire »')
+    const steps = OFFICIAL_GUIDES['access.gbp']!.steps.join(' | ')
+    for (const part of ['business.google.com', '« Plus »', '« Paramètres de la fiche »', '« Personnes et accès »', 'ajout d’utilisateur', '« Gestionnaire »', '« Inviter »']) {
+      expect(steps).toContain(part)
+    }
+    expect(steps).not.toMatch(/Administrateur/)
+    expect(OFFICIAL_GUIDES['access.gbp']!.note).toMatch(/téléphone.*ordinateur/)
+  })
+
+  it('un chemin officiel avec son lien pour chaque outil Google et WordPress', () => {
+    for (const key of ['access.gbp', 'access.search_console', 'access.analytics', 'access.wordpress']) {
+      const guide = OFFICIAL_GUIDES[key]!
+      expect(guide.url, key).toMatch(/^https:\/\/(support\.google\.com|wordpress\.org)\//)
+      expect(guide.steps.some((s) => s.includes('[ADRESSE]')), key).toBe(true)
+    }
+    expect(OFFICIAL_GUIDES['access.search_console']!.steps.join(' ')).toContain('« Total »')
+    expect(OFFICIAL_GUIDES['access.analytics']!.steps.join(' ')).toContain('« Lecteur »')
+  })
+
+  it('les consignes : une seule étape, le chemin officiel, « nous », jamais de création de compte', () => {
     const prompt = buildChantierAssistantPrompt(buildAssistantContext(gbp, 'venue', ADDRESS))
-    expect(prompt).toContain('Fiche Google : GeoMind ajouté comme administrateur')
+    expect(prompt).toContain('Fiche Google : GeoMind ajouté comme gestionnaire')
     expect(prompt).toMatch(/Tu ne parles que de cette étape/)
     expect(prompt).toMatch(/mot de passe, de code de validation/)
     expect(prompt).toMatch(/capture d'écran/)
-    expect(prompt).toMatch(/N'invente pas de menus/)
+    expect(prompt).toMatch(/Tiens-toi au chemin officiel/)
+    expect(prompt).toContain('1. Sur un ordinateur, ouvrez business.google.com')
     expect(prompt).toMatch(/l'interface peut varier/)
+    expect(prompt).toContain('Aide officielle : https://support.google.com/business/answer/3403100?hl=fr')
     expect(prompt).toContain('cochez « Je ne sais pas comment faire »')
+    expect(prompt).toMatch(/Tu parles au nom de GeoMind : dis « nous »/)
+    expect(prompt).toMatch(/Jamais « m'ajouter »/)
+    expect(prompt).toMatch(/Ne demande jamais au client de créer un compte/)
     expect(prompt).toMatch(/d'autres chantiers/)
     expect(prompt).toMatch(/300 mots au plus/)
+  })
+
+  it('outil absent : cocher la case, nous nous en occupons', () => {
+    const sc = buildChantierAssistantPrompt(buildAssistantContext(getField('access.search_console')!, 'venue', ADDRESS))
+    expect(sc).toContain('cochez « Je n’ai pas cet outil ou je ne sais pas » juste sous cette étape : nous nous en occupons.')
+    expect(noToolAdviceFor(getField('access.wordpress')!)).toContain('Mon site n’est pas sur WordPress')
+    expect(noToolAdviceFor(getField('venue.unique')!)).toBeNull()
   })
 
   it('au plus 6 messages : système, 2 derniers échanges, la question', () => {
@@ -181,8 +217,8 @@ describe('regroupement par étape (vue GeoMind, e-mail)', () => {
       new Map([[E1, 'Mas'], [E2, 'Loueur']])
     )
     expect(groups.map((g) => [g.establishmentName, g.label, g.exchanges.length])).toEqual([
-      ['Mas', 'Fiche Google : GeoMind ajouté comme administrateur', 2],
-      ['Loueur', 'Fiche Google : GeoMind ajouté comme administrateur', 1],
+      ['Mas', 'Fiche Google : GeoMind ajouté comme gestionnaire', 2],
+      ['Loueur', 'Fiche Google : GeoMind ajouté comme gestionnaire', 1],
     ])
   })
 })

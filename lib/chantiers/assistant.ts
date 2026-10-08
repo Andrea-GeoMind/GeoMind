@@ -1,4 +1,4 @@
-import type { ChantierAssistantContext } from '@/lib/ai/prompts/chantier-assistant'
+import type { ChantierAssistantContext, ChantierAssistantGuide } from '@/lib/ai/prompts/chantier-assistant'
 import { fillCopy } from '@/lib/chantiers/copy'
 import {
   chantierFields,
@@ -49,12 +49,67 @@ export const ASSISTANT_BUDGET = {
   stopEur: 3,
 } as const
 
-/** Pages d'aide officielles, vérifiées le 07/10/2026. Aucune autre adresse n'est donnée au modèle. */
-export const OFFICIAL_HELP_URLS: Readonly<Record<string, string>> = {
-  'access.gbp': 'https://support.google.com/business/answer/3403100?hl=fr',
-  'access.wordpress': 'https://wordpress.org/documentation/article/users-add-new-screen/',
-  'access.search_console': 'https://support.google.com/webmasters/answer/7687615?hl=fr',
-  'access.analytics': 'https://support.google.com/analytics/answer/9305788?hl=fr',
+/**
+ * Chemin officiel de chaque outil, tiré de son aide officielle (relue le
+ * 08/10/2026), avec son lien. Le modèle s'y tient : il n'ajoute ni ne renomme
+ * aucune étape. [ADRESSE] est remplacée par l'adresse GeoMind du chantier.
+ *
+ * Noms d'interface : uniquement ceux d'une source officielle. Fiche Google :
+ * rôle « Gestionnaire » (aide officielle : Owner / Manager ; la page
+ * française, traduite par IA, dit « Administrateur »).
+ */
+export type OfficialGuide = ChantierAssistantGuide
+
+export const OFFICIAL_GUIDES: Readonly<Record<string, OfficialGuide>> = {
+  'access.gbp': {
+    url: 'https://support.google.com/business/answer/3403100?hl=fr',
+    steps: [
+      'Sur un ordinateur, ouvrez business.google.com, connecté avec le compte Google qui gère la fiche.',
+      'Menu « Plus », puis « Paramètres de la fiche ».',
+      '« Personnes et accès ».',
+      'Icône d’ajout d’utilisateur (en haut à gauche).',
+      'Adresse e-mail : [ADRESSE].',
+      'Rôle : « Gestionnaire ».',
+      '« Inviter ».',
+    ],
+    note: 'Sur téléphone, les menus peuvent être différents : le plus simple est de passer par un ordinateur.',
+  },
+  'access.search_console': {
+    url: 'https://support.google.com/webmasters/answer/7687615?hl=fr',
+    steps: [
+      'Ouvrez la propriété de votre site dans Search Console (search.google.com/search-console).',
+      '« Paramètres », puis « Utilisateurs et autorisations ». Cette page n’apparaît que pour un propriétaire de la propriété.',
+      '« Ajouter un utilisateur ».',
+      'Adresse e-mail : [ADRESSE].',
+      'Autorisation : « Total » (l’aide de Google l’appelle « Utilisateur avec accès complet »).',
+      'Enregistrez (« Ajouter »).',
+    ],
+  },
+  'access.analytics': {
+    url: 'https://support.google.com/analytics/answer/9305788?hl=fr',
+    steps: [
+      'Dans Google Analytics (analytics.google.com), ouvrez « Administration ».',
+      'Sous « Propriété », cliquez sur « Gestion des accès ».',
+      'Cliquez sur « + », puis sur « Ajouter des utilisateurs ».',
+      'Adresse e-mail : [ADRESSE].',
+      'Cochez « Informer les nouveaux utilisateurs par e-mail ».',
+      'Rôle : « Lecteur ».',
+      '« Ajouter ».',
+    ],
+  },
+  'access.wordpress': {
+    url: 'https://wordpress.org/documentation/article/users-add-new-screen/',
+    steps: [
+      'Dans l’administration de votre site WordPress, menu « Comptes » (« Users » en anglais), puis « Ajouter » (« Add New User »).',
+      'Identifiant : geomind.',
+      'E-mail : [ADRESSE].',
+      'Laissez le mot de passe proposé par WordPress : vous n’avez pas à nous le transmettre.',
+      'Cochez la case qui envoie un e-mail au nouveau compte : c’est notre invitation.',
+      'Rôle : « Administrateur ».',
+      'Bouton d’ajout du compte (« Add New User » en anglais).',
+    ],
+    note: 'La documentation officielle de WordPress est en anglais : selon la version et la langue du site, les noms peuvent différer un peu.',
+  },
 }
 
 const KIND_FOR_PROMPT: Record<EstablishmentKind, string> = {
@@ -136,17 +191,29 @@ export const QUESTION_ERRORS: Record<'too_short' | 'too_long' | 'repeat' | 'inva
   invalid: 'Cette étape n’a pas d’assistant.',
 }
 
+/**
+ * Le client n'a pas l'outil : on ne lui demande jamais de le créer. Il coche
+ * la case prévue, et GeoMind s'en occupe. Null : l'étape n'est pas un outil.
+ */
+export function noToolAdviceFor(field: FieldDef): string | null {
+  if (field.type !== 'access') return null
+  if (field.alternative.alert || field.alternative.value === 'absent') {
+    return `cochez « ${field.alternative.label} » juste sous cette étape : nous nous en occupons.`
+  }
+  return null
+}
+
 /** Conduite à tenir quand le client bloque, selon l'étape. */
 export function stuckAdviceFor(field: FieldDef, geomindAddress: string): string {
   if (field.type === 'access') {
     if (field.alternative.alert) {
-      return `cochez « ${field.alternative.label} » juste sous cette étape : GeoMind est prévenu et vous aide.`
+      return `cochez « ${field.alternative.label} » juste sous cette étape : nous sommes prévenus et nous vous aidons.`
     }
     if (/je ne sais pas/i.test(field.alternative.label) && field.key !== 'access.hosting') {
-      return `cochez « ${field.alternative.label} » juste sous cette étape, puis écrivez à ${geomindAddress} : GeoMind vous aidera.`
+      return `cochez « ${field.alternative.label} » juste sous cette étape : nous nous en occupons.`
     }
   }
-  return `passez à la suite et écrivez à ${geomindAddress} : GeoMind vous aidera.`
+  return `passez à la suite et écrivez-nous à ${geomindAddress} : nous vous aiderons.`
 }
 
 /** Réponse quand le budget du jour est épuisé (3 € tous chantiers confondus). */
@@ -155,6 +222,12 @@ export function unavailableMessage(field: FieldDef, geomindAddress: string): str
     return `L’assistant n’est plus disponible aujourd’hui : cochez « ${field.alternative.label} », nous vous aidons.`
   }
   return `L’assistant n’est plus disponible aujourd’hui : ${stuckAdviceFor(field, geomindAddress)}`
+}
+
+function guideFor(fieldKey: string, geomindAddress: string): OfficialGuide | null {
+  const guide = OFFICIAL_GUIDES[fieldKey]
+  if (!guide) return null
+  return { ...guide, steps: guide.steps.map((step) => fillCopy(step, { '[ADRESSE]': geomindAddress })) }
 }
 
 export function buildAssistantContext(
@@ -167,7 +240,8 @@ export function buildAssistantContext(
     fieldHelp: fillCopy(field.help ?? '', { '[ADRESSE]': geomindAddress }),
     establishmentKind: kind ? KIND_FOR_PROMPT[kind] : 'un lieu de réception de mariages ou un loueur de matériel de réception',
     geomindAddress,
-    officialHelpUrl: OFFICIAL_HELP_URLS[field.key] ?? null,
+    officialGuide: guideFor(field.key, geomindAddress),
+    noToolAdvice: noToolAdviceFor(field),
     stuckAdvice: stuckAdviceFor(field, geomindAddress),
   }
 }
@@ -241,8 +315,14 @@ export interface AssistantExchangeView {
   answer: string
 }
 
-/** Seuls domaines dont l'assistant peut afficher un lien cliquable. */
-const LINK_HOSTS = new Set(['support.google.com', 'wordpress.org'])
+/** Seuls domaines dont l'assistant peut afficher un lien cliquable : l'aide et les outils officiels. */
+const LINK_HOSTS = new Set([
+  'support.google.com',
+  'wordpress.org',
+  'business.google.com',
+  'search.google.com',
+  'analytics.google.com',
+])
 
 function allowedLink(raw: string): string | null {
   try {
@@ -254,8 +334,8 @@ function allowedLink(raw: string): string | null {
 }
 
 /**
- * Réponse prête à afficher : les liens vers l'aide officielle (Google,
- * WordPress) deviennent cliquables, tous les autres restent du texte. Un
+ * Réponse prête à afficher : les liens vers l'aide et les outils officiels
+ * (Google, WordPress) deviennent cliquables, tous les autres restent du texte. Un
  * modèle détourné ne peut donc pas glisser un lien de hameçonnage cliquable.
  */
 export function prepareAnswerForDisplay(answer: string): string {

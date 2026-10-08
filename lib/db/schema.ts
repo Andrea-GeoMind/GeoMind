@@ -918,7 +918,7 @@ export const chantierAssistantExchanges = pgTable(
     }),
     fieldKey: text('field_key').notNull(),
     question: text('question').notNull(),
-    /** Question normalisée (casse, espaces, ponctuation finale) : clé du cache */
+    /** Version des consignes + question normalisée (casse, espaces, ponctuation finale) : clé du cache */
     questionKey: text('question_key').notNull(),
     answer: text('answer').notNull(),
     /** Modèle appelé, ou 'cache' quand la réponse a été réutilisée */

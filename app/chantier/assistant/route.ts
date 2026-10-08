@@ -14,7 +14,7 @@ import {
   resolveAssistantTarget,
   unavailableMessage,
 } from '@/lib/chantiers/assistant'
-import { buildChantierAssistantPrompt } from '@/lib/ai/prompts/chantier-assistant'
+import { buildChantierAssistantPrompt, CHANTIER_ASSISTANT_PROMPT_VERSION } from '@/lib/ai/prompts/chantier-assistant'
 import { recordChantierActivity } from '@/lib/chantiers/activity'
 import { sendAssistantBudgetAlert } from '@/lib/chantiers/alerts'
 import { alertEmailFor, geomindAddressFor } from '@/lib/chantiers/copy'
@@ -105,11 +105,14 @@ export async function POST(req: NextRequest) {
   if (!verdict.ok) return json(QUESTION_ERRORS[verdict.reason], 400)
 
   const address = geomindAddressFor(chantier.options)
+  // Clé du cache liée à la version des consignes : une réponse donnée avec
+  // d'anciennes consignes n'est jamais resservie
+  const cacheKey = `${CHANTIER_ASSISTANT_PROMPT_VERSION}|${verdict.key}`
 
   // Même question sur la même étape : la réponse déjà donnée, sans appel
-  const cached = await findCachedAnswer(slot, verdict.key)
+  const cached = await findCachedAnswer(slot, cacheKey)
   if (cached) {
-    await insertAssistantExchange({ ...slot, question: verdict.question, questionKey: verdict.key, answer: cached, model: 'cache' })
+    await insertAssistantExchange({ ...slot, question: verdict.question, questionKey: cacheKey, answer: cached, model: 'cache' })
     await recordChantierActivity(chantier.id)
     return textResponse(cached, 'cache')
   }
@@ -217,7 +220,7 @@ export async function POST(req: NextRequest) {
           await insertAssistantExchange({
             ...slot,
             question: verdict.question,
-            questionKey: verdict.key,
+            questionKey: cacheKey,
             answer: answer.trim(),
             model: ASSISTANT.model,
             tokensIn,
