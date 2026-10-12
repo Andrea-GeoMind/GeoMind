@@ -143,6 +143,12 @@ Tous sprints terminés, Sprint 7 (V2 produit) inclus : crédits universels, plan
 
 ---
 
+## L — Lancement : être trouvé, mesurer
+
+- [x] **L-05** — geomind.fr trouvable par les recherches IA : titre, meta description et Open Graph propres à l'accueil (« outil d'audit GEO pour TPE », les 4 IA, 158 caractères ; H1 et texte visible inchangés), image de partage redéclarée après une régression constatée en production ; balise `msvalidate.01` (Bing Webmaster Tools) dans le `<head>` de toutes les pages ; llms.txt complété des 5 pages publiées depuis le 15/09 et corrigé (2 analyses offertes, 14 outils au comparatif) ; test de recherche web OpenRouter : geomind.fr absent du top 10 sur « outil audit GEO France » et « outil pour savoir si ChatGPT cite mon entreprise » ; erreur Sentry JAVASCRIPT-NEXTJS-Y diagnostiquée (`@serwist/window`, déclenchée par le navigateur), non corrigée (2026-10-12)
+
+---
+
 ## Journal d'exécution
 
 | Ticket | Statut | Date | Notes |
@@ -188,3 +194,4 @@ Tous sprints terminés, Sprint 7 (V2 produit) inclus : crédits universels, plan
 | UX-FIXES-0613 | ✅ | 2026-06-13 | Fusion Studio → correctifs contextualisés + engagement coach (push direct main, suite de UX-NAV-0613). (1) Onglet Studio supprimé (page+panel) ; `lib/analysis/studio.ts` conservé. Nouveau `lib/analysis/action-fixes.ts` (mapping ruleKey → correctif) + `action-fixes.server.ts` (helper serveur mutualisé metadata+pages+CMS). (2) Composant partagé `components/features/fixes/fix-details.tsx` : bloc « Voir le correctif prêt à coller » (code + copier/télécharger + instruction CMS), affiché dans le Plan d'action ET les fiches reco Technique/Contenu — ouvert à tous les plans (la reco IA détaillée reste gatée Pro/Business). (3) Couverture correctifs élargie : fichiers générés (llms.txt, robots.txt, schema Org/FAQ, meta accueil) + 7 templates statiques (H1, lang, viewport, canonical, Open Graph, Twitter Card, alt images). (4) Bouton « Demander à GEO de m'aider » ajouté dans les fiches → ouvre GEO et auto-envoie un 1er message contextuel (mécanisme focusedIssue, jusque-là atteignable seulement depuis la carte). (5) « Comment corriger » générique masqué quand un correctif prêt à coller le remplace. Textes recâblés (Concurrents, checklist Local, landing+pricing : « correctifs prêts à coller »). 12 onglets/site, 566 tests verts, /full-audit vert |
 | S2 | ✅ | 2026-10-07 | Espace client de chantier S2.1 à S2.7 + audit de sécurité ; migrations 0023-0026 appliquées ; 1 390 tests verts ; parcours vérifié à la main en production (mobile, ordinateur, iPhone réel) ; test Playwright reporté (PLAN.md item 45) — commit 3074e0c sur main |
 | S2-ASSISTANT | ✅ | 2026-10-08 | Assistant « Demander à GEO » de l'espace chantier + corrections d'Andrea (chemins officiels, « Gestionnaire », voix GeoMind) ; migration 0027 appliquée ; 1 419 tests verts ; vérifié en production sur chantier TEST en mobile (fiche Google, WordPress, Search Console, détournement, 5 000 caractères, limite) puis supprimé ; coût des essais ≈ 0,002 $ ; reste PLAN.md 46 (libellés WordPress) et 47 (purge à 30 jours, API Inngest 401) — commit 295ddf8 sur main |
+| L-05 | ✅ | 2026-10-12 | Métadonnées de l'accueil, msvalidate.01, llms.txt ; 1 419 tests verts ; title, description, og:image, msvalidate.01 et llms.txt vérifiés en production par curl ; test recherche web ≈ 0,015 $ ; reste chez Andrea : cliquer « Vérifier » dans Bing Webmaster Tools — commits 6a69043, 52544e8, 77fca94 sur main |
