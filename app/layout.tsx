@@ -64,6 +64,10 @@ export const metadata: Metadata = {
     icon: [{ url: '/favicon.png', type: 'image/png', sizes: '64x64' }],
     apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
   },
+  // Validation du site dans Bing Webmaster Tools
+  verification: {
+    other: { 'msvalidate.01': '1FFD69151212C9AEC78BEA760E859AC7' },
+  },
 }
 
 export default function RootLayout({
