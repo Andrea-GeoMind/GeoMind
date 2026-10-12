@@ -1,4 +1,4 @@
-import type { Route } from 'next'
+import type { Metadata, Route } from 'next'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import {
@@ -25,6 +25,30 @@ import { ExpressAudit } from '@/components/features/marketing/express-audit'
 import { ENGINE_COUNT } from '@/lib/ai/connectors/base'
 import { IA_ENGINES, ENGINE_LABELS, ENGINE_LIST } from '@/lib/analysis/authority-table'
 import { SECTEURS } from '@/lib/marketing/secteurs'
+
+// Titre et description propres à l'accueil, écrits pour les requêtes
+// « outil GEO » : les autres pages gardent les valeurs du layout racine.
+const HOME_TITLE = "GeoMind — Outil d'audit GEO pour TPE : êtes-vous cité par ChatGPT ?"
+const HOME_DESCRIPTION =
+  'GeoMind, l’outil GEO des TPE et PME : vérifiez si ChatGPT, Perplexity, Gemini et Claude citent votre site, et recevez un plan d’action concret pour y arriver.'
+
+export const metadata: Metadata = {
+  title: { absolute: HOME_TITLE },
+  description: HOME_DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://geomind.fr',
+    siteName: 'GEOMIND',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+  },
+}
 
 // FAQ de la landing — source unique pour l'affichage ET le balisage
 // Schema.org FAQPage (règle GEO schema-org-faq que le produit audite chez

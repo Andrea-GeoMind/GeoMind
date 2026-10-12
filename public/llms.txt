@@ -1,8 +1,8 @@
 # GEOMIND
 
-> GEOMIND est un outil SaaS français qui audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude). Il mesure si un site est cité dans les réponses des IA, identifie les points faibles techniques et de contenu (méthodologie GEO — Generative Engine Optimization), et fournit un plan d'action concret. Conçu pour les TPE, PME et indépendants français, sans jargon. Plan gratuit : 1 analyse complète offerte, sans carte bancaire.
+> GEOMIND est un outil SaaS français qui audite la visibilité des sites web dans les moteurs de réponses IA (ChatGPT, Perplexity, Gemini, Claude). Il mesure si un site est cité dans les réponses des IA, identifie les points faibles techniques et de contenu (méthodologie GEO — Generative Engine Optimization), et fournit un plan d'action concret. Conçu pour les TPE, PME et indépendants français, sans jargon. Plan gratuit : 2 analyses complètes offertes, sans carte bancaire.
 
-Dernière mise à jour : 15 septembre 2026.
+Dernière mise à jour : 12 octobre 2026.
 
 ## Entreprise
 
@@ -20,10 +20,11 @@ Dernière mise à jour : 15 septembre 2026.
 ## Pages principales
 
 - [Accueil](https://geomind.fr/) : présentation du produit, fonctionnement de l'audit, FAQ
-- [Tarifs](https://geomind.fr/pricing) : Gratuit (1 analyse offerte), Solo 19 € HT/mois, Pro 59 € HT/mois, Business 149 € HT/mois
+- [Tarifs](https://geomind.fr/pricing) : Gratuit (2 analyses offertes), Solo 19 € HT/mois, Pro 59 € HT/mois, Business 149 € HT/mois
 - [À propos](https://geomind.fr/about) : pourquoi GeoMind existe, l'approche
 - [Blog](https://geomind.fr/blog) : guides pratiques GEO en français
 - [Glossaire GEO](https://geomind.fr/glossaire) : définitions des termes de la visibilité IA, chaque terme adressable par ancre
+- [Visibilité locale clé en main](https://geomind.fr/visibilite-locale) : service réalisé en une semaine (fiche Google, 2 à 3 annuaires du métier, une page par prestation), 300 € payés à la livraison
 
 ## Guides
 
@@ -41,9 +42,16 @@ Dernière mise à jour : 15 septembre 2026.
 - [GEO pour le e-commerce : faire recommander vos produits par les IA](https://geomind.fr/blog/geo-ecommerce)
 - [Les 7 erreurs GEO qui vous rendent invisible dans les IA](https://geomind.fr/blog/erreurs-geo-frequentes)
 - [llms.txt, Schema.org, FAQ : les fichiers qui parlent aux IA](https://geomind.fr/blog/fichiers-qui-parlent-aux-ia)
+- [Pourquoi ChatGPT ne cite pas mon entreprise locale ?](https://geomind.fr/blog/pourquoi-chatgpt-ne-cite-pas-entreprise-locale) : les cinq causes relevées sur dix métiers lyonnais en septembre 2026, et ce qu'on peut corriger
+
+## Études et comparatifs
+
+- [Ce que ChatGPT recommande quand on cherche un artisan à Lyon](https://geomind.fr/blog/chatgpt-artisans-lyon) : dix métiers testés à Lyon en septembre 2026 ; ce que ChatGPT consulte et ce qu'il retient
+- [Les meilleurs outils GEO en 2026 : comparatif](https://geomind.fr/blog/meilleurs-outils-geo-2026) : 14 outils comparés (dont GeoMind), prix relevés en septembre 2026, moteurs couverts, langue et limites de chacun
 
 ## Outils gratuits
 
+- [Vérifier si ChatGPT peut lire votre site](https://geomind.fr/verifier-visibilite-chatgpt) : test gratuit et sans inscription qui vérifie si GPTBot, ClaudeBot, PerplexityBot et les autres robots des IA peuvent lire un site
 - [Générateur llms.txt](https://geomind.fr/outils/generateur-llms-txt) : créez votre fichier llms.txt en 2 minutes, sans inscription
 
 ## Mentions légales
