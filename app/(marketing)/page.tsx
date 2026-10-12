@@ -31,6 +31,14 @@ import { SECTEURS } from '@/lib/marketing/secteurs'
 const HOME_TITLE = "GeoMind — Outil d'audit GEO pour TPE : êtes-vous cité par ChatGPT ?"
 const HOME_DESCRIPTION =
   'GeoMind, l’outil GEO des TPE et PME : vérifiez si ChatGPT, Perplexity, Gemini et Claude citent votre site, et recevez un plan d’action concret pour y arriver.'
+// Un openGraph déclaré ici remplace celui du layout, image comprise : sans
+// cette ligne, l'accueil perd l'image générée par app/opengraph-image.tsx.
+const HOME_OG_IMAGE = {
+  url: '/opengraph-image',
+  width: 1200,
+  height: 630,
+  alt: 'GEOMIND — Êtes-vous cité par ChatGPT ? Auditez votre visibilité IA',
+}
 
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },
@@ -42,11 +50,13 @@ export const metadata: Metadata = {
     siteName: 'GEOMIND',
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
+    images: [HOME_OG_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
+    images: [HOME_OG_IMAGE],
   },
 }
 
