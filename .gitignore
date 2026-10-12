@@ -66,3 +66,4 @@ tests/screenshots/
 # Fichiers de prospection : noms, téléphones et emails d'entreprises réelles.
 # Rien de tout cela n'a sa place dans le dépôt (RGPD, et le dépôt se déploie).
 PROSPECTS*.csv
+MAILS-*.md
