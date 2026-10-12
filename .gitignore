@@ -67,3 +67,5 @@ tests/screenshots/
 # Rien de tout cela n'a sa place dans le dépôt (RGPD, et le dépôt se déploie).
 PROSPECTS*.csv
 MAILS-*.md
+# Exports de tickets (L-04…) : extractions de la base, pas du code.
+L[0-9][0-9]-*.csv
