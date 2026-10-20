@@ -12,6 +12,9 @@ vi.mock('@/lib/db/queries/recommendations', () => ({
 vi.mock('@/lib/ai/structured', () => ({
   callStructured: vi.fn(),
 }))
+vi.mock('@/lib/monitoring', () => ({
+  captureJobFailure: vi.fn(),
+}))
 vi.mock('@/lib/ai/cost', () => ({
   logEstimatedBatchCost: vi.fn(),
 }))
@@ -45,5 +48,34 @@ describe('buildInsertPayloads', () => {
 
   it('retourne [] si aucune issue', () => {
     expect(buildInsertPayloads('analysis-1', [])).toHaveLength(0)
+  })
+})
+
+describe('generateRecommendations — tolérance aux refus (PLAN 48)', () => {
+  it('garde les fiches obtenues quand un appel est refusé', async () => {
+    const { getTechnicalIssuesByAnalysisId } = await import('@/lib/db/queries/technical-issues')
+    const { getContentIssuesByAnalysisId } = await import('@/lib/db/queries/content-issues')
+    const { insertRecommendations } = await import('@/lib/db/queries/recommendations')
+    const { callStructured } = await import('@/lib/ai/structured')
+    const { generateRecommendations } = await import('@/lib/analysis/recommendations')
+
+    const issue = (id: string) => ({ id, title: 't', description: 'd', ruleKey: 'r' })
+    vi.mocked(getTechnicalIssuesByAnalysisId).mockResolvedValue([issue('t1'), issue('t2')] as never)
+    vi.mocked(getContentIssuesByAnalysisId).mockResolvedValue([issue('c1')] as never)
+    vi.mocked(callStructured)
+      .mockResolvedValueOnce({ data: { content: 'fiche numéro un, assez longue' } } as never)
+      .mockRejectedValueOnce(new Error('OpenRouter error 402: in_flight_budget_exhausted'))
+      .mockResolvedValueOnce({ data: { content: 'fiche numéro trois, assez longue' } } as never)
+
+    const outcome = await generateRecommendations('site-1', 'analysis-1')
+
+    expect(outcome.generated).toBe(2)
+    expect(outcome.failedIssueIds).toEqual(['t2'])
+    const inserted = vi.mocked(insertRecommendations).mock.calls[0]![0]
+    expect(inserted.map((r) => r.issueId)).toEqual(['t1', 'c1'])
+    // Chaque appel est borné
+    for (const call of vi.mocked(callStructured).mock.calls) {
+      expect(call[0].maxTokens).toBeGreaterThan(0)
+    }
   })
 })

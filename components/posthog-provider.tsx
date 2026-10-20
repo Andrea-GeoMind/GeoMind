@@ -3,14 +3,15 @@
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { useEffect, type ReactNode } from 'react'
+import { isUntrackedPath } from '@/lib/untracked-paths'
 
 const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? ''
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.posthog.com'
 
 function init() {
   if (!POSTHOG_KEY || posthog.__loaded) return
-  // Espace client de chantier : aucune mesure d'audience, consentement ou non
-  if (window.location.pathname.startsWith('/chantier')) return
+  // Espace chantier et audit prospect : aucune mesure d'audience, consentement ou non
+  if (isUntrackedPath(window.location.pathname)) return
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     capture_pageview: true,

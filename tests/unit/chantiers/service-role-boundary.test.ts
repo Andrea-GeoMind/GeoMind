@@ -21,6 +21,7 @@ const ADMIN_CLIENT_IMPORTERS = [
   'app/(auth)/actions.ts',
   'app/actions/public-audit.ts',
   'lib/chantiers/storage-admin.ts',
+  'lib/prospect-audit/storage.ts',
 ]
 
 const SERVICE_KEY_READERS = ['lib/env.ts', 'lib/supabase/admin.ts', 'tests/e2e/fixtures/auth.ts']

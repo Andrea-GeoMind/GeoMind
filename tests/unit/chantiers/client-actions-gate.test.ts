@@ -106,11 +106,16 @@ describe('pages et route de /chantier', () => {
     expect(readFileSync('app/chantier/layout.tsx', 'utf8')).toMatch(/robots: \{ index: false, follow: false/)
   })
 
-  it('ni PostHog ni bandeau cookies sur /chantier', () => {
+  it('ni PostHog ni bandeau cookies sur /chantier (ni sur /audit)', async () => {
     expect(readFileSync('components/posthog-provider.tsx', 'utf8')).toMatch(
-      /window\.location\.pathname\.startsWith\('\/chantier'\)\) return/
+      /isUntrackedPath\(window\.location\.pathname\)\) return/
     )
-    expect(readFileSync('components/cookie-banner.tsx', 'utf8')).toMatch(/startsWith\('\/chantier'\)/)
+    expect(readFileSync('components/cookie-banner.tsx', 'utf8')).toMatch(/isUntrackedPath\(usePathname\(\)\)/)
+    const { isUntrackedPath } = await import('@/lib/untracked-paths')
+    expect(isUntrackedPath('/chantier/espace')).toBe(true)
+    expect(isUntrackedPath('/audit/abc')).toBe(true)
+    expect(isUntrackedPath('/auditer')).toBe(false)
+    expect(isUntrackedPath('/')).toBe(false)
   })
 
   it('Sentry masque le lien sur les trois environnements', () => {

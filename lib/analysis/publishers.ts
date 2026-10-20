@@ -45,6 +45,8 @@ export async function detectPublishers(
       sector: metadata.keywords.slice(0, 3).join(', '),
     }),
     schema: PublishersOutputSchema,
+    // 15 éditeurs × (nom, url, catégorie, angle) ≈ 1 200 tokens estimés
+    maxTokens: 3_000,
     model: HAIKU_MODEL,
   })
 

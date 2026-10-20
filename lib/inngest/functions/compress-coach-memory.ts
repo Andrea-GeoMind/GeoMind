@@ -49,6 +49,7 @@ export const compressCoachMemoryFunction = inngest.createFunction(
         systemPrompt: SYSTEM_PROMPT,
         userContent: conversation,
         schema: MemorySummarySchema,
+        maxTokens: 1_500,
       })
       return data.summary.slice(0, MEMORY_MAX_CHARS)
     })

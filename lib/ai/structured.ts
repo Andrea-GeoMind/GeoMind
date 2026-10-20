@@ -4,6 +4,7 @@
 
 import { z } from 'zod'
 import { env } from '@/lib/env'
+import { extractTokenUsage } from '@/lib/ai/parse'
 
 // Schémas dans un fichier sans dépendances I/O (importable en tests unitaires)
 export {
@@ -32,16 +33,17 @@ interface OpenRouterResponse {
   choices: Array<{
     message: { content: string }
   }>
-  usage?: {
-    prompt_tokens: number
-    completion_tokens: number
-  }
 }
 
 export interface StructuredCallResult<T> {
   data: T
   tokensInput: number
   tokensOutput: number
+  /**
+   * Coût facturé par OpenRouter, toutes tentatives comprises (une réponse mal
+   * formée est payée aussi). `null` si OpenRouter ne l'a pas renvoyé.
+   */
+  costUsd: number | null
 }
 
 // ─── callStructured ───────────────────────────────────────────────────────────
@@ -55,6 +57,13 @@ export async function callStructured<T>(params: {
   userContent: string
   schema: z.ZodSchema<T>
   model?: string
+  /**
+   * Longueur maximale de la réponse, obligatoire (PLAN 48). Sans elle,
+   * OpenRouter réserve sur le solde le prix de la plus longue réponse possible
+   * du modèle : les appels simultanés finissent en 402 bien avant que le solde
+   * soit réellement épuisé. Chaque appelant la dimensionne sur son schéma.
+   */
+  maxTokens: number
 }): Promise<StructuredCallResult<T>> {
   const model = params.model ?? DISCOVERY_MODEL
   const baseMessages: OpenRouterMessage[] = [
@@ -67,6 +76,7 @@ export async function callStructured<T>(params: {
   // injecter de correction — le modèle n'a rien répondu, il n'y a rien à corriger.
   let correction: string | undefined
   let lastError = 'aucune réponse'
+  let costUsd: number | null = null
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const messages = [...baseMessages]
@@ -93,6 +103,9 @@ export async function callStructured<T>(params: {
           messages,
           response_format: { type: 'json_object' },
           temperature: 0.3,
+          max_tokens: params.maxTokens,
+          // Coût réellement facturé dans la réponse (règle métier 10)
+          usage: { include: true },
         }),
         signal: controller.signal,
       })
@@ -117,10 +130,13 @@ export async function callStructured<T>(params: {
       throw new Error(`OpenRouter error ${response.status}: ${body}`)
     }
 
-    const raw = (await response.json()) as OpenRouterResponse
-    const content = raw.choices[0]?.message?.content ?? ''
-    const tokensInput = raw.usage?.prompt_tokens ?? 0
-    const tokensOutput = raw.usage?.completion_tokens ?? 0
+    const json: unknown = await response.json()
+    const raw = json as OpenRouterResponse
+    const content = raw.choices?.[0]?.message?.content ?? ''
+    const usage = extractTokenUsage(json)
+    const tokensInput = usage.input
+    const tokensOutput = usage.output
+    if (usage.cost !== null) costUsd = (costUsd ?? 0) + usage.cost
 
     const jsonStr = extractJsonFromContent(content)
 
@@ -135,7 +151,7 @@ export async function callStructured<T>(params: {
 
     const result = params.schema.safeParse(parsed)
     if (result.success) {
-      return { data: result.data, tokensInput, tokensOutput }
+      return { data: result.data, tokensInput, tokensOutput, costUsd }
     }
 
     lastError = result.error.issues

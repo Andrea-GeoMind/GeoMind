@@ -52,6 +52,7 @@ export async function runDiscovery(siteId: string): Promise<DiscoveryResult> {
     systemPrompt: DISCOVERY_SYSTEM_PROMPT,
     userContent: buildDiscoveryUserMessage(pages),
     schema: DiscoveryOutputSchema,
+    maxTokens: 1_500,
     model: HAIKU_MODEL,
   })
 
@@ -68,6 +69,7 @@ export async function runDiscovery(siteId: string): Promise<DiscoveryResult> {
       siteUrl: site.url,
     }),
     schema: NeutralPromptsOutputSchema,
+    maxTokens: 1_500,
     model: HAIKU_MODEL,
   })
 

@@ -85,6 +85,7 @@ export async function runReputationCheck(
         systemPrompt: REPUTATION_EXTRACT_SYSTEM_PROMPT,
         userContent: buildReputationExtractMessage(site.name, answer),
         schema: ReputationExtractSchema,
+        maxTokens: 1_000,
         model: HAIKU_MODEL,
       })
       extracted = res.data

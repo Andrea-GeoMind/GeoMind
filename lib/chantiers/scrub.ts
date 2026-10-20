@@ -9,10 +9,11 @@
  * d'accès ne partent jamais chez Sentry.
  */
 
-const TOKEN_IN_PATH = /\/chantier\/[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])/g
+// Même forme de lien pour l'audit prospect (/audit/[token]), masqué de la même façon.
+const TOKEN_IN_PATH = /\/(chantier|audit)\/[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])/g
 
 export function scrubChantierToken(text: string): string {
-  return text.replace(TOKEN_IN_PATH, '/chantier/[token]')
+  return text.replace(TOKEN_IN_PATH, '/$1/[token]')
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)

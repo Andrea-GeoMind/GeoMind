@@ -1,0 +1,47 @@
+/*
+ * Feuille A4 de l'audit prospect, imprimée par Chrome (scripts/prospection/audit-prospect.ts).
+ * Une page, lisible en noir et blanc, 11 pt minimum. Fichier CSS dédié : les
+ * règles @page et les dimensions en millimètres n'ont pas d'équivalent Tailwind.
+ */
+@page { size: A4; margin: 0; }
+html, body { background: #fff !important; }
+.fiche { box-sizing: border-box; width: 210mm; height: 297mm; margin: 0 auto; padding: 9mm 15mm 7mm; display: flex; flex-direction: column; overflow: hidden; background: #fff; color: #111; font-size: 12pt; line-height: 1.3; }
+.fiche * { box-sizing: border-box; }
+.fiche-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 3mm; border-bottom: 1.5pt solid #111; }
+.fiche-stamp { font-size: 11pt; color: #333; text-align: right; }
+.fiche h1 { margin: 4mm 0 0.5mm; font-size: 21pt; line-height: 1.12; font-weight: 800; letter-spacing: -0.01em; }
+.fiche-addr { margin: 0; font-size: 12pt; color: #333; }
+.fiche-scores { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 3mm; margin-top: 5mm; }
+.fiche-score { border: 1pt solid #111; border-radius: 2mm; padding: 2.5mm 3mm; }
+.fiche-score.main { border-width: 2pt; }
+.fiche-score-label { font-size: 11pt; font-weight: 600; }
+.fiche-score-value { font-size: 24pt; font-weight: 800; line-height: 1.1; }
+.fiche-score.main .fiche-score-value { font-size: 30pt; }
+.fiche-score-unit { font-size: 12pt; font-weight: 600; color: #444; }
+.fiche-score-hint { font-size: 11pt; color: #444; }
+.fiche h2 { margin: 5mm 0 2mm; font-size: 14pt; font-weight: 800; }
+.fiche-table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+.fiche-table th, .fiche-table td { border: 0.75pt solid #777; padding: 1.4mm 1.5mm; text-align: center; }
+.fiche-table thead th { font-weight: 700; background: #eee; }
+.fiche-table tbody th { text-align: left; font-weight: 700; width: 22%; }
+.fiche-yes { font-weight: 800; font-size: 13pt; }
+.fiche-no { font-size: 13pt; color: #555; }
+.fiche-caption { margin: 1.5mm 0 0; font-size: 11pt; color: #333; }
+.fiche-issues { margin-top: 5mm; padding: 3mm 4mm; border-left: 3pt solid #111; font-size: 15pt; font-weight: 800; }
+.fiche-qr { display: flex; align-items: center; gap: 5mm; margin-top: 5mm; }
+.fiche-qr img { width: 38mm; height: 38mm; }
+.fiche-qr-title { font-size: 14pt; font-weight: 800; }
+.fiche-qr-text { margin-top: 1mm; font-size: 11pt; color: #333; }
+.fiche-steps { margin-top: auto; padding-top: 3mm; font-size: 11.5pt; }
+.fiche-steps-title { font-size: 13pt; font-weight: 800; margin-bottom: 1mm; }
+.fiche-steps ol { margin: 0; padding-left: 7mm; list-style: decimal; }
+.fiche-steps li { margin-bottom: 0.5mm; }
+.fiche-back { margin: 3mm 0 0; font-weight: 600; display: flex; align-items: baseline; gap: 2mm; }
+.fiche-blank { flex: 0 0 75mm; border-bottom: 1pt solid #111; height: 1em; }
+.fiche-offer { margin-top: 4mm; padding: 3mm 5mm; border: 2pt solid #111; border-radius: 2mm; }
+.fiche-offer-title { font-size: 13.5pt; font-weight: 800; }
+.fiche-offer p { margin: 1mm 0 0; font-size: 11pt; }
+.fiche-footer { margin-top: 3mm; padding-top: 2mm; border-top: 0.75pt solid #999; text-align: center; font-size: 11pt; color: #333; }
+@media screen { body { background: #ddd !important; } .fiche { margin: 8mm auto; box-shadow: 0 0 4mm rgba(0,0,0,.2); } }
+/* globals.css masque tout à l'impression sauf .print-report (rapport d'analyse) */
+@media print { .fiche, .fiche * { visibility: visible; } .fiche { margin: 0; box-shadow: none; } }

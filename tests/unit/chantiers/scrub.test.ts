@@ -53,3 +53,11 @@ describe('masquage du lien secret', () => {
     expect(scrubChantierTokens(other)).toBe(other)
   })
 })
+
+describe('lien d’audit prospect', () => {
+  it('masque aussi /audit/[token]', async () => {
+    const { scrubChantierToken } = await import('@/lib/chantiers/scrub')
+    const token = 'a'.repeat(43)
+    expect(scrubChantierToken(`https://geomind.fr/audit/${token}/fiche`)).toBe('https://geomind.fr/audit/[token]/fiche')
+  })
+})

@@ -179,7 +179,7 @@
   chantier_assistant_exchanges`) et que les exécutions de la fonction sont vertes dans Inngest,
   sans alerte Sentry `chantier-files-maintenance`. — **S**
 
-- [ ] **48. Une recommandation refusée fait échouer toute l'analyse, et aucun appel OpenRouter
+- [x] **48. Une recommandation refusée fait échouer toute l'analyse, et aucun appel OpenRouter
   n'est borné** *(noté le 2026-10-08, diagnostic des échecs du compte qa-dentiste, ticket T-05)* —
   Les 9 analyses en échec depuis le 15/09 portent toutes « Un service tiers utilisé par l'analyse
   est indisponible », c'est-à-dire un **402 d'OpenRouter**. Deux défauts se combinent :
@@ -198,6 +198,11 @@
   À corriger avant d'ouvrir les plans payants : borner chaque appel (`max_tokens` adapté à chaque
   usage), et laisser l'étape recommandations finir avec les recommandations obtenues en
   journalisant les manquantes, comme `authority_failures`. — **S**
+
+  **Corrigé le 2026-10-20 (ticket C-05b)** : `max_tokens` obligatoire dans `callStructured` (dimensionné
+  par appelant, de 1 000 à 3 000) et fixé à 2 500 dans les 4 connecteurs (`ENGINE_MAX_OUTPUT_TOKENS`) ;
+  `generateRecommendations` isole chaque fiche, enregistre celles obtenues et signale les manquantes
+  à Sentry (`recommendations`) sans faire échouer l'analyse. `callStructured` rend aussi le coût facturé.
 
 - [ ] **49. Faire valider par le client les 10 questions avant la mesure J0** *(noté le 2026-10-08,
   Andrea, ticket T-05 Oravis / Home Sweet Event)* — Les questions qui servent à la mesure d'état

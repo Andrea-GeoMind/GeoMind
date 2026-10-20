@@ -46,6 +46,12 @@ describe('connecteurs — garde-fous de coût', () => {
     }
   })
 
+  it('chaque connecteur plafonne la longueur de la réponse (PLAN 48)', () => {
+    for (const f of ['claude', 'chatgpt', 'gemini', 'perplexity']) {
+      expect(source(f), `${f} : appel sans max_tokens`).toContain('max_tokens: ENGINE_MAX_OUTPUT_TOKENS')
+    }
+  })
+
   it('n’emploie aucun modèle à raisonnement — ils font exploser l’entrée avec le plugin web', () => {
     const raisonneurs = ['gpt-5-mini', 'gpt-5-nano', 'o1', 'o3']
     for (const model of [CLAUDE_MODEL, CHATGPT_MODEL, GEMINI_MODEL]) {

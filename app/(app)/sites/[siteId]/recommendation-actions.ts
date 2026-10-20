@@ -98,6 +98,7 @@ export async function generateCompleteRecommendation(
         ruleKey: issueRow.ruleKey,
       }),
       schema: RecommendationOutputSchema,
+      maxTokens: 2_500,
       model: COMPLETE_MODEL,
     })
 

@@ -1,4 +1,4 @@
-import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
+import { ENGINE_MAX_OUTPUT_TOKENS, type IAEngine, type IAResponse } from '@/lib/ai/connectors/base'
 import { parseSources, extractAnswerText, extractTokenUsage } from '@/lib/ai/parse'
 import { computeCost } from '@/lib/ai/cost'
 import { env } from '@/lib/env'
@@ -39,6 +39,7 @@ export class ClaudeConnector implements IAEngine {
       body: JSON.stringify({
         model: CLAUDE_MODEL,
         messages: [{ role: 'user', content: prompt }],
+        max_tokens: ENGINE_MAX_OUTPUT_TOKENS,
         // Demande le coût facturé : il inclut la recherche web, pas la table locale.
         usage: { include: true },
         // 10 résultats : couvre au moins autant de sources que la boucle

@@ -18,14 +18,12 @@ import { createEngines, ENGINE_MODELS } from '@/lib/ai/engines'
 import type { IAEngine, IAEngineName, IAResponse } from '@/lib/ai/connectors/base'
 import { IAResponseSchema } from '@/lib/ai/schemas'
 import { captureEngineFailure, captureEngineOutage } from '@/lib/monitoring'
+import { CITATION_SUFFIX } from '@/lib/ai/prompts/citation'
 
 const MAX_CONCURRENCY = 8
 
-// Suffixe ajouté à chaque prompt en mode « forcé » au moment de l'envoi aux
-// LLMs. Force un format liste avec URLs, sans modifier le prompt stocké en DB
-// (qui reste neutre). Partagé avec la surveillance (lib/analysis/monitoring.ts).
-export const CITATION_SUFFIX =
-  "\n\nIMPORTANT : ta réponse doit impérativement lister au moins 10 acteurs différents (entreprises, outils ou prestataires), chacun accompagné de son site web officiel (URL complète)."
+// Suffixe du mode « forcé » : voir lib/ai/prompts/citation.ts (règle CLAUDE.md §5).
+export { CITATION_SUFFIX }
 
 // PLAN item 10 — double mesure :
 // - mode « forcé » (tous les prompts) : suffixe « liste ≥10 acteurs » → réponses

@@ -104,6 +104,17 @@ const envSchema = z.object({
     .startsWith('pplx-', { message: 'PERPLEXITY_API_KEY doit commencer par pplx-' })
     .optional(),
 
+  // ── Audit prospect (/audit/[token]) ─────────────────────────────────────────
+  /**
+   * Prise de rendez-vous de 15 minutes proposée sur la page d'audit et la
+   * feuille A4. Valeur par défaut : l'agenda Google d'Andrea (20/10/2026).
+   */
+  AUDIT_BOOKING_URL: z
+    .url({ message: 'AUDIT_BOOKING_URL doit être une URL valide' })
+    .default(
+      'https://calendar.google.com/calendar/appointments/schedules/AcZssZ3XIEO9QKa4cHlL0fEbyogzvcPVzMBybAxr-HC1HOsPC81CfNZikzGsrSSCb9tD3OoY3lAPdmb0'
+    ),
+
   // ── Crawl ────────────────────────────────────────────────────────────────────
   FIRECRAWL_API_KEY: z
     .string()

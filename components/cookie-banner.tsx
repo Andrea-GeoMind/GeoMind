@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { isUntrackedPath } from '@/lib/untracked-paths'
 
 type Consent = 'all' | 'essential'
 
@@ -26,8 +27,8 @@ function dispatch(value: Consent) {
 export function CookieBanner() {
   const [visible, setVisible] = useState(false)
   const bannerRef = useRef<HTMLDivElement>(null)
-  // L'espace client de chantier ne charge aucun outil de mesure : rien à consentir
-  const isChantier = usePathname()?.startsWith('/chantier') ?? false
+  // Espace chantier et audit prospect : aucun outil de mesure, rien à consentir
+  const isChantier = isUntrackedPath(usePathname())
 
   useEffect(() => {
     if (!isChantier && !localStorage.getItem('cookie-consent')) setVisible(true)

@@ -42,7 +42,7 @@ describe('callStructured — robustesse réseau', () => {
       .mockResolvedValueOnce(VALID)
     vi.stubGlobal('fetch', fetchMock)
 
-    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     expect(res.data.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -54,7 +54,7 @@ describe('callStructured — robustesse réseau', () => {
       .mockResolvedValueOnce(VALID)
     vi.stubGlobal('fetch', fetchMock)
 
-    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     expect(res.data.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -66,7 +66,7 @@ describe('callStructured — robustesse réseau', () => {
       .mockResolvedValueOnce(VALID)
     vi.stubGlobal('fetch', fetchMock)
 
-    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     expect(res.data.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -78,7 +78,7 @@ describe('callStructured — robustesse réseau', () => {
       .mockResolvedValueOnce(VALID)
     vi.stubGlobal('fetch', fetchMock)
 
-    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     expect(res.data.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -88,7 +88,7 @@ describe('callStructured — robustesse réseau', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+      callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     ).rejects.toThrow('401')
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
@@ -100,7 +100,7 @@ describe('callStructured — robustesse réseau', () => {
       .mockResolvedValueOnce(VALID)
     vi.stubGlobal('fetch', fetchMock)
 
-    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     expect(res.data.ok).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
@@ -111,8 +111,46 @@ describe('callStructured — robustesse réseau', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema })
+      callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
     ).rejects.toThrow('timeout')
     expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+})
+
+describe('callStructured — plafond et coût (PLAN 48)', () => {
+  it('envoie max_tokens et demande le coût facturé', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(VALID)
+    vi.stubGlobal('fetch', fetchMock)
+
+    await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 321 })
+    const body = JSON.parse(fetchMock.mock.calls[0]![1].body as string)
+    expect(body.max_tokens).toBe(321)
+    expect(body.usage).toEqual({ include: true })
+  })
+
+  it('additionne le coût de toutes les tentatives payées', async () => {
+    const withCost = (content: string, cost: number) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, cost },
+      }),
+      text: async () => content,
+    })
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(withCost('pas du json', 0.001))
+      .mockResolvedValueOnce(withCost(JSON.stringify({ ok: true }), 0.002))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
+    expect(res.costUsd).toBeCloseTo(0.003, 6)
+  })
+
+  it('rend un coût null quand OpenRouter ne le renvoie pas', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(VALID))
+    const res = await callStructured({ systemPrompt: 's', userContent: 'u', schema: Schema, maxTokens: 100 })
+    expect(res.costUsd).toBeNull()
   })
 })

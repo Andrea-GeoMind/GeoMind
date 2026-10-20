@@ -18,6 +18,16 @@ export type IAEngineName = (typeof IA_ENGINE_NAMES)[number]
 /** Nombre de moteurs interrogés — à utiliser partout plutôt qu'un littéral. */
 export const ENGINE_COUNT = IA_ENGINE_NAMES.length
 
+/**
+ * Longueur maximale d'une réponse de moteur (PLAN 48). Sans plafond, OpenRouter
+ * réserve sur le solde le prix de la plus longue réponse que le modèle peut
+ * produire, et les analyses simultanées finissent en 402. Mesuré sur 400
+ * réponses en base (septembre-octobre 2026) : 95 % font moins de 1 650 tokens,
+ * la plus longue (ChatGPT) 4 800 — une liste de 10 acteurs avec leurs sites
+ * tient largement dans 2 500.
+ */
+export const ENGINE_MAX_OUTPUT_TOKENS = 2_500
+
 export interface IASource {
   url: string
   title: string | null

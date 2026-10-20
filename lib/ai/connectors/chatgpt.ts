@@ -1,4 +1,4 @@
-import type { IAEngine, IAResponse } from '@/lib/ai/connectors/base'
+import { ENGINE_MAX_OUTPUT_TOKENS, type IAEngine, type IAResponse } from '@/lib/ai/connectors/base'
 import { parseSources, extractAnswerText, extractTokenUsage } from '@/lib/ai/parse'
 import { computeCost } from '@/lib/ai/cost'
 import { env } from '@/lib/env'
@@ -41,6 +41,7 @@ export class ChatGPTConnector implements IAEngine {
         model: CHATGPT_MODEL,
         plugins: [{ id: 'web', max_results: 10 }],
         messages: [{ role: 'user', content: prompt }],
+        max_tokens: ENGINE_MAX_OUTPUT_TOKENS,
         // Demande le coût facturé : il inclut la recherche web, pas la table locale.
         usage: { include: true },
       }),
