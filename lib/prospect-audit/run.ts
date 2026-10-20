@@ -233,7 +233,7 @@ export async function runProspectAudit(
   }
 
   // ── 4. Notes et problèmes ──────────────────────────────────────────────────
-  const scores = computeProspectScores(answers, technical, content)
+  const scores = computeProspectScores(answers, technical, content, prospect)
   if (!scores) throw new AuditAbortedError('Aucune réponse des IA : audit arrêté, rien n’est publié.')
 
   const issues = sortIssues([...placeIssues(prospect), ...siteIssues, ...aiIssues(answers)])

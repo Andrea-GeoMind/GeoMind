@@ -73,7 +73,7 @@ export const ProspectInputSchema = PlaceSnapshotSchema.extend({
   activity: z.enum(PROSPECT_ACTIVITIES),
   /** « Lyon 1er », « Lyon 2e »… */
   arrondissement: z.string().min(1),
-  /** Médiane des avis du même secteur dans le quartier ou l'arrondissement. */
+  /** Médiane des avis du même secteur dans le quartier. */
   sectorMedianReviews: z.number().min(0),
   /** Date du relevé Places (AAAA-MM-JJ). */
   placesCollectedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -133,8 +133,11 @@ export const PlanDaySchema = z.object({
 })
 
 export const ScoresSchema = z.object({
-  global: z.number().int().min(0).max(100),
+  /** Moyenne des piliers disponibles ; null sans site à soi (jamais affichée alors). */
+  global: z.number().int().min(0).max(100).nullable(),
   authority: z.number().int().min(0).max(100),
+  /** Fiche Google : avis, photos, horaires, site renseigné, note. */
+  place: z.number().int().min(0).max(100),
   technical: z.number().int().min(0).max(100).nullable(),
   content: z.number().int().min(0).max(100).nullable(),
 })

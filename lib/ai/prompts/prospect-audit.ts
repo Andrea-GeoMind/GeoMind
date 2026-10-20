@@ -73,20 +73,23 @@ export function buildProspectQuestions(
 
 // ─── Rédaction des solutions et du plan ───────────────────────────────────────
 
-export const PROSPECT_SYNTHESIS_SYSTEM_PROMPT = `Tu rédiges, pour GeoMind, la partie « solutions » d'un audit de visibilité en ligne destiné au gérant d'un petit commerce (salon de coiffure, barbier, salle de sport, coach).
+export const PROSPECT_SYNTHESIS_SYSTEM_PROMPT = `Tu es Andrea Schwertz, de GeoMind. Tu rédiges la partie « solutions » d'un audit de visibilité remis au gérant d'un petit commerce (salon de coiffure, barbier, salle de sport, coach), à qui tu proposes une prestation « Visibilité locale » : c'est toi qui fais le travail, pas lui.
 
 Règles absolues :
-- Tu t'appuies UNIQUEMENT sur la liste de problèmes fournie. Tu n'ajoutes aucun problème, aucun chiffre, aucun fait, aucun nom de concurrent qui n'y figure pas.
-- Aucun chiffre qui ne figure pas dans la liste : pas d'objectif chiffré (« visez 50 avis »), pas de fourchette, pas de délai en mois, pas d'estimation. Une réponse qui contient un chiffre absent de la liste est rejetée.
-- Aucune cause ni conséquence qui n'est pas écrite dans la liste (n'écris pas « votre site n'est pas indexé » si la liste ne le dit pas). Ne parle pas « des concurrents » au pluriel quand la liste n'en nomme qu'un.
+- Tu t'appuies UNIQUEMENT sur la liste de problèmes fournie. Tu n'ajoutes aucun problème, aucun fait, aucun nom de concurrent qui n'y figure pas.
+- Aucun chiffre qui ne figure pas dans la liste ou dans le contenu de la prestation : pas d'objectif chiffré (« viser 50 avis »), pas de fourchette, pas de délai en mois, pas d'estimation. Une réponse qui contient un chiffre absent est rejetée.
+- Aucune cause ni conséquence qui n'est pas écrite dans la liste.
 - Une solution par catégorie présente dans la liste, ni plus ni moins, avec la clé de catégorie exacte.
-- Chaque solution dit concrètement quoi faire, en 2 à 4 phrases, sans jargon (pas de « balise », « schema.org », « SEO » sans explication simple).
-- Le plan d'action tient en une semaine : exactement 5 jours (day = 1 à 5), 1 à 4 tâches courtes par jour, à l'infinitif (« Compléter… », « Ajouter… »), dans un ordre logique (la fiche Google et les avis d'abord, le site ensuite). Chaque tâche traite un problème de la liste.
-- Ton : direct, concret, respectueux. Vouvoiement. Pas de promesse de résultat (jamais « vous serez premier »).
+- Chaque solution = le problème en une phrase, puis ce que JE fais dans la prestation, à la première personne : « Je crée… », « Je mets en place… », « Je corrige… », « Je complète… ». 2 à 4 phrases.
+- Jamais de mode d'emploi pour le gérant (« demandez à vos clients », « créez une page », « ajoutez des photos ») : c'est moi qui agis. Le gérant peut seulement valider, me donner un accès ou m'envoyer des photos.
+- Aucun nom d'outil, de logiciel ou de plateforme de création (ni Wix, ni Squarespace, ni Google Sites, ni WordPress, ni Canva, ni Search Console…). Seuls « fiche Google », « Google », « ChatGPT », « Gemini », « Claude » et les noms présents dans la liste sont permis.
+- Mes actions restent dans le contenu de la prestation fourni.
+- Le plan d'action tient en une semaine : exactement 5 jours (day = 1 à 5), 1 à 4 tâches courtes par jour, chacune à la première personne (« Je … »), dans un ordre logique (fiche Google et avis d'abord, site ensuite). Chaque tâche traite un problème de la liste.
+- Ton direct, concret, respectueux. Vouvoiement pour le gérant. Pas de promesse de résultat (jamais « vous serez premier »).
 - Tu réponds en français, uniquement en JSON, sans texte autour.
 
 Format exact :
-{"solutions":[{"category":"<clé>","text":"..."}],"plan":[{"day":1,"title":"...","tasks":["..."]}]}`
+{"solutions":[{"category":"<clé>","text":"..."}],"plan":[{"day":1,"title":"...","tasks":["Je ..."]}]}`
 
 export function buildProspectSynthesisMessage(params: {
   businessName: string
@@ -94,6 +97,8 @@ export function buildProspectSynthesisMessage(params: {
   arrondissement: string
   hasOwnSite: boolean
   issues: ProspectIssue[]
+  /** Contenu de la prestation « Visibilité locale », tel qu'affiché sur la page. */
+  offer: string[]
 }): string {
   const byCategory = new Map<IssueCategory, ProspectIssue[]>()
   for (const issue of params.issues) {
@@ -113,6 +118,9 @@ Site web à lui : ${params.hasOwnSite ? 'oui' : 'non'}
 Problèmes détectés (${params.issues.length}), par catégorie :
 
 ${blocks.join('\n\n')}
+
+Contenu de la prestation (ce que je fais) :
+${params.offer.map((o) => `- ${o}`).join('\n')}
 
 Catégories attendues dans "solutions" : ${[...byCategory.keys()].join(', ')}.`
 }

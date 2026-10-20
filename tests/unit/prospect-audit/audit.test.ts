@@ -12,7 +12,15 @@ import { isPromptNeutral } from '@/lib/analysis/neutrality'
 import { AuditBudget, BudgetExceededError } from '@/lib/prospect-audit/budget'
 import { activityForSector } from '@/lib/prospect-audit/activity'
 import { choosePagesToRead } from '@/lib/prospect-audit/crawl'
-import { aiIssues, computeProspectScores, placeIssues, ruleIssues, sortIssues } from '@/lib/prospect-audit/issues'
+import {
+  aiIssues,
+  computePlaceScore,
+  computeProspectScores,
+  placeIssues,
+  placeScoreBreakdown,
+  ruleIssues,
+  sortIssues,
+} from '@/lib/prospect-audit/issues'
 import { runProspectAudit, AuditAbortedError } from '@/lib/prospect-audit/run'
 import { buildSynthesisSchema } from '@/lib/prospect-audit/synthesis'
 import { generateAuditToken, hashAuditToken, isAuditExpired, isWellFormedAuditToken } from '@/lib/prospect-audit/token'
@@ -151,17 +159,42 @@ describe('notes', () => {
     Array.from({ length: total }, (_, i) => ({
       question: i, engine: 'chatgpt', status: 'ok', cited: i < cited, position: null, competitors: [],
     }))
+  const WITH_SITE = { ...BARBER, website: 'https://best-barber.fr/' }
 
-  it('sans site : globale = présence IA', () => {
-    expect(computeProspectScores(cells(3, 15), null, null)).toEqual({ global: 20, authority: 20, technical: null, content: null })
+  it('note Fiche Google : barème détaillé (Best barber)', () => {
+    const lines = placeScoreBreakdown(BARBER)
+    expect(lines.map((l) => [l.key, l.points])).toEqual([
+      ['reviews', 0.7], ['photos', 8], ['hours', 15], ['site', 0], ['rating', 20],
+    ])
+    expect(computePlaceScore(BARBER)).toBe(44)
   })
 
-  it('avec site : moyenne des trois', () => {
-    expect(computeProspectScores(cells(0, 15), 80, 70)).toEqual({ global: 50, authority: 0, technical: 80, content: 70 })
+  it('lien de plateforme : une partie des points du site ; note 4/5 = la moitié', () => {
+    const lines = placeScoreBreakdown({ ...BARBER, website: 'https://www.planity.com/x', listing: 'planity.com', rating: 4 })
+    expect(lines.find((l) => l.key === 'site')!.points).toBe(5)
+    expect(lines.find((l) => l.key === 'rating')!.points).toBe(10)
+  })
+
+  it('sans site : pas de note globale', () => {
+    expect(computeProspectScores(cells(3, 15), null, null, BARBER)).toEqual({
+      global: null, authority: 20, place: 44, technical: null, content: null,
+    })
+  })
+
+  it('avec site : moyenne des quatre piliers', () => {
+    const place = computePlaceScore(WITH_SITE)
+    expect(place).toBe(59)
+    expect(computeProspectScores(cells(0, 15), 80, 70, WITH_SITE)).toEqual({
+      global: Math.round((0 + 59 + 80 + 70) / 4), authority: 0, place: 59, technical: 80, content: 70,
+    })
+  })
+
+  it('site illisible : moyenne des piliers mesurés', () => {
+    expect(computeProspectScores(cells(0, 15), null, null, WITH_SITE)!.global).toBe(30)
   })
 
   it('aucune réponse : pas de note', () => {
-    expect(computeProspectScores([], 80, 70)).toBeNull()
+    expect(computeProspectScores([], 80, 70, BARBER)).toBeNull()
   })
 })
 
@@ -182,8 +215,8 @@ describe('budget', () => {
 })
 
 describe('schéma de la rédaction', () => {
-  const plan = [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Faire une chose utile'] }))
-  const sol = (category: string) => ({ category, text: 'Une solution concrète et assez longue.' })
+  const plan = [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Je fais une chose utile'] }))
+  const sol = (category: string) => ({ category, text: 'Je corrige ce point dans la prestation, concrètement.' })
 
   it('exige une solution par catégorie présente, ni plus ni moins', () => {
     const schema = buildSynthesisSchema(['avis', 'site', 'avis'])
@@ -265,9 +298,9 @@ function fakeEngine(name: ProspectEngine, answer: (prompt: string) => string, co
 const synthesize = vi.fn(async ({ issues }: { issues: { category: string }[] }) => ({
   solutions: [...new Set(issues.map((i) => i.category))].map((category) => ({
     category: category as 'avis',
-    text: 'Une solution concrète et assez longue.',
+    text: 'Je corrige ce point dans la prestation, concrètement.',
   })),
-  plan: [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Faire une chose utile'] })),
+  plan: [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Je fais une chose utile'] })),
   costUsd: 0.005,
 }))
 
@@ -285,7 +318,7 @@ describe('runProspectAudit', () => {
     expect(chatgpt.query).toHaveBeenCalledTimes(5)
     expect(vi.mocked(chatgpt.query).mock.calls[0]![0]).toContain('IMPORTANT')
     expect(document.answers).toHaveLength(15)
-    expect(document.scores).toEqual({ global: 33, authority: 33, technical: null, content: null })
+    expect(document.scores).toEqual({ global: null, authority: 33, place: 44, technical: null, content: null })
     expect(document.issues.filter((i) => i.category === 'ia').map((i) => i.key)).toEqual(['ia.gemini', 'ia.claude'])
     expect(document.citedInstead[0]).toEqual({ name: 'Casa Barbershop Lyon', answers: 10 })
     expect(document.expiresAt).toBe('2026-12-19T10:00:00.000Z')
@@ -332,9 +365,22 @@ describe('rédaction : aucun chiffre inventé', () => {
     const source = '13 avis Google seulement — la médiane est de 92 ; Crossfit des Pentes en a 95. Répond en 4.9s.'
     expect(inventedNumbers(['Vous avez 13 avis, contre 95 ; le site répond en 4,9 s.'], source)).toEqual([])
     expect(inventedNumbers(['Vos concurrents en ont 80 à 95. Visez 50 avis dans les 3 mois.'], source)).toEqual(['80', '50'])
-    const plan = [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Faire une chose utile'] }))
+    const plan = [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Je fais une chose utile'] }))
     const schema = buildSynthesisSchema(['avis'], source)
-    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Visez 50 avis dans les mois qui viennent.' }], plan }).success).toBe(false)
-    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Passez de 13 avis à davantage, régulièrement.' }], plan }).success).toBe(true)
+    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Je vous aide à viser 50 avis dans les mois qui viennent.' }], plan }).success).toBe(false)
+    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Vous avez 13 avis : je mets en place un QR code au comptoir.' }], plan }).success).toBe(true)
+  })
+})
+
+describe('rédaction : première personne, aucun outil', () => {
+  it('rejette le mode d’emploi et les noms d’outils', async () => {
+    const { synthesisStyleProblems } = await import('@/lib/prospect-audit/synthesis')
+    expect(synthesisStyleProblems([{ text: 'Je crée une page à votre nom, reliée à votre fiche Google.' }], ['Je complète la fiche'])).toEqual([])
+    const problems = synthesisStyleProblems(
+      [{ text: 'Créez une simple page avec Wix ou Google Sites.' }],
+      ['Choisir une plateforme simple', "J'ajoute les photos"]
+    )
+    expect(problems).toHaveLength(3)
+    expect(problems[0]).toContain('Wix')
   })
 })

@@ -15,9 +15,10 @@ import {
   offerItems,
   ordinal,
 } from '@/lib/prospect-audit/copy'
-import { hasOwnSite } from '@/lib/prospect-audit/issues'
+import { hasOwnSite, placeScoreBreakdown } from '@/lib/prospect-audit/issues'
 import {
   citedInsteadForQuestion,
+  citedLabel,
   comparisonRows,
   findCell,
   groupIssues,
@@ -100,38 +101,49 @@ function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: Reac
   )
 }
 
+function ScoreTile({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-lg bg-muted p-3">
+      <p className="text-xs font-semibold leading-tight sm:text-sm">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold sm:text-3xl">{value}</p>
+      <p className="text-xs leading-tight text-muted-foreground">{hint}</p>
+    </div>
+  )
+}
+
 function Scores({ doc }: { doc: AuditDocument }) {
   const { scores } = doc
-  const noSite = !doc.site.analysed
-  const tiles = [
-    { label: 'Présence dans les IA', value: scores.authority, hint: 'part des réponses qui vous citent' },
-    { label: 'Technique du site', value: scores.technical, hint: noSite ? 'pas de site analysé' : 'sur 100' },
-    { label: 'Contenu du site', value: scores.content, hint: noSite ? 'pas de site analysé' : 'sur 100' },
-  ]
+  const presence = presenceSummary(doc.answers)
+  const withGlobal = scores.global !== null
+  const siteHint = (v: number | null) => (v === null ? (withGlobal ? 'site illisible' : 'pas de site') : 'sur 100')
   return (
     <section className="mt-8 rounded-xl border border-border bg-card p-5 sm:p-6">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-        <div className="sm:w-44">
+      {withGlobal ? (
+        <div>
           <p className="text-sm font-semibold text-muted-foreground">Note globale</p>
           <p className="text-6xl font-extrabold leading-none text-foreground">
             {scores.global}
             <span className="text-2xl font-bold text-muted-foreground"> / 100</span>
           </p>
         </div>
-        <div className="grid flex-1 grid-cols-3 gap-2 sm:gap-3">
-          {tiles.map((t) => (
-            <div key={t.label} className="rounded-lg bg-muted p-3">
-              <p className="text-xs font-semibold leading-tight sm:text-sm">{t.label}</p>
-              <p className="mt-1 text-2xl font-extrabold sm:text-3xl">{scoreLabel(t.value)}</p>
-              <p className="text-xs leading-tight text-muted-foreground">{t.hint}</p>
-            </div>
-          ))}
+      ) : (
+        <div>
+          <p className="text-sm font-semibold text-muted-foreground">Présence dans les IA</p>
+          <p className="text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">{citedLabel(presence)}</p>
         </div>
+      )}
+      <div className={cn('mt-5 grid gap-2 sm:gap-3', withGlobal ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3')}>
+        {withGlobal ? (
+          <ScoreTile label="Présence dans les IA" value={String(scores.authority)} hint={citedLabel(presence).toLowerCase()} />
+        ) : null}
+        <ScoreTile label="Fiche Google" value={String(scores.place)} hint="sur 100" />
+        <ScoreTile label="Technique du site" value={scoreLabel(scores.technical)} hint={siteHint(scores.technical)} />
+        <ScoreTile label="Contenu du site" value={scoreLabel(scores.content)} hint={siteHint(scores.content)} />
       </div>
       <p className="mt-4 text-sm text-muted-foreground">
-        {noSite
-          ? 'Sans site à vous, la note globale ne porte que sur votre présence dans les IA.'
-          : 'La note globale est la moyenne des trois notes.'}
+        {withGlobal
+          ? 'La note globale est la moyenne des notes mesurées : présence dans les IA, fiche Google, technique et contenu du site.'
+          : "Sans site à vous, les notes Technique et Contenu ne peuvent pas être mesurées : il n'y a donc pas de note globale."}
       </p>
     </section>
   )
@@ -217,16 +229,48 @@ function AiPresence({ doc, name }: { doc: AuditDocument; name: string }) {
 function PlaceComparison({ doc, name }: { doc: AuditDocument; name: string }) {
   const p = doc.prospect
   const c = p.competitor
+  const breakdown = placeScoreBreakdown(p)
+  return (
+    <section className="mt-12">
+      <SectionTitle sub={`Relevée le ${formatAuditDate(`${p.placesCollectedAt}T12:00:00Z`)}.`}>
+        Votre fiche Google : {doc.scores.place} / 100
+      </SectionTitle>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <ul className="divide-y divide-border">
+          {breakdown.map((l) => (
+            <li key={l.key} className="flex items-baseline justify-between gap-3 py-2">
+              <span>
+                <span className="font-semibold">{l.label}</span>
+                <span className="block text-sm text-muted-foreground">{l.detail}</span>
+              </span>
+              <span className="shrink-0 font-bold tabular-nums">
+                {formatPoints(l.points)} / {l.max}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {c ? <CompetitorTable doc={doc} name={name} /> : null}
+    </section>
+  )
+}
+
+function formatPoints(n: number): string {
+  return n.toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+}
+
+function CompetitorTable({ doc, name }: { doc: AuditDocument; name: string }) {
+  const p = doc.prospect
+  const c = p.competitor
   if (!c) return null
   const rows = comparisonRows(p, c)
   const scope = c.scope ? `d'${c.scope}` : 'du même secteur'
   return (
-    <section className="mt-12">
-      <SectionTitle
-        sub={`À côté de vous : le commerce ${scope} qui a le plus d'avis dans un rayon de 500 m, à ${c.distanceM} m.`}
-      >
-        Votre fiche Google face au concurrent le plus fort
-      </SectionTitle>
+    <div className="mt-6">
+      <h3 className="text-lg font-bold">Face au concurrent le plus fort</h3>
+      <p className="mb-3 mt-1 text-muted-foreground">
+        Le commerce {scope} qui a le plus d&apos;avis dans un rayon de 500 m, à {c.distanceM} m de chez vous.
+      </p>
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <table className="w-full table-fixed text-left text-sm sm:text-base">
           <thead>
@@ -269,7 +313,7 @@ function PlaceComparison({ doc, name }: { doc: AuditDocument; name: string }) {
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -324,7 +368,7 @@ function Solutions({ doc }: { doc: AuditDocument }) {
 function WeekPlan({ doc }: { doc: AuditDocument }) {
   return (
     <section className="mt-12">
-      <SectionTitle sub="Une semaine, jour par jour, à partir de la liste ci-dessus.">Le plan d&apos;action sur une semaine</SectionTitle>
+      <SectionTitle sub="Ce que je fais pour vous, jour par jour.">Le plan d&apos;action sur une semaine</SectionTitle>
       <ol className="space-y-3">
         {doc.plan.map((d) => (
           <li key={d.day} className="flex gap-4 rounded-xl border border-border bg-card p-4">

@@ -13,6 +13,7 @@ import {
   PROSPECT_SYNTHESIS_SYSTEM_PROMPT,
   buildProspectSynthesisMessage,
 } from '@/lib/ai/prompts/prospect-audit'
+import { offerItems } from '@/lib/prospect-audit/copy'
 import {
   PlanDaySchema,
   SolutionSchema,
@@ -41,6 +42,27 @@ export function inventedNumbers(texts: string[], source: string): string[] {
   return [...new Set(texts.flatMap(numbersIn).filter((n) => !allowed.has(n)))]
 }
 
+/** Outils de création ou de suivi : la solution dit ce que je fais, pas avec quoi. */
+const TOOL_NAMES =
+  /\b(wix|squarespace|google sites|wordpress|jimdo|webflow|shopify|canva|search console|google business profile|semrush|ahrefs|pagespeed|lighthouse|yoast)\b/i
+
+/** Première personne : « Je… », « J'… », « je… » quelque part dans le texte. */
+const FIRST_PERSON = /(^|[\s«(])(je|j['’])/i
+const STARTS_FIRST_PERSON = /^(je\s|j['’])/i
+
+export function synthesisStyleProblems(solutions: { text: string }[], tasks: string[]): string[] {
+  const problems: string[] = []
+  const texts = [...solutions.map((s) => s.text), ...tasks]
+  const tools = [...new Set(texts.flatMap((t) => t.match(new RegExp(TOOL_NAMES.source, 'gi')) ?? []))]
+  if (tools.length) problems.push(`noms d'outils interdits : ${tools.join(', ')}`)
+  if (solutions.some((s) => !FIRST_PERSON.test(s.text))) {
+    problems.push('chaque solution doit dire ce que JE fais, à la première personne (« Je crée… »)')
+  }
+  const bad = tasks.filter((t) => !STARTS_FIRST_PERSON.test(t.trim()))
+  if (bad.length) problems.push(`chaque tâche du plan commence par « Je » ou « J' » : ${bad.slice(0, 3).join(' | ')}`)
+  return problems
+}
+
 export function buildSynthesisSchema(categories: IssueCategory[], source?: string) {
   const expected = [...new Set(categories)]
   return z
@@ -59,6 +81,9 @@ export function buildSynthesisSchema(categories: IssueCategory[], source?: strin
           path: ['solutions'],
           message: `une solution par catégorie attendue (${expected.join(', ')}) ; manquantes : ${missing.join(', ') || 'aucune'} ; en trop : ${[...extra, ...duplicated].join(', ') || 'aucune'}`,
         })
+      }
+      for (const message of synthesisStyleProblems(value.solutions, value.plan.flatMap((d) => d.tasks))) {
+        ctx.addIssue({ code: 'custom', path: ['solutions'], message })
       }
       if (source !== undefined) {
         const texts = [
@@ -96,7 +121,7 @@ export async function synthesizeAudit(params: {
   hasOwnSite: boolean
   issues: ProspectIssue[]
 }): Promise<SynthesisResult> {
-  const userContent = buildProspectSynthesisMessage(params)
+  const userContent = buildProspectSynthesisMessage({ ...params, offer: offerItems(params.hasOwnSite) })
   const schema = buildSynthesisSchema(
     params.issues.map((i) => i.category),
     userContent

@@ -12,6 +12,8 @@ html, body { background: #fff !important; }
 .fiche h1 { margin: 4mm 0 0.5mm; font-size: 21pt; line-height: 1.12; font-weight: 800; letter-spacing: -0.01em; }
 .fiche-addr { margin: 0; font-size: 12pt; color: #333; }
 .fiche-scores { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 3mm; margin-top: 5mm; }
+.fiche-scores.five { grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr; gap: 2.5mm; }
+.fiche-score-cited { margin-top: 1mm; font-size: 17pt; font-weight: 800; line-height: 1.15; }
 .fiche-score { border: 1pt solid #111; border-radius: 2mm; padding: 2.5mm 3mm; }
 .fiche-score.main { border-width: 2pt; }
 .fiche-score-label { font-size: 11pt; font-weight: 600; }

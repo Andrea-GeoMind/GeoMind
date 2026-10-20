@@ -1,18 +1,25 @@
 import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync, rmSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
+import { z } from 'zod'
 import { ChatGPTConnector } from '@/lib/ai/connectors/chatgpt'
 import { ClaudeConnector } from '@/lib/ai/connectors/claude'
 import { GeminiConnector } from '@/lib/ai/connectors/gemini'
 import { AUDIT_CAP_USD, BudgetExceededError, AuditBudget } from '@/lib/prospect-audit/budget'
 import { readProspectSite } from '@/lib/prospect-audit/crawl'
-import { hasOwnSite } from '@/lib/prospect-audit/issues'
+import { computeProspectScores, hasOwnSite } from '@/lib/prospect-audit/issues'
 import { PROSPECT_PAGE_LIMIT, runProspectAudit } from '@/lib/prospect-audit/run'
-import { ensureAuditBucket, loadAuditDocument, saveAuditDocument } from '@/lib/prospect-audit/storage'
+import { ensureAuditBucket, loadRawAuditDocument, saveAuditDocument } from '@/lib/prospect-audit/storage'
 import { synthesizeAudit } from '@/lib/prospect-audit/synthesis'
 import { generateAuditToken, hashAuditToken } from '@/lib/prospect-audit/token'
 import { activityForSector } from '@/lib/prospect-audit/activity'
-import { ProspectInputSchema, type ProspectInput } from '@/lib/prospect-audit/types'
+import {
+  AnswerCellSchema,
+  AuditDocumentSchema,
+  ProspectInputSchema,
+  ProspectIssueSchema,
+  type ProspectInput,
+} from '@/lib/prospect-audit/types'
 import type { FirecrawlPage } from '@/lib/analysis/technical/types'
 
 /**
@@ -25,8 +32,8 @@ import type { FirecrawlPage } from '@/lib/analysis/technical/types'
  *     scripts/prospection/audit-prospect.ts --input prospects-cle-en-main.json --rank 1
  *   ... --dry-run          affiche les questions et le budget, aucun appel payant
  *   ... --total-cap 4      plafond du ticket, tests compris (défaut 4 $)
- *   ... --refaire-redaction   ne refait que les solutions et le plan d'un audit
- *                             déjà publié (même lien, ~0,01 $), questions intactes
+ *   ... --refaire-redaction   refait les notes et la rédaction d'un audit déjà
+ *                             publié (même lien, ~0,01 $), questions intactes
  *
  * Garde-fous : 0,20 $ par audit (arrêt avant ou après l'appel qui le
  * dépasserait), plafond total tenu dans le journal, verrou contre deux audits
@@ -128,7 +135,7 @@ async function main(): Promise<void> {
   }
 
   if (process.argv.includes('--refaire-redaction')) {
-    await redoSynthesis(rank, prospect.name)
+    await redoSynthesis(rank, prospect)
     return
   }
 
@@ -179,7 +186,7 @@ async function main(): Promise<void> {
 
     const d = result.document
     console.log(`\n  ✔ publié : ${url}`)
-    console.log(`  notes : globale ${d.scores.global} · IA ${d.scores.authority} · technique ${d.scores.technical ?? '—'} · contenu ${d.scores.content ?? '—'}`)
+    console.log(`  notes : globale ${d.scores.global ?? '— (pas de site)'} · IA ${d.scores.authority} · fiche ${d.scores.place} · technique ${d.scores.technical ?? '—'} · contenu ${d.scores.content ?? '—'}`)
     console.log(`  ${d.issues.length} problèmes · coût réel ${budget.spentUsd.toFixed(4)} $ (${budget.lines.length} appels)`)
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err)
@@ -210,35 +217,61 @@ function linkFor(rank: number): string {
   return row[2]
 }
 
-async function redoSynthesis(rank: number, name: string): Promise<void> {
+/** Ce qu'il faut d'un audit déjà publié pour le refaire sans reposer les questions. */
+const StoredAuditSchema = z
+  .object({
+    answers: z.array(AnswerCellSchema),
+    issues: z.array(ProspectIssueSchema),
+    scores: z.object({ technical: z.number().nullable(), content: z.number().nullable() }),
+  })
+  .passthrough()
+
+/**
+ * Refait les notes (barème courant) et la rédaction d'un audit publié, même
+ * lien. Les réponses des IA et les problèmes détectés ne bougent pas ; la
+ * fiche Google est relue dans le fichier d'entrée (mêmes données du 19/10).
+ */
+async function redoSynthesis(rank: number, prospect: ProspectInput): Promise<void> {
   const token = linkFor(rank).split('/audit/')[1] ?? ''
   const hash = hashAuditToken(token)
-  const document = await loadAuditDocument(hash)
-  if (!document) throw new Error('Audit introuvable dans le stockage')
+  const raw = await loadRawAuditDocument(hash)
+  if (!raw) throw new Error('Audit introuvable dans le stockage')
+  const stored = StoredAuditSchema.parse(raw)
+  const scores = computeProspectScores(stored.answers, stored.scores.technical, stored.scores.content, prospect)
+  if (!scores) throw new Error('Aucune réponse en stock : impossible de refaire les notes')
+
   const budget = new AuditBudget()
   budget.assertRoom('rédaction', 0.01, { usesReserve: true })
   const synthesis = await synthesizeAudit({
-    businessName: document.prospect.name,
-    activity: document.prospect.activity,
-    arrondissement: document.prospect.arrondissement,
-    hasOwnSite: hasOwnSite(document.prospect),
-    issues: document.issues,
+    businessName: prospect.name,
+    activity: prospect.activity,
+    arrondissement: prospect.arrondissement,
+    hasOwnSite: hasOwnSite(prospect),
+    issues: stored.issues,
   })
   const cost = synthesis.costUsd ?? 0.01
-  await saveAuditDocument(hash, { ...document, solutions: synthesis.solutions, plan: synthesis.plan }, { overwrite: true })
+  const document = AuditDocumentSchema.parse({
+    ...stored,
+    prospect,
+    scores,
+    solutions: synthesis.solutions,
+    plan: synthesis.plan,
+  })
+  await saveAuditDocument(hash, document, { overwrite: true })
   appendFileSync(
     LEDGER,
     JSON.stringify({
       at: new Date().toISOString(),
       rank,
-      name,
+      name: prospect.name,
       status: 'publié',
       costUsd: cost,
       firecrawlCredits: 0,
-      detail: 'rédaction refaite',
+      detail: 'notes et rédaction refaites',
     } satisfies LedgerLine) + '\n'
   )
-  console.log(`  ✔ rédaction refaite : ${cost.toFixed(4)} $`)
+  console.log(`  ✔ notes et rédaction refaites : ${cost.toFixed(4)} $`)
+  console.log(`  notes : globale ${scores.global ?? '— (pas de site)'} · IA ${scores.authority} · fiche ${scores.place} · technique ${scores.technical ?? '—'} · contenu ${scores.content ?? '—'}`)
 }
 
 main()

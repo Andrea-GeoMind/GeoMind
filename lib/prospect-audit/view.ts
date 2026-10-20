@@ -48,6 +48,11 @@ export function presenceSummary(answers: AnswerCell[]): PresenceSummary {
   return { cited: ok.filter((a) => a.cited).length, answered: ok.length }
 }
 
+/** « Cité dans 0 réponse sur 15 », « Cité dans 3 réponses sur 15 ». */
+export function citedLabel({ cited, answered }: PresenceSummary): string {
+  return `Cité dans ${cited} réponse${cited > 1 ? 's' : ''} sur ${answered}`
+}
+
 // ─── Fiche Google : comparaison avec le concurrent ────────────────────────────
 
 export interface ComparisonRow {

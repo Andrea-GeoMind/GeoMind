@@ -16,6 +16,7 @@ import {
   ISSUE_CATEGORIES,
   PROSPECT_ENGINES,
   type AnswerCell,
+  type PlaceSnapshot,
   type ProspectActivity,
   type ProspectInput,
   type ProspectIssue,
@@ -219,25 +220,98 @@ export function sortIssues(issues: ProspectIssue[]): ProspectIssue[] {
 
 // ─── Notes ────────────────────────────────────────────────────────────────────
 
+/** Barème de la note Fiche Google, sur 100. */
+export const PLACE_SCORE_POINTS = { reviews: 30, photos: 20, hours: 15, site: 15, rating: 20 } as const
+/** Un lien de plateforme (Planity, Instagram…) vaut une partie des points du site. */
+const PLATFORM_LINK_POINTS = 5
+/** La note Google rapporte 0 point à 3/5 et tous ses points à 5/5. */
+const RATING_FLOOR = 3
+
+export interface PlaceScoreLine {
+  key: keyof typeof PLACE_SCORE_POINTS
+  label: string
+  points: number
+  max: number
+  detail: string
+}
+
+function roundHalf(n: number): number {
+  return Math.round(n * 10) / 10
+}
+
+/** Détail de la note Fiche Google, critère par critère. Pure. */
+export function placeScoreBreakdown(p: PlaceSnapshot & { sectorMedianReviews: number }): PlaceScoreLine[] {
+  const P = PLACE_SCORE_POINTS
+  const reviewRatio = p.sectorMedianReviews > 0 ? Math.min(1, p.reviewCount / p.sectorMedianReviews) : 1
+  const ratingRatio = p.rating === null ? 0 : Math.max(0, Math.min(1, (p.rating - RATING_FLOOR) / (5 - RATING_FLOOR)))
+  const site = hasOwnSite(p) ? P.site : p.website ? PLATFORM_LINK_POINTS : 0
+  return [
+    {
+      key: 'reviews',
+      label: 'Avis face à la médiane du quartier',
+      points: roundHalf(P.reviews * reviewRatio),
+      max: P.reviews,
+      detail: `${formatNumber(p.reviewCount)} avis, médiane ${formatNumber(p.sectorMedianReviews)}`,
+    },
+    {
+      key: 'photos',
+      label: 'Photos',
+      points: roundHalf((P.photos * Math.min(PHOTO_TARGET, p.photoCount)) / PHOTO_TARGET),
+      max: P.photos,
+      detail: p.photoCount >= PHOTO_TARGET ? `${PHOTO_TARGET} ou plus` : `${p.photoCount} sur ${PHOTO_TARGET}`,
+    },
+    {
+      key: 'hours',
+      label: 'Horaires renseignés',
+      points: p.hasHours ? P.hours : 0,
+      max: P.hours,
+      detail: p.hasHours ? 'oui' : 'non',
+    },
+    {
+      key: 'site',
+      label: 'Site renseigné',
+      points: site,
+      max: P.site,
+      detail: hasOwnSite(p) ? 'site à vous' : p.listing ? `lien ${platformLabel(p.listing)}` : 'aucun',
+    },
+    {
+      key: 'rating',
+      label: 'Note Google',
+      points: roundHalf(P.rating * ratingRatio),
+      max: P.rating,
+      detail: p.rating === null ? 'aucune' : formatRating(p.rating),
+    },
+  ]
+}
+
+export function computePlaceScore(p: PlaceSnapshot & { sectorMedianReviews: number }): number {
+  const total = placeScoreBreakdown(p).reduce((sum, l) => sum + l.points, 0)
+  return Math.round(Math.max(0, Math.min(100, total)))
+}
+
 /**
- * Notes de l'audit. Autorité = part des réponses obtenues qui citent le
- * commerce (même formule que l'analyse). Sans site, Technique et Contenu ne
- * sont pas mesurées (null) et la note globale est la moyenne des notes
- * mesurées — la page le dit. Pure : mêmes entrées, mêmes notes.
+ * Notes de l'audit. Présence IA = part des réponses obtenues qui citent le
+ * commerce (même formule que l'analyse). Fiche Google = barème ci-dessus.
+ * Sans site à soi, Technique et Contenu ne sont pas mesurées et il n'y a PAS
+ * de note globale (null) : une moyenne sans le site comparerait mal deux
+ * commerces. Avec un site, globale = moyenne des piliers mesurés. Pure.
  */
 export function computeProspectScores(
   answers: AnswerCell[],
   technical: number | null,
-  content: number | null
+  content: number | null,
+  prospect: PlaceSnapshot & { sectorMedianReviews: number }
 ): ProspectScores | null {
   const ok = answers.filter((a) => a.status === 'ok')
   const authority = computeAuthorityScore(ok.length, ok.filter((a) => a.cited).length)
   if (authority === null) return null
-  const measured = [authority, technical, content].filter((s): s is number => s !== null)
+  const place = computePlaceScore(prospect)
   const round = (n: number) => Math.round(Math.max(0, Math.min(100, n)))
+  const measured = [authority, place, technical, content].filter((s): s is number => s !== null)
   return {
-    global: round(measured.reduce((a, b) => a + b, 0) / measured.length),
+    global: hasOwnSite(prospect) ? round(measured.reduce((a, b) => a + b, 0) / measured.length) : null,
     authority: round(authority),
+    place,
     technical: technical === null ? null : round(technical),
     content: content === null ? null : round(content),
   }

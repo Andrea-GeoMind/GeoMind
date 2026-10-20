@@ -5,7 +5,7 @@ import { env } from '@/lib/env'
 import { openAudit } from '@/lib/prospect-audit/access'
 import { AUDIT_CONTACT, HOW_IT_WORKS, OFFER_TITLE, formatAuditDate, ordinal } from '@/lib/prospect-audit/copy'
 import { hasOwnSite } from '@/lib/prospect-audit/issues'
-import { findCell, issueCountLabel, presenceSummary, scoreLabel } from '@/lib/prospect-audit/view'
+import { citedLabel, findCell, issueCountLabel, presenceSummary, scoreLabel } from '@/lib/prospect-audit/view'
 import { ENGINE_LABELS, INTENT_LABELS, PROSPECT_ENGINES } from '@/lib/prospect-audit/types'
 import './fiche.css'
 
@@ -25,7 +25,6 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
   const auditUrl = new URL(`/audit/${token}`, env.NEXT_PUBLIC_SITE_URL).toString()
   const qr = await QRCode.toDataURL(auditUrl, { errorCorrectionLevel: 'M', margin: 0, width: 600 })
   const summary = presenceSummary(doc.answers)
-  const noSite = !doc.site.analysed
 
   return (
     <div className="fiche">
@@ -41,29 +40,57 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
       <h1>{p.name}</h1>
       <p className="fiche-addr">{p.address}</p>
 
-      <div className="fiche-scores">
-        <div className="fiche-score main">
-          <div className="fiche-score-label">Note globale</div>
-          <div className="fiche-score-value">
-            {doc.scores.global}
-            <span className="fiche-score-unit"> / 100</span>
+      {doc.scores.global !== null ? (
+        <div className="fiche-scores five">
+          <div className="fiche-score main">
+            <div className="fiche-score-label">Note globale</div>
+            <div className="fiche-score-value">
+              {doc.scores.global}
+              <span className="fiche-score-unit"> / 100</span>
+            </div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Présence IA</div>
+            <div className="fiche-score-value">{doc.scores.authority}</div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Fiche Google</div>
+            <div className="fiche-score-value">{doc.scores.place}</div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Technique</div>
+            <div className="fiche-score-value">{scoreLabel(doc.scores.technical)}</div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Contenu</div>
+            <div className="fiche-score-value">{scoreLabel(doc.scores.content)}</div>
           </div>
         </div>
-        <div className="fiche-score">
-          <div className="fiche-score-label">Présence IA</div>
-          <div className="fiche-score-value">{doc.scores.authority}</div>
+      ) : (
+        <div className="fiche-scores">
+          <div className="fiche-score main">
+            <div className="fiche-score-label">Présence dans les IA</div>
+            <div className="fiche-score-cited">{citedLabel(summary)}</div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Fiche Google</div>
+            <div className="fiche-score-value">
+              {doc.scores.place}
+              <span className="fiche-score-unit"> / 100</span>
+            </div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Technique</div>
+            <div className="fiche-score-value">—</div>
+            <div className="fiche-score-hint">pas de site</div>
+          </div>
+          <div className="fiche-score">
+            <div className="fiche-score-label">Contenu</div>
+            <div className="fiche-score-value">—</div>
+            <div className="fiche-score-hint">pas de site</div>
+          </div>
         </div>
-        <div className="fiche-score">
-          <div className="fiche-score-label">Technique</div>
-          <div className="fiche-score-value">{scoreLabel(doc.scores.technical)}</div>
-          {noSite ? <div className="fiche-score-hint">pas de site</div> : null}
-        </div>
-        <div className="fiche-score">
-          <div className="fiche-score-label">Contenu</div>
-          <div className="fiche-score-value">{scoreLabel(doc.scores.content)}</div>
-          {noSite ? <div className="fiche-score-hint">pas de site</div> : null}
-        </div>
-      </div>
+      )}
 
       <h2>Êtes-vous cité quand un client demande aux IA ?</h2>
       <table className="fiche-table">
@@ -97,8 +124,8 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
         </tbody>
       </table>
       <p className="fiche-caption">
-        ✓ cité · ✗ absent. Cité dans {summary.cited} réponse{summary.cited > 1 ? 's' : ''} sur {summary.answered}.
-        Questions posées comme un client, sans nommer votre commerce.
+        ✓ cité · ✗ absent. {citedLabel(summary)}. Questions posées comme un client, sans nommer votre
+        commerce.
       </p>
 
       <div className="fiche-issues">{issueCountLabel(doc.issues.length)}</div>

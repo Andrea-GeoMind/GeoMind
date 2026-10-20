@@ -62,6 +62,16 @@ export async function loadAuditDocument(hash: string): Promise<AuditDocument | n
   return parsed.data
 }
 
+/**
+ * Document tel qu'enregistré, sans validation : pour que le script admin
+ * puisse relire un audit écrit avec un schéma antérieur et le refaire.
+ */
+export async function loadRawAuditDocument(hash: string): Promise<unknown | null> {
+  const { data, error } = await bucket().download(objectPath(hash))
+  if (error || !data) return null
+  return JSON.parse(await data.text()) as unknown
+}
+
 export async function deleteAuditDocument(hash: string): Promise<void> {
   const { error } = await bucket().remove([objectPath(hash)])
   if (error) throw new Error(`Suppression de l'audit impossible : ${error.message}`)
