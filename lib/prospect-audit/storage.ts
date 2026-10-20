@@ -40,11 +40,15 @@ export async function ensureAuditBucket(): Promise<void> {
   if (error) throw new Error(`Création du bucket ${AUDIT_BUCKET} impossible : ${error.message}`)
 }
 
-export async function saveAuditDocument(hash: string, document: AuditDocument): Promise<void> {
+export async function saveAuditDocument(
+  hash: string,
+  document: AuditDocument,
+  { overwrite = false }: { overwrite?: boolean } = {}
+): Promise<void> {
   const body = JSON.stringify(AuditDocumentSchema.parse(document))
   const { error } = await bucket().upload(objectPath(hash), body, {
     contentType: 'application/json',
-    upsert: false,
+    upsert: overwrite,
   })
   if (error) throw new Error(`Enregistrement de l'audit impossible : ${error.message}`)
 }

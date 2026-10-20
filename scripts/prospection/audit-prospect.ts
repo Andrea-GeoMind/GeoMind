@@ -8,9 +8,9 @@ import { AUDIT_CAP_USD, BudgetExceededError, AuditBudget } from '@/lib/prospect-
 import { readProspectSite } from '@/lib/prospect-audit/crawl'
 import { hasOwnSite } from '@/lib/prospect-audit/issues'
 import { PROSPECT_PAGE_LIMIT, runProspectAudit } from '@/lib/prospect-audit/run'
-import { ensureAuditBucket, saveAuditDocument } from '@/lib/prospect-audit/storage'
+import { ensureAuditBucket, loadAuditDocument, saveAuditDocument } from '@/lib/prospect-audit/storage'
 import { synthesizeAudit } from '@/lib/prospect-audit/synthesis'
-import { generateAuditToken } from '@/lib/prospect-audit/token'
+import { generateAuditToken, hashAuditToken } from '@/lib/prospect-audit/token'
 import { activityForSector } from '@/lib/prospect-audit/activity'
 import { ProspectInputSchema, type ProspectInput } from '@/lib/prospect-audit/types'
 import type { FirecrawlPage } from '@/lib/analysis/technical/types'
@@ -25,6 +25,8 @@ import type { FirecrawlPage } from '@/lib/analysis/technical/types'
  *     scripts/prospection/audit-prospect.ts --input prospects-cle-en-main.json --rank 1
  *   ... --dry-run          affiche les questions et le budget, aucun appel payant
  *   ... --total-cap 4      plafond du ticket, tests compris (défaut 4 $)
+ *   ... --refaire-redaction   ne refait que les solutions et le plan d'un audit
+ *                             déjà publié (même lien, ~0,01 $), questions intactes
  *
  * Garde-fous : 0,20 $ par audit (arrêt avant ou après l'appel qui le
  * dépasserait), plafond total tenu dans le journal, verrou contre deux audits
@@ -36,7 +38,8 @@ const OUT_DIR = join(homedir(), 'Downloads', 'Audits-C05b')
 const LEDGER = join(OUT_DIR, 'journal.jsonl')
 const LINKS = join(OUT_DIR, 'liens.csv')
 const LOCK = join(OUT_DIR, '.audit-en-cours')
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://geomind.fr'
+// Adresse publique des liens : jamais celle de .env.local (localhost en développement)
+const SITE_URL = 'https://geomind.fr'
 
 function arg(flag: string): string | undefined {
   const i = process.argv.indexOf(flag)
@@ -124,6 +127,11 @@ async function main(): Promise<void> {
     return
   }
 
+  if (process.argv.includes('--refaire-redaction')) {
+    await redoSynthesis(rank, prospect.name)
+    return
+  }
+
   if (existsSync(LOCK)) throw new Error(`Un audit est déjà en cours (${LOCK}). Jamais deux à la fois.`)
   writeFileSync(LOCK, `${process.pid} ${new Date().toISOString()} ${prospect.name}\n`)
 
@@ -192,6 +200,45 @@ async function main(): Promise<void> {
   } finally {
     rmSync(LOCK, { force: true })
   }
+}
+
+/** Dernier lien publié pour ce rang, lu dans liens.csv. */
+function linkFor(rank: number): string {
+  const rows = existsSync(LINKS) ? readFileSync(LINKS, 'utf8').trim().split('\n').slice(1) : []
+  const row = rows.map((l) => l.split(';')).filter((c) => Number(c[0]) === rank).pop()
+  if (!row?.[2]) throw new Error(`Aucun lien publié pour le rang ${rank}`)
+  return row[2]
+}
+
+async function redoSynthesis(rank: number, name: string): Promise<void> {
+  const token = linkFor(rank).split('/audit/')[1] ?? ''
+  const hash = hashAuditToken(token)
+  const document = await loadAuditDocument(hash)
+  if (!document) throw new Error('Audit introuvable dans le stockage')
+  const budget = new AuditBudget()
+  budget.assertRoom('rédaction', 0.01, { usesReserve: true })
+  const synthesis = await synthesizeAudit({
+    businessName: document.prospect.name,
+    activity: document.prospect.activity,
+    arrondissement: document.prospect.arrondissement,
+    hasOwnSite: hasOwnSite(document.prospect),
+    issues: document.issues,
+  })
+  const cost = synthesis.costUsd ?? 0.01
+  await saveAuditDocument(hash, { ...document, solutions: synthesis.solutions, plan: synthesis.plan }, { overwrite: true })
+  appendFileSync(
+    LEDGER,
+    JSON.stringify({
+      at: new Date().toISOString(),
+      rank,
+      name,
+      status: 'publié',
+      costUsd: cost,
+      firecrawlCredits: 0,
+      detail: 'rédaction refaite',
+    } satisfies LedgerLine) + '\n'
+  )
+  console.log(`  ✔ rédaction refaite : ${cost.toFixed(4)} $`)
 }
 
 main()

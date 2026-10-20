@@ -25,7 +25,23 @@ export const SYNTHESIS_MODEL = 'anthropic/claude-haiku-4-5'
 /** 7 catégories × ~90 tokens + 5 jours × ~80 tokens ≈ 1 100 tokens. */
 export const SYNTHESIS_MAX_TOKENS = 1_600
 
-export function buildSynthesisSchema(categories: IssueCategory[]) {
+/** « 4,9 s », « 92 » → « 4.9 », « 92 ». Les jours du plan (1 à 5) sont toujours permis. */
+export function numbersIn(text: string): string[] {
+  return (text.match(/\d+(?:[.,]\d+)?/g) ?? []).map((n) => n.replace(',', '.').replace(/^0+(?=\d)/, ''))
+}
+
+/**
+ * Le texte rédigé ne contient aucun chiffre absent de la liste des problèmes :
+ * c'est la preuve vérifiable, à défaut d'une autre, que rien n'est inventé
+ * (le 20/10/2026, sans ce contrôle : « vos concurrents en ont 80 à 95 »,
+ * « visez 50 avis dans les 3 mois » — ni l'un ni l'autre dans les faits).
+ */
+export function inventedNumbers(texts: string[], source: string): string[] {
+  const allowed = new Set([...numbersIn(source), '1', '2', '3', '4', '5'])
+  return [...new Set(texts.flatMap(numbersIn).filter((n) => !allowed.has(n)))]
+}
+
+export function buildSynthesisSchema(categories: IssueCategory[], source?: string) {
   const expected = [...new Set(categories)]
   return z
     .object({
@@ -43,6 +59,20 @@ export function buildSynthesisSchema(categories: IssueCategory[]) {
           path: ['solutions'],
           message: `une solution par catégorie attendue (${expected.join(', ')}) ; manquantes : ${missing.join(', ') || 'aucune'} ; en trop : ${[...extra, ...duplicated].join(', ') || 'aucune'}`,
         })
+      }
+      if (source !== undefined) {
+        const texts = [
+          ...value.solutions.map((x) => x.text),
+          ...value.plan.flatMap((d) => [d.title, ...d.tasks]),
+        ]
+        const invented = inventedNumbers(texts, source)
+        if (invented.length > 0) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['solutions'],
+            message: `chiffres absents de la liste des problèmes : ${invented.join(', ')}. N'écris que des chiffres présents dans la liste, aucun objectif chiffré, aucune estimation.`,
+          })
+        }
       }
       const days = value.plan.map((d) => d.day)
       if (days.some((d, i) => d !== i + 1)) {
@@ -66,10 +96,14 @@ export async function synthesizeAudit(params: {
   hasOwnSite: boolean
   issues: ProspectIssue[]
 }): Promise<SynthesisResult> {
-  const schema = buildSynthesisSchema(params.issues.map((i) => i.category))
+  const userContent = buildProspectSynthesisMessage(params)
+  const schema = buildSynthesisSchema(
+    params.issues.map((i) => i.category),
+    userContent
+  )
   const { data, costUsd } = await callStructured({
     systemPrompt: PROSPECT_SYNTHESIS_SYSTEM_PROMPT,
-    userContent: buildProspectSynthesisMessage(params),
+    userContent,
     schema,
     model: SYNTHESIS_MODEL,
     maxTokens: SYNTHESIS_MAX_TOKENS,

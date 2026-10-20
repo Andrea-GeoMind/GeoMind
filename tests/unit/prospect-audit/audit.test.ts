@@ -325,3 +325,16 @@ describe('runProspectAudit', () => {
     expect(document.scores.technical).toBeNull()
   })
 })
+
+describe('rédaction : aucun chiffre inventé', () => {
+  it('repère les chiffres absents de la liste, accepte ceux qui y sont', async () => {
+    const { inventedNumbers, buildSynthesisSchema } = await import('@/lib/prospect-audit/synthesis')
+    const source = '13 avis Google seulement — la médiane est de 92 ; Crossfit des Pentes en a 95. Répond en 4.9s.'
+    expect(inventedNumbers(['Vous avez 13 avis, contre 95 ; le site répond en 4,9 s.'], source)).toEqual([])
+    expect(inventedNumbers(['Vos concurrents en ont 80 à 95. Visez 50 avis dans les 3 mois.'], source)).toEqual(['80', '50'])
+    const plan = [1, 2, 3, 4, 5].map((day) => ({ day, title: `Jour ${day}`, tasks: ['Faire une chose utile'] }))
+    const schema = buildSynthesisSchema(['avis'], source)
+    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Visez 50 avis dans les mois qui viennent.' }], plan }).success).toBe(false)
+    expect(schema.safeParse({ solutions: [{ category: 'avis', text: 'Passez de 13 avis à davantage, régulièrement.' }], plan }).success).toBe(true)
+  })
+})

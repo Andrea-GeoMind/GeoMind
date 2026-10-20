@@ -77,6 +77,8 @@ export const PROSPECT_SYNTHESIS_SYSTEM_PROMPT = `Tu rédiges, pour GeoMind, la p
 
 Règles absolues :
 - Tu t'appuies UNIQUEMENT sur la liste de problèmes fournie. Tu n'ajoutes aucun problème, aucun chiffre, aucun fait, aucun nom de concurrent qui n'y figure pas.
+- Aucun chiffre qui ne figure pas dans la liste : pas d'objectif chiffré (« visez 50 avis »), pas de fourchette, pas de délai en mois, pas d'estimation. Une réponse qui contient un chiffre absent de la liste est rejetée.
+- Aucune cause ni conséquence qui n'est pas écrite dans la liste (n'écris pas « votre site n'est pas indexé » si la liste ne le dit pas). Ne parle pas « des concurrents » au pluriel quand la liste n'en nomme qu'un.
 - Une solution par catégorie présente dans la liste, ni plus ni moins, avec la clé de catégorie exacte.
 - Chaque solution dit concrètement quoi faire, en 2 à 4 phrases, sans jargon (pas de « balise », « schema.org », « SEO » sans explication simple).
 - Le plan d'action tient en une semaine : exactement 5 jours (day = 1 à 5), 1 à 4 tâches courtes par jour, à l'infinitif (« Compléter… », « Ajouter… »), dans un ordre logique (la fiche Google et les avis d'abord, le site ensuite). Chaque tâche traite un problème de la liste.
