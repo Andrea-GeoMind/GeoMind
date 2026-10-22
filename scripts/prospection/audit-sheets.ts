@@ -59,6 +59,20 @@ async function main(): Promise<void> {
       const res = await sheet.goto(`${url}/fiche`, { waitUntil: 'networkidle' })
       if (!res || res.status() !== 200) throw new Error(`${link.name} : fiche en HTTP ${res?.status()}`)
       await sheet.emulateMedia({ media: 'print' })
+      // La feuille a une hauteur fixe et coupe ce qui dépasse sans ajouter de
+      // page : on mesure la marge entre le pied de page et le bas de la feuille.
+      const spareMm = await sheet.evaluate(() => {
+        const fiche = document.querySelector('.fiche')!.getBoundingClientRect()
+        const content = [...document.querySelectorAll('.fiche > *')].map((e) => e.getBoundingClientRect().bottom)
+        return (fiche.bottom - Math.max(...content)) / (96 / 25.4)
+      })
+      if (spareMm < 3) throw new Error(`${link.name} : la feuille déborde (marge ${spareMm.toFixed(1)} mm)`)
+      const gap = await sheet.evaluate(() => {
+        const qr = document.querySelector('.fiche-qr')!.getBoundingClientRect().bottom
+        const steps = document.querySelector('.fiche-steps-title')!.getBoundingClientRect().top
+        return (steps - qr) / (96 / 25.4)
+      })
+      if (gap < 4) throw new Error(`${link.name} : la feuille est trop pleine (${gap.toFixed(1)} mm avant « Comment ça se passe »)`)
       const pdf = await sheet.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true })
       const doc = await PDFDocument.load(pdf)
       if (doc.getPageCount() !== 1) throw new Error(`${link.name} : la feuille fait ${doc.getPageCount()} pages`)
@@ -71,7 +85,7 @@ async function main(): Promise<void> {
       await phone.goto(url, { waitUntil: 'networkidle' })
       await phone.screenshot({ path: `${prefix}-page.png`, fullPage: true })
       await phone.close()
-      console.log(`  ${link.rank} ${link.name} : feuille + page`)
+      console.log(`  ${link.rank} ${link.name} : feuille + page (${gap.toFixed(0)} mm de réserve)`)
     }
   } finally {
     await browser.close()

@@ -5,7 +5,16 @@ import { env } from '@/lib/env'
 import { openAudit } from '@/lib/prospect-audit/access'
 import { AUDIT_CONTACT, HOW_IT_WORKS, OFFER_TITLE, formatAuditDate, ordinal } from '@/lib/prospect-audit/copy'
 import { hasOwnSite } from '@/lib/prospect-audit/issues'
-import { citedLabel, findCell, issueCountLabel, presenceSummary, scoreLabel } from '@/lib/prospect-audit/view'
+import {
+  citedLabel,
+  findCell,
+  issueCountLabel,
+  mostUrgent,
+  presenceFraction,
+  presenceSummary,
+  scoreLabel,
+  topCitedInstead,
+} from '@/lib/prospect-audit/view'
 import { ENGINE_LABELS, INTENT_LABELS, PROSPECT_ENGINES } from '@/lib/prospect-audit/types'
 import './fiche.css'
 
@@ -25,6 +34,8 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
   const auditUrl = new URL(`/audit/${token}`, env.NEXT_PUBLIC_SITE_URL).toString()
   const qr = await QRCode.toDataURL(auditUrl, { errorCorrectionLevel: 'M', margin: 0, width: 600 })
   const summary = presenceSummary(doc.answers)
+  const instead = topCitedInstead(doc)
+  const urgent = mostUrgent(doc)
 
   return (
     <div className="fiche">
@@ -51,7 +62,7 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
           </div>
           <div className="fiche-score">
             <div className="fiche-score-label">Présence IA</div>
-            <div className="fiche-score-value">{doc.scores.authority}</div>
+            <div className="fiche-score-value">{presenceFraction(summary)}</div>
           </div>
           <div className="fiche-score">
             <div className="fiche-score-label">Fiche Google</div>
@@ -69,8 +80,9 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
       ) : (
         <div className="fiche-scores">
           <div className="fiche-score main">
-            <div className="fiche-score-label">Présence dans les IA</div>
-            <div className="fiche-score-cited">{citedLabel(summary)}</div>
+            <div className="fiche-score-label">Présence IA</div>
+            <div className="fiche-score-value">{presenceFraction(summary)}</div>
+            <div className="fiche-score-hint">réponses vous citent</div>
           </div>
           <div className="fiche-score">
             <div className="fiche-score-label">Fiche Google</div>
@@ -128,7 +140,19 @@ export default async function AuditSheetPage({ params }: { params: Promise<{ tok
         commerce.
       </p>
 
-      <div className="fiche-issues">{issueCountLabel(doc.issues.length)}</div>
+      <div className="fiche-issues">
+        <div className="fiche-issues-count">{issueCountLabel(doc.issues.length)}</div>
+        {instead.length > 0 ? (
+          <p>
+            <b>Cités à votre place :</b> {instead.join(', ')}
+          </p>
+        ) : null}
+        {urgent ? (
+          <p>
+            <b>Le plus urgent :</b> {urgent}
+          </p>
+        ) : null}
+      </div>
 
       <div className="fiche-qr">
         {/* eslint-disable-next-line @next/next/no-img-element -- QR généré à la volée, en data URI */}

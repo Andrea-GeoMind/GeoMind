@@ -9,6 +9,7 @@ import {
   ISSUE_CATEGORIES,
   ISSUE_CATEGORY_LABELS,
   type AnswerCell,
+  type AuditDocument,
   type CompetitorSnapshot,
   type IssueCategory,
   type PlaceSnapshot,
@@ -154,3 +155,60 @@ export function scoreLabel(score: number | null): string {
   return score === null ? '—' : String(score)
 }
 
+
+// ─── Feuille A4 : présence, concurrents, le plus urgent ───────────────────────
+
+/** « 0 / 15 » : jamais un chiffre seul pour la présence dans les IA. */
+export function presenceFraction({ cited, answered }: PresenceSummary): string {
+  return `${cited} / ${answered}`
+}
+
+/** Les acteurs les plus cités à la place du commerce, dans les réponses obtenues. */
+export function topCitedInstead(doc: Pick<AuditDocument, 'citedInstead'>, limit = 3): string[] {
+  return doc.citedInstead.slice(0, limit).map((c) => {
+    const short = shortBusinessName(c.name)
+    return short.length > 40 ? `${short.slice(0, 39).trimEnd()}…` : short
+  })
+}
+
+/**
+ * Le problème le plus grave, en une phrase sans jargon. Ordre de gravité fixe :
+ * ce qui empêche d'être lu du tout (noindex, robots, pas de site), puis la
+ * fiche Google, puis l'absence dans les IA. Pure et déterministe.
+ */
+export function mostUrgent(doc: Pick<AuditDocument, 'issues' | 'prospect' | 'answers'>): string | null {
+  const keys = new Set(doc.issues.map((i) => i.key))
+  const p = doc.prospect
+  const rules: [string, () => string][] = [
+    ['technique.noindex_on_key_pages', () => "votre site demande à Google de ne pas l'afficher."],
+    ['technique.robots_txt_block_all', () => 'votre site interdit aux moteurs de recherche de le lire.'],
+    ['technique.robots_txt_block_ai_bots', () => 'votre site interdit aux IA de le lire.'],
+    ['site.inaccessible', () => "votre site n'a pas pu être lu : les IA risquent de ne pas pouvoir le lire non plus."],
+    ['site.absent', () => "vous n'avez pas de site : les IA n'ont rien à lire sur vous."],
+    [
+      'site.plateforme',
+      () => `vous n'avez pas de site à vous : votre fiche renvoie vers ${p.listing ? platformLabel(p.listing) : 'une plateforme'}, les IA n'ont rien à lire sur vous.`,
+    ],
+    ['technique.https_missing', () => "votre site n'est pas sécurisé (pas de cadenas dans le navigateur)."],
+    ['technique.mobile_viewport_missing', () => "votre site s'affiche mal sur téléphone."],
+    ['fiche.horaires', () => "vos horaires n'apparaissent pas sur votre fiche Google."],
+    [
+      'avis.nombre',
+      () =>
+        `vous avez ${formatNumber(p.reviewCount)} avis Google, quand la médiane du quartier est de ${formatNumber(p.sectorMedianReviews)}.`,
+    ],
+    [
+      'avis.note',
+      () =>
+        `votre note Google (${p.rating === null ? '—' : formatRating(p.rating)}) est en dessous de celle de ${p.competitor?.name ?? 'votre concurrent le plus proche'}.`,
+    ],
+    ['photos.nombre', () => `votre fiche Google ne montre que ${p.photoCount} photo${p.photoCount > 1 ? 's' : ''}.`],
+  ]
+  for (const [key, sentence] of rules) if (keys.has(key)) return sentence()
+  if ([...keys].some((k) => k.startsWith('ia.'))) {
+    const { cited } = presenceSummary(doc.answers)
+    return cited === 0 ? 'aucune IA ne vous cite quand un client demande conseil.' : 'les IA vous citent rarement.'
+  }
+  const first = doc.issues[0]
+  return first ? `${first.title.charAt(0).toLowerCase()}${first.title.slice(1)}.` : null
+}

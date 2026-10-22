@@ -13,7 +13,6 @@ html, body { background: #fff !important; }
 .fiche-addr { margin: 0; font-size: 12pt; color: #333; }
 .fiche-scores { display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 3mm; margin-top: 5mm; }
 .fiche-scores.five { grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr; gap: 2.5mm; }
-.fiche-score-cited { margin-top: 1mm; font-size: 17pt; font-weight: 800; line-height: 1.15; }
 .fiche-score { border: 1pt solid #111; border-radius: 2mm; padding: 2.5mm 3mm; }
 .fiche-score.main { border-width: 2pt; }
 .fiche-score-label { font-size: 11pt; font-weight: 600; }
@@ -21,7 +20,7 @@ html, body { background: #fff !important; }
 .fiche-score.main .fiche-score-value { font-size: 30pt; }
 .fiche-score-unit { font-size: 12pt; font-weight: 600; color: #444; }
 .fiche-score-hint { font-size: 11pt; color: #444; }
-.fiche h2 { margin: 5mm 0 2mm; font-size: 14pt; font-weight: 800; }
+.fiche h2 { margin: 4.5mm 0 2mm; font-size: 14pt; font-weight: 800; }
 .fiche-table { width: 100%; border-collapse: collapse; font-size: 11pt; }
 .fiche-table th, .fiche-table td { border: 0.75pt solid #777; padding: 1.4mm 1.5mm; text-align: center; }
 .fiche-table thead th { font-weight: 700; background: #eee; }
@@ -29,9 +28,12 @@ html, body { background: #fff !important; }
 .fiche-yes { font-weight: 800; font-size: 13pt; }
 .fiche-no { font-size: 13pt; color: #555; }
 .fiche-caption { margin: 1.5mm 0 0; font-size: 11pt; color: #333; }
-.fiche-issues { margin-top: 5mm; padding: 3mm 4mm; border-left: 3pt solid #111; font-size: 15pt; font-weight: 800; }
-.fiche-qr { display: flex; align-items: center; gap: 5mm; margin-top: 5mm; }
-.fiche-qr img { width: 38mm; height: 38mm; }
+.fiche-issues { margin-top: 5mm; padding: 2mm 4mm; border-left: 3pt solid #111; }
+.fiche-issues-count { font-size: 15pt; font-weight: 800; }
+.fiche-issues p { margin: 1.5mm 0 0; font-size: 12pt; line-height: 1.3; }
+.fiche-issues b { font-weight: 800; }
+.fiche-qr { display: flex; align-items: center; gap: 5mm; margin-top: 4mm; }
+.fiche-qr img { width: 34mm; height: 34mm; }
 .fiche-qr-title { font-size: 14pt; font-weight: 800; }
 .fiche-qr-text { margin-top: 1mm; font-size: 11pt; color: #333; }
 .fiche-steps { margin-top: auto; padding-top: 3mm; font-size: 11.5pt; }

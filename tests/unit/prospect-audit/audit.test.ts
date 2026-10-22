@@ -384,3 +384,47 @@ describe('rédaction : première personne, aucun outil', () => {
     expect(problems[0]).toContain('Wix')
   })
 })
+
+describe('feuille A4 : présence, concurrents, le plus urgent', () => {
+  const issue = (key: string, category: 'site' | 'technique' | 'avis' | 'ia' | 'photos' | 'fiche') => ({
+    key, category, title: 'Titre', detail: '',
+  })
+  const answers: AnswerCell[] = [
+    { question: 0, engine: 'chatgpt', status: 'ok', cited: false, position: null, competitors: [] },
+  ]
+
+  it('présence toujours en fraction', async () => {
+    const { presenceFraction } = await import('@/lib/prospect-audit/view')
+    expect(presenceFraction({ cited: 0, answered: 15 })).toBe('0 / 15')
+  })
+
+  it('les 3 plus cités à votre place', async () => {
+    const { topCitedInstead } = await import('@/lib/prospect-audit/view')
+    const citedInstead = [4, 3, 2, 1].map((n) => ({ name: `A${n}`, answers: n }))
+    expect(topCitedInstead({ citedInstead })).toEqual(['A4', 'A3', 'A2'])
+  })
+
+  it('le noindex passe avant tout, sans jargon', async () => {
+    const { mostUrgent } = await import('@/lib/prospect-audit/view')
+    const doc = {
+      prospect: { ...BARBER, website: 'https://atlas-training.fr/' },
+      answers,
+      issues: [issue('avis.nombre', 'avis'), issue('technique.noindex_on_key_pages', 'technique'), issue('ia.chatgpt', 'ia')],
+    }
+    expect(mostUrgent(doc)).toBe("votre site demande à Google de ne pas l'afficher.")
+  })
+
+  it('pas de site, puis avis, puis absence dans les IA', async () => {
+    const { mostUrgent } = await import('@/lib/prospect-audit/view')
+    expect(mostUrgent({ prospect: BARBER, answers, issues: [issue('avis.nombre', 'avis'), issue('site.absent', 'site')] })).toBe(
+      "vous n'avez pas de site : les IA n'ont rien à lire sur vous."
+    )
+    expect(mostUrgent({ prospect: BARBER, answers, issues: [issue('photos.nombre', 'photos'), issue('avis.nombre', 'avis')] })).toBe(
+      'vous avez 17 avis Google, quand la médiane du quartier est de 710.'
+    )
+    expect(mostUrgent({ prospect: BARBER, answers, issues: [issue('ia.claude', 'ia')] })).toBe(
+      'aucune IA ne vous cite quand un client demande conseil.'
+    )
+    expect(mostUrgent({ prospect: BARBER, answers, issues: [] })).toBeNull()
+  })
+})
