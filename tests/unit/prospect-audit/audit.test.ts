@@ -343,7 +343,7 @@ describe('runProspectAudit', () => {
         engines: { chatgpt: broken, gemini: { ...broken, name: 'gemini' }, claude: { ...broken, name: 'claude' } },
         pages: null,
         synthesize,
-        retryDelayMs: 0,
+        retryDelaysMs: [0, 0],
       })
     ).rejects.toThrow(AuditAbortedError)
   })

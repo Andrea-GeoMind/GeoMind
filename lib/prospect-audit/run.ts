@@ -48,7 +48,8 @@ export const PROSPECT_PAGE_LIMIT = 5
 export const MAX_FAILED_CALLS = 3
 export const AUDIT_TTL_DAYS = 60
 const CALL_TIMEOUT_MS = 90_000
-const RETRY_DELAY_MS = 3_000
+/** Attentes avant la 2e puis la 3e tentative (coupures réseau, 429 passagers). */
+const RETRY_DELAYS_MS = [3_000, 10_000]
 
 export class AuditAbortedError extends Error {
   constructor(message: string) {
@@ -83,7 +84,7 @@ export interface RunProspectAuditDeps {
   }) => Promise<SynthesisResult>
   budget?: AuditBudget
   now?: Date
-  retryDelayMs?: number
+  retryDelaysMs?: number[]
   log?: (line: string) => void
 }
 
@@ -126,7 +127,7 @@ export async function runProspectAudit(
   const budget = deps.budget ?? new AuditBudget()
   const now = deps.now ?? new Date()
   const log = deps.log ?? (() => {})
-  const retryDelayMs = deps.retryDelayMs ?? RETRY_DELAY_MS
+  const retryDelaysMs = deps.retryDelaysMs ?? RETRY_DELAYS_MS
   const ownSite = hasOwnSite(prospect)
 
   // ── 1. Questions (neutres par construction, vérifiées quand même — §6) ──────
@@ -155,7 +156,7 @@ export async function runProspectAudit(
       let response: IAResponse | null = null
       let lastError: unknown = null
 
-      for (let attempt = 1; attempt <= 2 && !response; attempt++) {
+      for (let attempt = 1; attempt <= retryDelaysMs.length + 1 && !response; attempt++) {
         budget.assertRoom(label, TYPICAL_CALL_COST_USD[engineName])
         try {
           response = await withTimeout(engine.query(prompt), CALL_TIMEOUT_MS, label)
@@ -168,7 +169,8 @@ export async function runProspectAudit(
           if (err instanceof Error && /timeout après/.test(err.message)) {
             budget.record(`${label} (timeout)`, TYPICAL_CALL_COST_USD[engineName])
           }
-          if (attempt === 1 && isRetryable(err)) await new Promise((r) => setTimeout(r, retryDelayMs))
+          const delay = retryDelaysMs[attempt - 1]
+          if (delay !== undefined && isRetryable(err)) await new Promise((r) => setTimeout(r, delay))
           else break
         }
       }

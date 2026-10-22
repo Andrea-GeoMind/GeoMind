@@ -1,7 +1,14 @@
 import type { TechnicalIssue, RuleInput } from '../types'
 
-export async function checkHttpsMissing({ siteUrl }: RuleInput): Promise<TechnicalIssue | null> {
+/**
+ * L'adresse saisie (ou celle d'une fiche Google) commence souvent par http://
+ * alors que le site redirige vers https://. Seules les pages réellement lues
+ * font foi : une seule servie en https suffit à écarter le problème (faux
+ * positif constaté le 22/10/2026 sur trois sites qui redirigeaient tous).
+ */
+export async function checkHttpsMissing({ siteUrl, pages }: RuleInput): Promise<TechnicalIssue | null> {
   if (!siteUrl.startsWith('http://')) return null
+  if (pages.some((p) => p.url.startsWith('https://'))) return null
   return {
     ruleKey: 'https_missing',
     category: 'accessibility',

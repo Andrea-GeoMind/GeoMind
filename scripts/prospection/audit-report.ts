@@ -67,7 +67,7 @@ async function main(): Promise<void> {
     if (!doc) throw new Error(`Audit introuvable : ${p.name}`)
     lines.push([p.rank, p.name.replace(/;/g, ','), link.url, link.expires, p.tour].join(';'))
     table.push(
-      `| ${p.tour} | ${p.name} | ${presenceFraction(presenceSummary(doc.answers))} | ${doc.scores.place} | ${doc.issues.length} | ${mostUrgent(doc) ?? '—'} |`
+      `| ${p.tour} | ${p.name.replace(/\|/g, '/')} | ${presenceFraction(presenceSummary(doc.answers))} | ${doc.scores.place} | ${doc.issues.length} | ${mostUrgent(doc) ?? '—'} |`
     )
   }
   writeFileSync(LINKS, lines.join('\n') + '\n')

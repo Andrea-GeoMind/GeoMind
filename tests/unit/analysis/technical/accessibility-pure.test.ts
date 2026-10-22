@@ -22,7 +22,8 @@ describe('checkHttpsMissing', () => {
   })
 
   it('returns an issue when site uses HTTP', async () => {
-    const result = await checkHttpsMissing({ pages: PAGES_OK, siteUrl: 'http://example.com' })
+    // Pages lues en http : sans redirection vers https (voir https-missing.test.ts)
+    const result = await checkHttpsMissing({ pages: [{ url: 'http://example.com/' }], siteUrl: 'http://example.com' })
     expect(result).not.toBeNull()
     expect(result!.ruleKey).toBe('https_missing')
     expect(result!.category).toBe('accessibility')
