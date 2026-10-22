@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { isAbsolute, join } from 'node:path'
 import { chromium } from '@playwright/test'
 import { PDFDocument } from 'pdf-lib'
 
@@ -10,7 +10,8 @@ import { PDFDocument } from 'pdf-lib'
  * capture pleine page de l'audit en largeur téléphone.
  *
  * Usage :
- *   npx tsx scripts/prospection/audit-sheets.ts --ranks 1,8 [--out Visites.pdf] [--base https://geomind.fr]
+ *   npx tsx scripts/prospection/audit-sheets.ts --ranks 1,8 [--out Visites.pdf | /chemin/absolu.pdf] [--base https://geomind.fr]
+ *   Les feuilles sortent dans l'ordre des rangs donnés (audit-report.ts imprime l'ordre des tournées).
  *
  * Lit les liens dans ~/Downloads/Audits-C05b/liens.csv (écrit par audit-prospect.ts).
  * Refuse une feuille qui déborderait sur une 2e page.
@@ -42,7 +43,8 @@ function readLinks(): LinkRow[] {
 async function main(): Promise<void> {
   const ranks = (arg('--ranks') ?? '').split(',').filter(Boolean).map(Number)
   const base = arg('--base')
-  const out = join(OUT_DIR, arg('--out') ?? 'Feuilles-audit.pdf')
+  const outArg = arg('--out') ?? 'Feuilles-audit.pdf'
+  const out = isAbsolute(outArg) ? outArg : join(OUT_DIR, outArg)
   const links = readLinks()
   const selected = ranks.length ? ranks.map((r) => links.find((l) => l.rank === r)) : links
   if (selected.some((l) => !l)) throw new Error('Rang sans lien dans liens.csv')

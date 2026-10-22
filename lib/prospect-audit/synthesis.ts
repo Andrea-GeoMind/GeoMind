@@ -50,9 +50,23 @@ const TOOL_NAMES =
 const FIRST_PERSON = /(^|[\s«(])(je|j['’])/i
 const STARTS_FIRST_PERSON = /^(je\s|j['’])/i
 
+/** Ce que la prestation ne fait pas ou ne peut pas promettre (consignes d'Andrea, 22/10/2026). */
+const FORBIDDEN_PHRASES: [RegExp, string][] = [
+  [/photos? professionnelles?|s[ée]ance photo|shooting/i, 'pas de « photos professionnelles » : « avec les photos que vous me transmettez »'],
+  [/\bserveurs?\b|h[ée]bergement/i, 'rien sur le serveur ou l’hébergement : « je vous indique quoi demander à votre hébergeur »'],
+  [
+    /pour que (les )?(ia|moteurs?|google|chatgpt|gemini|claude)[^.]{0,40}\b(recommand|trouv|cit|affich)|vous (trouvent|recommandent|citent) d[ée]sormais|vous serez (cit|recommand|premier|visible)|garanti/i,
+    'aucune promesse de résultat : « pour vous donner toutes les chances d’apparaître »',
+  ],
+]
+
 export function synthesisStyleProblems(solutions: { text: string }[], tasks: string[]): string[] {
   const problems: string[] = []
   const texts = [...solutions.map((s) => s.text), ...tasks]
+  for (const [pattern, rule] of FORBIDDEN_PHRASES) {
+    const hit = texts.find((t) => pattern.test(t))
+    if (hit) problems.push(`${rule} (trouvé : « ${hit.match(pattern)![0]} »)`)
+  }
   const tools = [...new Set(texts.flatMap((t) => t.match(new RegExp(TOOL_NAMES.source, 'gi')) ?? []))]
   if (tools.length) problems.push(`noms d'outils interdits : ${tools.join(', ')}`)
   if (solutions.some((s) => !FIRST_PERSON.test(s.text))) {

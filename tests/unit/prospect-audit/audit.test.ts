@@ -428,3 +428,20 @@ describe('feuille A4 : présence, concurrents, le plus urgent', () => {
     expect(mostUrgent({ prospect: BARBER, answers, issues: [] })).toBeNull()
   })
 })
+
+describe('rédaction : interdits du 22/10', () => {
+  it('photos professionnelles, serveur, promesses de résultat', async () => {
+    const { synthesisStyleProblems } = await import('@/lib/prospect-audit/synthesis')
+    const ok = [
+      { text: 'Je complète votre fiche avec les photos que vous me transmettez.' },
+      { text: 'Je vous indique quoi demander à votre hébergeur pour accélérer le site.' },
+      { text: "Je complète 2 à 3 annuaires pour vous donner toutes les chances d'apparaître." },
+    ]
+    expect(synthesisStyleProblems(ok, ['Je complète la fiche'])).toEqual([])
+    const bad = (text: string) => synthesisStyleProblems([{ text }], ['Je fais'])
+    expect(bad('Je complète votre fiche avec des photos professionnelles.')).toHaveLength(1)
+    expect(bad('Je réduis le temps de réponse du serveur.')).toHaveLength(1)
+    expect(bad('Je mets en cohérence vos informations pour que les IA vous recommandent.')).toHaveLength(1)
+    expect(bad('Je vérifie que ChatGPT et Gemini vous trouvent désormais.')).toHaveLength(1)
+  })
+})
