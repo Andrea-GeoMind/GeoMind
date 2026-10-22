@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { isAbsolute, join } from 'node:path'
-import { chromium } from '@playwright/test'
+import { chromium, type Page, type Response } from '@playwright/test'
 import { PDFDocument } from 'pdf-lib'
 
 /**
@@ -40,6 +40,15 @@ function readLinks(): LinkRow[] {
   return [...new Map(rows.map((r) => [r.rank, r])).values()]
 }
 
+/** Ouvre une page, avec une reprise : un redéploiement Vercel peut couper une requête. */
+async function open(page: Page, url: string): Promise<Response | null> {
+  try {
+    return await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })
+  } catch {
+    return page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })
+  }
+}
+
 async function main(): Promise<void> {
   const ranks = (arg('--ranks') ?? '').split(',').filter(Boolean).map(Number)
   const base = arg('--base')
@@ -58,7 +67,7 @@ async function main(): Promise<void> {
       const prefix = join(OUT_DIR, String(link.rank).padStart(2, '0'))
 
       const sheet = await browser.newPage({ viewport: { width: 794, height: 1123 }, deviceScaleFactor: 2 })
-      const res = await sheet.goto(`${url}/fiche`, { waitUntil: 'networkidle' })
+      const res = await open(sheet, `${url}/fiche`)
       if (!res || res.status() !== 200) throw new Error(`${link.name} : fiche en HTTP ${res?.status()}`)
       await sheet.emulateMedia({ media: 'print' })
       // La feuille a une hauteur fixe et coupe ce qui dépasse sans ajouter de
@@ -84,7 +93,7 @@ async function main(): Promise<void> {
       await sheet.close()
 
       const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
-      await phone.goto(url, { waitUntil: 'networkidle' })
+      await open(phone, url)
       await phone.screenshot({ path: `${prefix}-page.png`, fullPage: true })
       await phone.close()
       console.log(`  ${link.rank} ${link.name} : feuille + page (${gap.toFixed(0)} mm de réserve)`)
