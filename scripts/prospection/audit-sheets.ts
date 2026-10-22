@@ -11,6 +11,7 @@ import { PDFDocument } from 'pdf-lib'
  *
  * Usage :
  *   npx tsx scripts/prospection/audit-sheets.ts --ranks 1,8 [--out Visites.pdf | /chemin/absolu.pdf] [--base https://geomind.fr]
+ *   --sans-pages : feuilles seulement, sans capture de la page web en largeur téléphone.
  *   Les feuilles sortent dans l'ordre des rangs donnés (audit-report.ts imprime l'ordre des tournées).
  *
  * Lit les liens dans ~/Downloads/Audits-C05b/liens.csv (écrit par audit-prospect.ts).
@@ -92,10 +93,12 @@ async function main(): Promise<void> {
       await sheet.screenshot({ path: `${prefix}-feuille.png`, fullPage: false })
       await sheet.close()
 
-      const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
-      await open(phone, url)
-      await phone.screenshot({ path: `${prefix}-page.png`, fullPage: true })
-      await phone.close()
+      if (!process.argv.includes('--sans-pages')) {
+        const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+        await open(phone, url)
+        await phone.screenshot({ path: `${prefix}-page.png`, fullPage: true, timeout: 90_000 })
+        await phone.close()
+      }
       console.log(`  ${link.rank} ${link.name} : feuille + page (${gap.toFixed(0)} mm de réserve)`)
     }
   } finally {
