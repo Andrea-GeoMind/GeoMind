@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Too Good To Go – interactive presentation</title>
+<style>
+:root{--teal:#00615F;--teal2:#005250;--cream:#F9F3F0;--ink:#012625;--soft:#5F6D6D;--coral:#FF7973;--line:#DEE3E3;--white:#FFFFFF}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:ui-rounded,"SF Pro Rounded","Nunito","Avenir Next",system-ui,sans-serif;background:var(--cream);color:var(--ink);font-size:clamp(15px,1.5vw,30px);line-height:1.35;user-select:none}
+header{position:fixed;top:0;left:0;right:0;height:4.4vw;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:0 4vw;background:var(--teal);color:var(--cream)}
+header .who{font-weight:800;font-size:.8em}
+header ul{display:flex;gap:.4vw;list-style:none}
+header a{display:block;padding:.35em 1em;border-radius:99px;color:var(--cream);text-decoration:none;font-weight:700;font-size:.72em;cursor:pointer}
+header a.on{background:var(--cream);color:var(--teal)}
+.meter{font-size:.72em;font-weight:700;display:flex;gap:1.2vw;align-items:center}
+.meter b{font-size:1.5em;font-variant-numeric:tabular-nums}
+.meter .clock{opacity:.75;font-variant-numeric:tabular-nums}
+.slide{position:absolute;top:4.4vw;bottom:6vw;left:0;right:0;padding:2.6vw 7vw 1vw;display:flex;flex-direction:column;justify-content:center;gap:1.8vw;opacity:0;pointer-events:none;transition:opacity .35s}
+.slide.active{opacity:1;pointer-events:auto}
+.eyebrow{font-weight:800;font-size:.72em;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+h1{font-size:6em;line-height:.95;font-weight:900;letter-spacing:-.03em;color:var(--teal)}
+h2{font-size:2.6em;line-height:1.02;font-weight:900;letter-spacing:-.02em}
+h3{font-size:1.2em;font-weight:800;line-height:1.15}
+.lead{font-size:1.4em;max-width:30em}
+.soft{color:var(--soft)}
+.btn{display:inline-block;background:var(--teal);color:var(--cream);font-weight:800;padding:.7em 1.6em;border-radius:99px;border:0;font:inherit;font-weight:800;cursor:pointer;align-self:flex-start}
+.fade{opacity:0;transform:translateY(.8vw);transition:opacity .45s,transform .45s}
+.fade.on{opacity:1;transform:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:start}
+/* footer track */
+footer{position:fixed;left:7vw;right:7vw;bottom:0;height:6vw;z-index:20}
+footer .ln{position:absolute;left:0;right:0;top:3vw;height:2px;background:var(--ink);opacity:.5}
+footer .cro{position:absolute;top:.8vw;font-size:2.2vw;line-height:1;transition:left .7s cubic-bezier(.3,1.3,.5,1)}
+footer .end{position:absolute;right:0;top:.8vw;font-size:2.2vw;line-height:1}
+footer .cap{position:absolute;left:0;top:3.6vw;font-size:.62em;font-weight:800}
+footer .cnt{position:absolute;right:0;top:3.6vw;font-size:.62em;font-weight:800;color:var(--soft)}
+/* 2 guess */
+.guess{display:flex;gap:1vw;flex-wrap:wrap}
+.guess button{font:inherit;font-weight:900;font-size:1.5em;padding:.5em 1em;border-radius:1vw;border:2px solid var(--teal);background:var(--white);color:var(--teal);cursor:pointer;transition:all .25s}
+.guess button.wrong{opacity:.25;text-decoration:line-through;animation:shake .35s}
+.guess button.right{background:var(--teal);color:var(--cream);transform:scale(1.15)}
+@keyframes shake{25%{transform:translateX(-.5vw)}75%{transform:translateX(.5vw)}}
+.plate{display:grid;grid-template-columns:repeat(5,1fr);gap:1vw;justify-items:center;font-size:4.4vw}
+.plate span{display:grid;place-items:center;width:6.6vw;height:6.6vw;background:var(--white);border-radius:28%;border:2px solid var(--line);transition:all .5s}
+.plate span.lost{filter:grayscale(1);opacity:.3;border-style:dashed;transform:translateY(.8vw) rotate(8deg)}
+.big{font-size:8em;font-weight:900;line-height:.9;letter-spacing:-.04em;color:var(--teal);font-variant-numeric:tabular-nums}
+/* 3 history */
+.road{position:relative;height:16vw;margin-top:3vw}
+.road .ln{position:absolute;left:0;right:0;top:3.2vw;height:.3vw;background:var(--teal);border-radius:9px}
+.road .bus{position:absolute;top:.2vw;left:-8%;font-size:2.8vw;line-height:1;transition:left .9s cubic-bezier(.4,0,.2,1);transform:scaleX(-1)}
+.stop{position:absolute;top:2.55vw;width:19%;opacity:.18;transition:opacity .5s}
+.stop.on{opacity:1}
+.stop i{display:block;width:1.6vw;height:1.6vw;border-radius:50%;background:var(--cream);border:.35vw solid var(--teal)}
+.stop.on i{background:var(--coral);border-color:var(--teal)}
+.stop b{display:block;font-size:1.5em;font-weight:900;margin-top:.6vw;color:var(--teal)}
+.stop p{font-size:.84em}
+/* 4 today */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:2vw}
+.stats b{display:block;font-size:3.4em;font-weight:900;line-height:1;color:var(--teal);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.live{background:var(--teal);color:var(--cream);border-radius:1.6vw;padding:1.6vw 2vw;display:flex;align-items:baseline;gap:1.4vw}
+.live b{font-size:3.2em;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+/* 5 bags */
+.bags{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2vw}
+.bagc{height:17vw;background:var(--white);border:2px solid var(--line);border-radius:1.6vw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6vw;cursor:pointer;padding:1.2vw;text-align:center;transition:background .3s,transform .3s}
+.bagc .em{font-size:5.4vw;line-height:1}
+.bagc .n{font-weight:900;color:var(--soft);font-size:.8em}
+.bagc .fact{display:none;font-weight:800;font-size:1em}
+.bagc.shake{animation:wob .45s}
+@keyframes wob{20%{transform:rotate(-7deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+.bagc.open{background:var(--teal);color:var(--cream);border-color:var(--teal);transform:translateY(-.6vw)}
+.bagc.open .em{display:none}
+.bagc.open .n{color:var(--coral)}
+.bagc.open .fact{display:block;animation:pop .35s}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+/* 6 csr */
+.box{background:var(--white);border:2px solid var(--line);border-radius:1.6vw;padding:1.8vw;display:flex;flex-direction:column;gap:.9vw;min-height:15vw}
+.box ul{list-style:none;display:flex;flex-direction:column;gap:.5vw}
+.box li{padding-left:1.2em;position:relative}
+.box li::before{content:"";position:absolute;left:0;top:.48em;width:.5em;height:.5em;border-radius:50%;background:var(--teal)}
+.sw{display:inline-flex;background:var(--line);border-radius:99px;padding:.25vw;align-self:flex-start;cursor:pointer}
+.sw span{padding:.3em 1em;border-radius:99px;font-weight:800;font-size:.78em;transition:all .3s}
+.sw:not(.with) span:first-child,.sw.with span:last-child{background:var(--teal);color:var(--cream)}
+.flow{font-size:1.25em;font-weight:800;min-height:3.2em}
+.flow .a,.flow .b{display:none}
+.shop:not(.with) .flow .a,.shop.with .flow .b{display:block;animation:pop .35s}
+/* 7 */
+.kpi b{font-size:2.3em;font-weight:900;color:var(--teal);line-height:1;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:.7vw}
+.chips span{background:var(--teal);color:var(--cream);padding:.4em 1em;border-radius:99px;font-weight:800;font-size:.9em}
+/* 8 */
+.score{background:var(--white);border:2px solid var(--line);border-radius:1.6vw;padding:1.6vw 2vw;display:flex;flex-direction:column;gap:1vw}
+.score .top{display:flex;align-items:center;justify-content:space-between}
+.score .val{font-size:3.4em;font-weight:900;color:var(--teal);line-height:1;font-variant-numeric:tabular-nums}
+.bar{height:1.4vw;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:81.6%;background:var(--teal);border-radius:99px;transition:width .9s}
+.pts{display:flex;flex-direction:column;gap:.8vw}
+.pts p b{color:var(--teal);font-size:1.2em;margin-right:.6em}
+/* 9 */
+.job{background:var(--white);border:2px solid var(--line);border-radius:1.8vw;padding:2vw;display:flex;flex-direction:column;gap:1.1vw;position:relative}
+.tags{display:flex;gap:.6vw;flex-wrap:wrap}
+.tags span{border:2px solid var(--teal);color:var(--teal);padding:.25em .9em;border-radius:99px;font-weight:800;font-size:.75em}
+.checks{display:flex;flex-direction:column;gap:.7vw}
+.chk{display:flex;align-items:center;gap:1vw;cursor:pointer;font-weight:700}
+.chk i{width:1.9vw;height:1.9vw;border-radius:.5vw;border:.22vw solid var(--teal);display:grid;place-items:center;font-style:normal;font-weight:900;color:var(--cream);transition:all .25s}
+.chk.on i{background:var(--teal)}
+.chk.on i::after{content:"✓"}
+.stamp{position:absolute;right:2vw;top:1.6vw;border:.3vw solid var(--coral);color:var(--coral);font-weight:900;font-size:1.3em;padding:.2em .8em;border-radius:.8vw;transform:rotate(8deg) scale(0);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.stamp.on{transform:rotate(8deg) scale(1)}
+.flags{display:flex;gap:1.2vw}
+.flag{display:flex;flex-direction:column;align-items:center;gap:.3vw;font-weight:800;font-size:.8em;opacity:.2;transform:scale(.85);transition:all .35s;cursor:pointer}
+.flag span{font-size:4vw;line-height:1}
+.flag.on{opacity:1;transform:none}
+/* 11 */
+.dark{background:var(--teal);color:var(--cream)}
+.dark .eyebrow{color:var(--coral)}
+.dark .big{color:var(--cream)}
+.src{font-size:.55em;color:var(--soft)}
+.dark .src{color:#B9D3D2}
+</style>
+</head>
+<body>
+<header>
+  <p class="who">Too Good To Go · Andrea Schwertz</p>
+  <ul>
+    <li><a data-part="1">History</a></li>
+    <li><a data-part="2">Fun facts</a></li>
+    <li><a data-part="3">CSR</a></li>
+    <li><a data-part="4">Internships</a></li>
+  </ul>
+  <p class="meter"><span><b id="meals">0</b> meals saved during this talk</span><span class="clock" id="clock">00:00</span></p>
+</header>
+
+<section class="slide" id="s1" data-part="0">
+  <p class="eyebrow">Company presentation · ESCE Lyon · 17 November 2026</p>
+  <h1>Too Good<br>To Go</h1>
+  <p class="lead">Follow the croissant. It has 15 minutes to be saved.</p>
+  <button class="btn" id="start">Start the clock</button>
+</section>
+
+<section class="slide" id="s2" data-part="0" data-steps="1">
+  <p class="eyebrow">The problem</p>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:1.6vw">
+      <h2>How much of the world’s food is wasted?</h2>
+      <div class="guess"><button>10%</button><button>20%</button><button>30%</button><button data-ok="1">40%</button><button>50%</button></div>
+      <p class="big fade" data-at="1" id="pct">0%</p>
+    </div>
+    <div class="plate" id="plate"><span>🥐</span><span>🍎</span><span>🥖</span><span>🧀</span><span>🍕</span><span>🥗</span><span>🍩</span><span>🍌</span><span>🥪</span><span>🍅</span></div>
+  </div>
+  <p class="src">Source: Too Good To Go</p>
+</section>
+
+<section class="slide" id="s3" data-part="1" data-steps="5">
+  <p class="eyebrow">1 · History</p>
+  <h2>From a buffet restaurant to an app</h2>
+  <div class="road">
+    <div class="ln"></div><div class="bus" id="bus">🚌</div>
+    <div class="stop" data-at="1" style="left:0%"><i></i><b>2015</b><p>Idea born in a Copenhagen buffet restaurant</p></div>
+    <div class="stop" data-at="2" style="left:20.25%"><i></i><b>2016</b><p>App launched in Denmark, a success in a few weeks</p></div>
+    <div class="stop" data-at="3" style="left:40.5%"><i></i><b>Sept 2016</b><p>Mette Lykke discovers the app on a bus and invests</p></div>
+    <div class="stop" data-at="4" style="left:60.75%"><i></i><b>2017</b><p>She becomes CEO</p></div>
+    <div class="stop" data-at="5" style="left:81%"><i></i><b>2019</b><p>Certified B Corp, then North America, Australia, New Zealand</p></div>
+  </div>
+  <p class="src">Source: toogoodtogo.com, Our history</p>
+</section>
+
+<section class="slide" id="s4" data-part="1">
+  <p class="eyebrow">1 · History</p>
+  <h2>Too Good To Go today</h2>
+  <div class="stats">
+    <div><b data-count="120" data-suffix="M">0</b><p>registered users</p></div>
+    <div><b data-count="180" data-suffix="k">0</b><p>partner businesses</p></div>
+    <div><b data-count="21">0</b><p>countries</p></div>
+    <div><b data-count="600" data-suffix="M+">0</b><p>meals saved since 2016</p></div>
+  </div>
+  <div class="live"><b id="live">0</b><p>meals saved by the app since I started talking, at about 5 meals every second</p></div>
+  <p class="src">Sources: toogoodtogo.com, Impact Report 2025 · Around 1,250 employees</p>
+</section>
+
+<section class="slide" id="s5" data-part="2">
+  <p class="eyebrow">2 · Five fun facts</p>
+  <h2>Pick a Surprise Bag</h2>
+  <div class="bags" id="bags">
+    <div class="bagc"><span class="em">🛍️</span><span class="n">1</span><p class="fact">You never know what is inside a Surprise Bag</p></div>
+    <div class="bagc"><span class="em">🛍️</span><span class="n">2</span><p class="fact">The CEO discovered the company on a bus</p></div>
+    <div class="bagc"><span class="em">🛍️</span><span class="n">3</span><p class="fact">About 5 meals saved every second in 2025</p></div>
+    <div class="bagc"><span class="em">🛍️</span><span class="n">4</span><p class="fact">Employees call themselves “Waste Warriors”</p></div>
+    <div class="bagc"><span class="em">🛍️</span><span class="n">5</span><p class="fact">“Best before” does not mean “bad after”</p></div>
+  </div>
+</section>
+
+<section class="slide" id="s6" data-part="3" data-steps="3">
+  <p class="eyebrow">3 · CSR policy</p>
+  <h2>CSR is the business model</h2>
+  <p class="lead soft">A win-win-win model: people, profit, planet</p>
+  <div class="two">
+    <div class="box fade" data-at="1"><h3>Consumers</h3><ul><li>Good food at a low price</li><li>Education on date labels</li><li>Less waste at home, not only in shops</li></ul></div>
+    <div class="box shop fade" data-at="2" id="shop"><h3>Suppliers: the partner shops</h3>
+      <div class="sw" id="sw"><span>Before</span><span>With the app</span></div>
+      <div class="flow"><p class="a">🥖 Unsold food → 🗑️ the bin. A cost.</p><p class="b">🥖 Unsold food → 🛍️ a customer. Revenue, and new clients in the shop.</p></div>
+      <p class="soft" style="font-size:.8em">From local bakeries to Carrefour, Aldi and Starbucks</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s7" data-part="3" data-steps="2">
+  <p class="eyebrow">3 · CSR policy</p>
+  <h2>Communities and employees</h2>
+  <div class="two">
+    <div class="box fade" data-at="1"><h3>Communities and environment</h3>
+      <p class="kpi"><b data-count="424000" id="co2">0</b> tonnes of CO2e avoided in 2025</p>
+      <p class="kpi"><b data-count="127" id="water">0</b> billion litres of water saved</p>
+      <ul><li>Free education hub for students</li><li>Works with governments on food waste rules</li></ul></div>
+    <div class="box fade" data-at="2"><h3>Employees</h3>
+      <div class="chips"><span>Hybrid work</span><span>Extra parental leave</span><span>Training for everyone</span><span>Shareback: paid time to volunteer</span></div></div>
+  </div>
+  <p class="src">Sources: Impact Report 2025 (via RetailDetail), toogoodtogo.com careers</p>
+</section>
+
+<section class="slide" id="s8" data-part="3" data-steps="5">
+  <p class="eyebrow">3 · CSR policy</p>
+  <h2>Does it attract and keep staff?</h2>
+  <div class="two">
+    <div class="pts">
+      <p class="fade" data-at="1"><b>1</b>A clear mission: a job with a purpose</p>
+      <p class="fade" data-at="2"><b>2</b>Proof, not marketing: a certified B Corp</p>
+      <p class="fade" data-at="4"><b>3</b>A strong culture: colleagues are the best part</p>
+      <p class="fade lead" data-at="5" style="font-weight:800">A strong mission brings people in. A good culture makes them stay.</p>
+    </div>
+    <div class="score fade" data-at="2">
+      <div class="top"><h3>B Corp score</h3><div class="sw" id="yr"><span>2019</span><span>2024</span></div></div>
+      <p class="val" id="sc">81.6</p>
+      <div class="bar"><i id="scbar"></i></div>
+      <p class="src">Source: toogoodtogo.com, ESG page</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s9" data-part="4">
+  <p class="eyebrow">4 · Internship ad 1</p>
+  <div class="job">
+    <span class="stamp" id="stamp1">100% match</span>
+    <h2>Biz Ops – Sales / CRM Intern</h2>
+    <div class="tags"><span>Paris</span><span>6 months</span><span>Hybrid</span></div>
+    <div class="two">
+      <div><h3>Tasks</h3><p>Organise leads in Salesforce. Keep the sales pipeline clean. Write reports to track performance.</p></div>
+      <div><h3>Do I match?</h3>
+        <div class="checks" id="checks"><p class="chk"><i></i>Business student</p><p class="chk"><i></i>Good with Excel</p><p class="chk"><i></i>Perfect French</p><p class="chk"><i></i>Fluent English</p></div></div>
+    </div>
+  </div>
+  <p class="src">Source: Too Good To Go job ad, published June 2026</p>
+</section>
+
+<section class="slide" id="s10" data-part="4">
+  <p class="eyebrow">4 · Internship ad 2</p>
+  <div class="job">
+    <h2>Business Operations Intern</h2>
+    <div class="tags"><span>Italy</span><span>6 months</span><span>Apply in English</span></div>
+    <div class="two">
+      <div><h3>One intern, four countries</h3>
+        <div class="flags" id="flags"><p class="flag"><span>🇮🇹</span>Italy</p><p class="flag"><span>🇫🇷</span>France</p><p class="flag"><span>🇪🇸</span>Spain</p><p class="flag"><span>🇵🇹</span>Portugal</p></div></div>
+      <div><h3>Profile</h3><p>Student in business, data or economics, curious about how a fast-growing company really works.</p></div>
+    </div>
+  </div>
+  <p class="src">Source: Too Good To Go job ad, 2026</p>
+</section>
+
+<section class="slide dark" id="s11" data-part="0">
+  <p class="eyebrow">Conclusion</p>
+  <h2>The CSR policy is not a department.<br>It is the business model.</h2>
+  <p class="lead"><span class="big" id="final" style="font-size:2.6em">0</span> meals were saved while I was talking. And one croissant.</p>
+  <p class="lead">Thank you for listening. Any questions?</p>
+  <p class="src">Sources: toogoodtogo.com (Our history, ESG, Careers), Impact Report 2025 via RetailDetail, Too Good To Go job ads 2026</p>
+</section>
+
+<footer><div class="ln"></div><span class="cro" id="cro">🥐</span><span class="end">🛍️</span><span class="cap" id="cap"></span><span class="cnt" id="cnt"></span></footer>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const slides=$$('.slide'),links=$$('header a');
+const caps=["06:00 · just baked","08:00 · on the shelf","10:00 · nobody wants me yet","11:30 · still here","13:00 · lunch is over","14:30 · getting cold","16:00 · a bit lonely","17:00 · two hours left","18:00 · last chance","19:00 · closing soon…","19:30 · saved!"];
+let cur=0,step=0,t0=null,frozen=null;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+function countUp(el,to,ms,dec,suf){const s=performance.now(),from=+el.dataset.from||0;(function f(t){const k=Math.min(1,(t-s)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=(dec?v.toFixed(dec):fmt(v))+(suf||'');if(k<1)requestAnimationFrame(f);else el.dataset.from=to;})(s);}
+/* per-slide click-anything lists: next opens the first closed item, prev closes the last open one */
+function lister(items,onChange){const on=()=>items.filter(i=>i.classList.contains('on')||i.classList.contains('open'));
+  return{next(){const i=items.find(x=>!x.classList.contains('on')&&!x.classList.contains('open'));if(!i)return false;i.click();return true;},
+         prev(){const o=on();if(!o.length)return false;o[o.length-1].classList.remove('on','open');onChange&&onChange();return true;}};}
+const bags=$$('#bags .bagc');bags.forEach(b=>b.onclick=()=>{if(b.classList.contains('open')){b.classList.remove('open');return;}b.classList.add('shake');setTimeout(()=>{b.classList.remove('shake');b.classList.add('open');},450);});
+const checks=$$('#checks .chk'),stamp=()=>$('#stamp1').classList.toggle('on',checks.every(c=>c.classList.contains('on')));
+checks.forEach(c=>c.onclick=()=>{c.classList.toggle('on');stamp();});
+const flags=$$('#flags .flag');flags.forEach(f=>f.onclick=()=>f.classList.toggle('on'));
+const lists={s5:lister(bags),s9:lister(checks,stamp),s10:lister(flags)};
+/* guess */
+$$('.guess button').forEach(b=>b.onclick=()=>{if(b.dataset.ok){step=1;render();}else b.classList.add('wrong');});
+/* switches */
+$('#sw').onclick=()=>{$('#sw').classList.toggle('with');$('#shop').classList.toggle('with');};
+function setYear(y24){$('#yr').classList.toggle('with',y24);countUp($('#sc'),y24?93.4:81.6,900,1);$('#scbar').style.width=(y24?93.4:81.6)+'%';}
+$('#yr').onclick=()=>setYear(!$('#yr').classList.contains('with'));
+const hooks={
+  s2(st){const ok=$('.guess [data-ok]'),lost=$$('#plate span').slice(6);
+    if(st>=1&&!ok.classList.contains('right')){ok.classList.add('right');$('#pct').dataset.from=0;countUp($('#pct'),40,1100,0,'%');lost.forEach((s,i)=>setTimeout(()=>s.classList.add('lost'),300+i*280));}
+    if(st<1){ok.classList.remove('right');lost.forEach(s=>s.classList.remove('lost'));$$('.guess .wrong').forEach(b=>b.classList.remove('wrong'));}},
+  s3(st){$('#bus').style.left=st<1?'-8%':((st-1)*20.25-1)+'%';},
+  s6(st){const w=st>=3;$('#sw').classList.toggle('with',w);$('#shop').classList.toggle('with',w);},
+  s7(st){if(st>=1&&!hooks._s7){hooks._s7=1;countUp($('#co2'),424000,1400);countUp($('#water'),127,1400);}if(st<1){hooks._s7=0;$('#co2').dataset.from=0;$('#water').dataset.from=0;}},
+  s8(st){const want=st>=3,has=$('#yr').classList.contains('with');if(want!==has)setYear(want);}
+};
+function enter(){const s=slides[cur];
+  if(s.id==='s4')$$('#s4 [data-count]').forEach(e=>{e.dataset.from=0;countUp(e,+e.dataset.count,1200,0,e.dataset.suffix);});
+  if(s.id==='s11'){if(t0&&frozen===null)frozen=meals();countUp($('#final'),frozen||0,1500);}}
+function render(){const s=slides[cur];slides.forEach((x,i)=>x.classList.toggle('active',i===cur));
+  s.querySelectorAll('[data-at]').forEach(e=>e.classList.toggle('on',step>=+e.dataset.at));
+  hooks[s.id]&&hooks[s.id](step);
+  links.forEach(a=>a.classList.toggle('on',a.dataset.part===s.dataset.part));
+  $('#cro').style.left='calc('+(cur/(slides.length-1))+' * (100% - 5.4vw))';
+  $('#cap').textContent=caps[cur];$('#cnt').textContent=(cur+1)+' / '+slides.length;}
+const steps=i=>+slides[i].dataset.steps||0;
+function go(i,st){cur=Math.max(0,Math.min(slides.length-1,i));step=st||0;render();enter();}
+function next(){if(cur===0&&!t0)startClock();const id=slides[cur].id,l=lists[id];if(l&&l.next())return;if(step===2&&((id==='s6'&&$('#sw').classList.contains('with'))||(id==='s8'&&$('#yr').classList.contains('with'))))step=3;if(step<steps(cur)){step++;render();}else if(cur<slides.length-1)go(cur+1,0);}
+function prev(){const l=lists[slides[cur].id];if(l&&l.prev())return;if(step>0){step--;render();}else if(cur>0)go(cur-1,steps(cur-1));}
+function meals(){return t0?Math.floor((Date.now()-t0)/1000*5):0;}
+function startClock(){t0=Date.now();setInterval(()=>{const m=frozen!==null?frozen:meals();$('#meals').textContent=fmt(m);$('#live').textContent=fmt(m);
+  if(frozen===null){const sec=Math.floor((Date.now()-t0)/1000);$('#clock').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');}},200);}
+$('#start').onclick=()=>{if(!t0)startClock();go(1,0);};
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}});
+links.forEach(a=>a.onclick=()=>go(slides.findIndex(s=>s.dataset.part===a.dataset.part),0));
+render();
+</script>
+</body>
+</html>
