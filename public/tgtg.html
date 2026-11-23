@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Too Good To Go – interactive presentation</title>
 <style>
@@ -118,6 +118,12 @@ footer .cnt{position:absolute;right:0;top:3.6vw;font-size:.62em;font-weight:800;
 .dark .big{color:var(--cream)}
 .src{font-size:.55em;color:var(--soft)}
 .dark .src{color:#B9D3D2}
+#vbtn{position:fixed;right:14px;bottom:14px;z-index:60;width:34px;height:34px;border-radius:50%;border:1.5px solid #00615F;background:#F9F3F0;color:#00615F;font-size:13px;line-height:1;cursor:pointer;opacity:.45;padding:0 0 0 2px}
+#vbtn:hover{opacity:1}
+#vov{position:fixed;inset:0;z-index:200;background:#000;display:none;align-items:center;justify-content:center}
+#vov.on{display:flex}
+#vov video{height:100%;max-width:100%;background:#000}
+#vcl{position:absolute;top:14px;right:18px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:24px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -133,7 +139,7 @@ footer .cnt{position:absolute;right:0;top:3.6vw;font-size:.62em;font-weight:800;
 </header>
 
 <section class="slide" id="s1" data-part="0">
-  <p class="eyebrow">Company presentation · ESCE Lyon · 17 November 2026</p>
+  <p class="eyebrow">Company presentation · ESCE Lyon · Anglais 2AS1</p>
   <h1>Too Good<br>To Go</h1>
   <p class="lead">Follow the croissant. It has 15 minutes to be saved.</p>
   <button class="btn" id="start">Start the clock</button>
@@ -299,6 +305,67 @@ $$('.guess button').forEach(b=>b.onclick=()=>{if(b.dataset.ok){step=1;render();}
 $('#sw').onclick=()=>{$('#sw').classList.toggle('with');$('#shop').classList.toggle('with');};
 function setYear(y24){$('#yr').classList.toggle('with',y24);countUp($('#sc'),y24?93.4:81.6,900,1);$('#scbar').style.width=(y24?93.4:81.6)+'%';}
 $('#yr').onclick=()=>setYear(!$('#yr').classList.contains('with'));
+
+/* ---- presenter notes (key N) ---- */
+const NOTES={
+s1:["Good afternoon everyone. Today I'm going to present a company you all know: Too Good To Go.<br><br>Look at the croissant at the bottom of the screen. It has fifteen minutes to be saved. Let's start the clock."],
+s2:["Let's start with a question. How much of the world's food is wasted? Ten, twenty, thirty, forty or fifty per cent? What do you think?<br><br><i>(click the answers the class gives)</i>",
+    "The answer is forty per cent. Around forty per cent of the food produced in the world never gets eaten. Look at the plate: four foods out of ten go to the bin.<br><br>Too Good To Go was created to fight this problem. I'll talk about four things: the history of the company, five fun facts, its CSR policy, and two internship ads."],
+s3:["Let's begin with the history. Follow the bus.",
+    "The story starts in 2015, in Copenhagen, in Denmark. A group of young entrepreneurs noticed something. At the end of the day, buffet restaurants threw away huge amounts of good food.<br><br>So they built an app. The idea is simple. A shop puts its unsold food on the app at a low price. A customer pays and comes to collect it.",
+    "The app was launched in Denmark in 2016. It was a success right away. In a few weeks, hundreds of businesses and thousands of users joined.",
+    "Then comes my favourite moment. In September 2016, a Danish entrepreneur called Mette Lykke was on a bus. A woman next to her showed her the app. Mette loved the idea. One month later, she was an investor.",
+    "And in spring 2017, she became the CEO. So the boss of the company found her job on a bus.",
+    "In 2019, the company became a certified B Corp. I'll come back to that later. Then it crossed the Atlantic to North America. More recently, it arrived in Australia and New Zealand.<br><br>In France, the co-founder is Lucie Basch, and the app is very popular here."],
+s4:["Where is the company today? Here are the key numbers. One hundred and twenty million users. One hundred and eighty thousand partner businesses. Twenty-one countries. And more than six hundred million meals saved since the beginning. Around one thousand two hundred and fifty employees.<br><br>Now look at the green box. This number is the meals saved by the app since I started talking. About five meals every second."],
+s5:["Now, five fun facts. But first, you have to open the bags. Pick a Surprise Bag: one, two, three, four or five?",
+    "<b>Bag 1.</b> You never know what is inside a Surprise Bag. You only know the shop and the price. Why? Because the shop doesn't know what will be left at the end of the day. For me, that's part of the fun.",
+    "<b>Bag 2.</b> The CEO discovered the company on a bus. She was a user first, then an investor, then the boss.",
+    "<b>Bag 3.</b> In 2025, the app saved almost one hundred and fifty-seven million meals. That is about five meals every second. It is the counter you can see at the top of the screen.",
+    "<b>Bag 4.</b> The employees have a special name. They call themselves “Waste Warriors”. You can even read it in their job ads. I think it shows the culture of the company.",
+    "<b>Bag 5.</b> “Best before” does not mean “bad after”. Many people throw food away because they don't understand date labels. So Too Good To Go works with brands to explain it: look, smell and taste before you throw food away."],
+s6:["Let's move on to the most important part: the CSR policy. For most companies, CSR is something extra. For Too Good To Go, it is the business itself. The more money they make, the more food they save.<br><br>They call it a win-win-win model: good for people, good for profit, good for the planet. I'll look at four groups.",
+    "First, consumers. They get good food for a low price. The company also educates them about date labels. The goal is less waste at home, not only in shops.",
+    "Second, suppliers. Too Good To Go doesn't produce anything, so its suppliers are the partner shops.<br><br>Before, unsold food went to the bin. It was a cost.",
+    "With the app, the same food goes to a customer. It brings some revenue and new clients in the shop.<br><br>The partners are local bakeries, but also big names like Carrefour, Aldi and Starbucks."],
+s7:["<i>(press the arrow)</i>",
+    "Third, communities and the environment. In 2025 alone, the company avoided about four hundred and twenty-four thousand tonnes of CO2. It also saved one hundred and twenty-seven billion litres of water.<br><br>And it goes further than the app. It has a free education hub for students, and it talks to governments to change the rules on food waste.",
+    "Fourth, employees. This is interesting for us, as future employees. The company offers hybrid work. It gives extra parental leave, more than the law asks. Everyone has access to training.<br><br>And there is a programme called Shareback: employees get paid time to volunteer in their community."],
+s8:["So, does this CSR policy help to attract and keep staff? I think yes, for three reasons.",
+    "One: the mission is clear. People want a job with a purpose, and here you can see your impact every day.",
+    "Two: it is proven. Too Good To Go is a certified B Corp. Look at the score. In 2019, it was eighty-one point six.",
+    "In 2024, ninety-three point four. So it's not just marketing.",
+    "Three: the culture. On the careers page, one employee says that after four years, his colleagues are still the best he has ever had.",
+    "A strong mission brings people in. A good culture makes them stay."],
+s9:["Finally, I found two interesting internship ads. Both were published in English in 2026.<br><br>The first one is in Paris: Biz Ops, Sales and CRM Intern. It's a six-month internship with the sales team. The main tasks are to organise leads in Salesforce, to keep the sales pipeline clean, and to write reports.<br><br>Do I match? Let's check.",
+    "I'm a business student.","I'm good with Excel.","French is my first language.","And fluent English… well, you can judge today."],
+s10:["The second one is a Business Operations Intern. It's also six months, and you apply in English. What I like here is the international side. One intern, four countries.",
+    "Italy, where the job is based.","France.","Spain.",
+    "And Portugal.<br><br>The profile is a student in business, data or economics. For me, it would be a great internship abroad."],
+s11:["To conclude. Too Good To Go started with a simple idea in Copenhagen. About ten years later, it has saved more than six hundred million meals. Its CSR policy is not a department. It is the business model. And that is exactly why people want to work there.<br><br><i>(read the number on the screen)</i> … meals were saved while I was talking. And one croissant.<br><br>Thank you for listening. Do you have any questions?"]
+};
+let nw=null,lastBag=0;
+bags.forEach((b,i)=>b.addEventListener('click',()=>{lastBag=i+1;}));
+function progress(){const id=slides[cur].id;
+  if(id==='s5'){const n=bags.filter(b=>b.classList.contains('open')||b.classList.contains('shake')).length;return n?lastBag:0;}
+  if(id==='s9')return checks.filter(c=>c.classList.contains('on')).length;
+  if(id==='s10')return flags.filter(c=>c.classList.contains('on')).length;
+  if(id==='s6')return (step>=2&&$('#sw').classList.contains('with'))?3:step;
+  if(id==='s8')return (step===2&&$('#yr').classList.contains('with'))?3:step;
+  return step;}
+function strip(h){return h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();}
+function updateNotes(){if(!nw||nw.closed)return;const id=slides[cur].id,arr=NOTES[id],p=Math.min(progress(),arr.length-1);
+  let nx='';if(id==='s5'){nx=bags.every(b=>b.classList.contains('open'))?strip(NOTES.s6[0]):'another bag';}
+  else if(p+1<arr.length)nx=strip(arr[p+1]);else if(cur+1<slides.length)nx=strip(NOTES[slides[cur+1].id][0]);else nx='end';
+  const d=nw.document;const sec=t0?Math.floor((Date.now()-t0)/1000):0;
+  const html=arr[p];if(d.getElementById('now').dataset.k!==id+p+nx){d.getElementById('now').dataset.k=id+p+nx;d.getElementById('now').innerHTML=html;d.getElementById('nx').textContent='NEXT → '+nx.slice(0,110)+(nx.length>110?'…':'');}
+  d.getElementById('pos').textContent='Screen '+(cur+1)+' / '+slides.length;
+  d.getElementById('tm').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');}
+function openNotes(){nw=window.open('','tgtgnotes','width=760,height=560');if(!nw)return;
+  nw.document.open();nw.document.write('<!DOCTYPE html><html translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate"><title>Notes</title><style>body{margin:0;background:#111;color:#fff;font-family:-apple-system,Helvetica,Arial,sans-serif;padding:22px 28px}#top{display:flex;justify-content:space-between;color:#ffd60a;font-weight:700;font-size:20px;margin-bottom:16px}#now{font-size:30px;line-height:1.35;font-weight:500}#now i{color:#9aa}#now b{color:#ffd60a}#nx{margin-top:24px;padding-top:14px;border-top:1px solid #444;color:#8fd3d0;font-size:19px;line-height:1.3}#help{position:fixed;bottom:8px;left:28px;color:#666;font-size:13px}</style></head><body><div id="top"><span id="pos"></span><span id="tm">00:00</span></div><div id="now"></div><div id="nx"></div><div id="help">← → from this window also drive the presentation</div></body></html>');nw.document.close();
+  nw.document.addEventListener('keydown',e=>{if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}updateNotes();});
+  updateNotes();}
+setInterval(updateNotes,250);
 const hooks={
   s2(st){const ok=$('.guess [data-ok]'),lost=$$('#plate span').slice(6);
     if(st>=1&&!ok.classList.contains('right')){ok.classList.add('right');$('#pct').dataset.from=0;countUp($('#pct'),40,1100,0,'%');lost.forEach((s,i)=>setTimeout(()=>s.classList.add('lost'),300+i*280));}
@@ -327,9 +394,24 @@ function startClock(){t0=Date.now();setInterval(()=>{const m=frozen!==null?froze
 $('#start').onclick=()=>{if(!t0)startClock();go(1,0);};
 document.addEventListener('keydown',e=>{
   if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}
-  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}});
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  if(e.key==='n'||e.key==='N'){openNotes();}});
 links.forEach(a=>a.onclick=()=>go(slides.findIndex(s=>s.dataset.part===a.dataset.part),0));
 render();
+</script>
+<button id="vbtn" title="Video pitch" aria-label="Play the video pitch">&#9654;</button>
+<div id="vov"><video id="vid" src="tgtg-pitch.mp4" preload="none" controls playsinline></video><button id="vcl" aria-label="Close">&times;</button></div>
+<script>
+(function(){var ov=document.getElementById('vov'),v=document.getElementById('vid');
+function op(){ov.classList.add('on');try{v.currentTime=0}catch(e){}var p=v.play();if(p&&p.catch)p.catch(function(){});if(ov.requestFullscreen){var f=ov.requestFullscreen();if(f&&f.catch)f.catch(function(){})}}
+function cl(){v.pause();ov.classList.remove('on');if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}
+document.getElementById('vbtn').addEventListener('click',function(e){e.stopPropagation();this.blur();op()});
+document.getElementById('vcl').addEventListener('click',function(e){e.stopPropagation();cl()});
+ov.addEventListener('click',function(e){e.stopPropagation()});
+document.addEventListener('keydown',function(e){if(!ov.classList.contains('on'))return;e.stopImmediatePropagation();
+ if(e.key==='Escape'){e.preventDefault();cl()}
+ else if(e.key===' '&&e.target!==v){e.preventDefault();v.paused?v.play():v.pause()}},true);
+})();
 </script>
 </body>
 </html>
